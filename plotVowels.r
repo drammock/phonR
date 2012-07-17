@@ -1,261 +1,615 @@
-#set the working directory and read in the data
-setwd('/Users/grant/Documents/NIHSouzaWright/PROJECTS/Dialect3/Dialect3 Results/vowel plotting')
-data <- read.delim('FormantAnalysisResultscolumnsplit.txt', header=TRUE, sep='\t', fileEncoding = 'UTF-16')
+plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.6, means.alpha=1, ignore.hidden=TRUE, ellipses=TRUE, ellipse.size=1, polygon=TRUE, poly.order=c('i','ɪ','e','ɛ','æ','a','ɑ','ɔ','o','ʊ','u','ʌ'), poly.include=length(poly.order), single.plot=TRUE, axis.col='#666666FF', titles='auto', grayscale=FALSE, vary.shapes=grayscale, vary.lines=grayscale, uniform.style=!single.plot, legend=single.plot, aspect.ratio=1.5, plot.dims=c(7,7), plot.unit='in', output='screen') {
+  # # # # # # # # # # # # # # # # # # # # # # # #
+  # R FUNCTION "plotVowels"
+  # This function plots vowel formants F1 and F2 with lots of options. 
+  #
+  # VERSION 0.2 (2012 07 17)
+  #
+  # CHANGELOG
+  # VERSION 0.2: implementation of normalization, grayscale, transparency of vowel tokens/means, on-screen trellis plotting for multiple graphs, various improvements to efficiency, documentation, & error-handling.
+  #
+  # AUTHOR: DANIEL MCCLOY (drmccloy@uw.edu) & AUGUST MCGRATH
+  # LICENSED UNDER THE GNU GENERAL PUBLIC LICENSE v3.0: http://www.gnu.org/licenses/gpl.html
+  # DEVELOPMENT OF THIS SCRIPT WAS FUNDED IN PART BY THE NATIONAL INSTITUTES OF HEALTH, GRANT # 10186254 TO PAMELA SOUZA
+  #
+  # EXPLANATION OF FUNCTION ARGUMENTS
+  # data		          optional data frame containing the values to be plotted.  If using, be sure to enclose the values of f0,f1,f2,f3,vowel, & grouping.factor in quotes.
+  # vowel   		      vector (or column from 'data') of vowel symbols
+  # f1    	  		    vector (or column from 'data') of F1 values
+  # f2    	  	    	vector (or column from 'data') of F2 values
+  # f3            		vector (or column from 'data') of F3 values (needed for normalization method 'nearey2')
+  # f0			          vector (or column from 'data') of f0 values (needed for normalization method 'nearey2')
+  # grouping.factor   vector (or column from 'data') of grouping factor values. Organizes data by color/shape/linestyle (if single.plot=TRUE), or sends to separate plots (if single.plot=FALSE). 
+  # norm.method		    Possible values are none, bark, mel, erb, log, lobanov|ztransform|zscore|z, nearey1|logmean, nearey2
+  # match.unit		    BOOLEAN: axis tickmarks should be in the normalized unit (TRUE) or in Hertz (FALSE)
+  # match.axes		    "absolute" means all plots have same bounds. "relative" means all plots span the same range, but may have different endpoints. "none" means extrema are calculated separately for each plot.  Ignored (coerced to "absolute") if single.plot==TRUE.
+  # points	    	    "text" plots the character string in 'vowel', "shape" plots tokens as geometric shapes, and "none" omits plotting the vowel tokens
+  # means         		"text" plots the character string in 'vowel', "shape" plots means as geometric shapes, and "none" omits plotting the vowel means
+  # points.alpha      opacity of individual vowel points [0,1]
+  # means.alpha       opacity of vowel means [0,1]
+  # ignore.hidden     BOOLEAN: if points='none', calculate extrema based only on means, or ellipses (if present)
+  # ellipses	    	    BOOLEAN: plot an ellipse around each vowel mean tracing the bivariate normal density contour.  Defaults to alpha level of 0.3173 (1 standard deviation).
+  # ellipse.size    	Size (in standard deviations) of the ellipse.
+  # polygon   		    BOOLEAN: plot a line connecting the vowel means into the standard "vowel polygon"
+  # poly.order        vector of strings that should match the values of 'vowel'.  Determines the order in which connecting lines are drawn for the vowel polygon.
+  # poly.include      INTEGER: indicates how many of the vowels in poly.order should be connected into a polygon (to exclude vowels from the polygon drawing, put them at the end of 'poly.order' and provide a value for 'poly.include' shorter than length(poly.order))
+  # single.plot   		BOOLEAN: plot each value of the grouping factor on a separate graph (FALSE) or all on the same graph (TRUE) 
+  # axis.col          color for the axis lines, ticks, numbers, and labels
+  # titles            "none" omits titles. "auto" will auto-generate titles based on grouping.factor. Also accepts a single string (all titles the same), or vector of strings that matches the number of levels in grouping.factor.
+  # grayscale         BOOLEAN: plot without color. Note that if grayscale=FALSE, graphs may still come out colorless if uniform.style=TRUE and there is only one group on the graph, because the first color plotted is always black.
+  # vary.shapes       BOOLEAN: when points=shape or means=shape, vary point shapes by group. Defaults to same value as 'grayscale'.  Ignored if uniform.style=TRUE.
+  # vary.lines        BOOLEAN: when ellipses=TRUE or polygons=TRUE, vary line styles by group. Defaults to same value as 'grayscale'.  Ignored if uniform.style=TRUE.
+  # uniform.style     BOOLEAN: plot each group's data using the same color, shape, and linestyle. Defaults to TRUE if single.plot==FALSE, and FALSE if single.plot==TRUE.
+  # legend            BOOLEAN: print a legend on the graph
+  # aspect.ratio      aspect ratio for plot units
+  # plot.dims         vector of length two, giving width & height of the plot.
+  # plot.unit         Unit of plot dimensions: 'in', 'cm', etc.
+  # output		        Possible values are "screen", "pdf", "jpg"
 
-#remove unmeasureable values
-data <- subset(data, F1>0 & F2>0 & F3>0)
 
-#use only the 50% values
-data <- subset(data, percent=='50')
+  # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+  # MAKE CASE-INSENSITIVE, CHECK FOR BOGUS ARGUMENTS, ETC #
+  # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+  norm.method <- tolower(norm.method)
+  match.axes <- tolower(match.axes)
+  output <- tolower(output)
+  points <- tolower(points)
+  means <- tolower(means)
 
-#region, gender and region+gender subgroups
-data$region <- substr(data$subject,1,2)
-data$gender <- substr(data$subject,3,3)
-data$group <- substr(data$subject,1,3)
+  if (output=='jpeg') {output <- 'jpg'}
+  if (single.plot & match.axes != 'absolute') {
+    match.axes <- 'absolute'
+    warning('When \'single.plot\'=TRUE, \'match.axes\' is coerced to \'absolute\'.')
+  }
+  if (!(match.axes %in% c('absolute','relative','none'))) { 
+    warning('Unknown argument value \'', match.axes, '\'. \'match.axes\' must be one of \'absolute\', \'relative\', or \'none\'.')
+    stop()
+  }
+  if (!(output %in% c('pdf','jpg','screen'))) { 
+    warning('Unknown argument value \'', output, '\'. \'output\' must be one of \'pdf\', \'jpg\', or \'screen\'.')
+    stop()
+  }
+  if (!(points %in% c('shape','text','none'))) { 
+    warning('Unknown argument value \'', points, '\'. \'points\' must be one of \'shape\', \'text\', or \'none\'.')
+    stop()
+  }
+  if (!(means %in% c('shape','text','none'))) { 
+    warning('Unknown argument value \'', points, '\'. \'points\' must be one of \'shape\', \'text\', or \'none\'.')
+    stop()
+  }
+  if (ellipses & ellipse.size<0) {
+    warning('Ellipse size is measured in standard deviations, and cannot be a negative number.')
+    stop()
+  }
+  if (!is.numeric(aspect.ratio) | aspect.ratio <= 0) {
+    warning('Aspect ratio (horizontal/vertical) must be a positive number.')
+    stop()
+  }
+  
+
+  # # # # # # # # #
+  # LOAD PACKAGES #
+  # # # # # # # # #
+  require(mixtools)
+  require(Cairo)
+  if (ellipses) { 
+    ellipse.alpha <- 0.3173/ellipse.size # 0.3173 gives +/- 1 standard deviation
+  }
+  if (output!='screen') {
+    CairoFonts(regular='Charis SIL:style=Regular', bold='Charis SIL:style=Bold', italic='Charis SIL:style=Italic', bolditalic='Charis SIL:style=Bold Italic,BoldItalic', symbol='Symbol')
+  }
 
 
+  # # # # # # # # # # # #
+  # DATA PREPROCESSING  #
+  # # # # # # # # # # # #
+  # PREALLOCATE
+  group <- NULL
+
+  # GET THE DATA
+  if (!is.null(data)) {
+    # maybe can clean this up using substitute() ?
+    f1 <- data[,match(eval(f1),colnames(data))]
+    f2 <- data[,match(eval(f2),colnames(data))]
+    vowel  <- data[,match(vowel,colnames(data))]
+    if (!is.null(f3)) { f3 <- data[,match(eval(f3),colnames(data))] }
+    if (!is.null(f0)) { f0 <- data[,match(eval(f0),colnames(data))] }
+    if (!is.null(grouping.factor)) {
+      group <- data[,match(eval(grouping.factor),colnames(data))]
+    } else {
+      group <- rep('noGroupsDefined',length(f1))
+    }
+  }
+  df <- data.frame(cbind(f1,f2,f3,f0))
+  df$vowel <- vowel
+  df$group <- group
+  rm(vowel,group)
+
+  # SORT THE DATA BY VOWEL, SO THAT POLYGON WILL DRAW IN PROPER ORDER.  SECONDARY ORDERING BY GROUP FOR CONVENIENCE
+  df$vowel <- factor(df$vowel, levels=poly.order)
+  df$vowel <- factor(df$vowel) # second call drops unused levels
+  df <- df[order(df$vowel,df$group),]
+  # SAVE FOR LATER, SINCE THE MAIN f1 AND f2 COLUMNS MAY GET NORMALIZED
+  df$f1hz <- df$f1
+  df$f2hz <- df$f2
+  
+  # EXTRACT LISTS OF VOWEL & GROUP VALUES
+  glist <- unique(df$group)
+  vlist <- unique(df$vowel)
+
+  # THESE WARNINGS HAVE TO COME AFTER glist HAS BEEN DEFINED
+  if (length(titles)==1) {
+    if (!single.plot & length(glist)>1 & titles!='none' & titles!='auto') {
+      warning('Single title provided when \'single.plot\'=FALSE. All plots will have the same title.')
+    }
+  } else if (single.plot) {
+    warning('Multiple titles provided for a single plot. Only the first title will be used.')
+  } else if (length(titles) != length(glist)) {
+    warning('Mismatch between number of titles and number of groups. Titles will be recycled or discarded as necessary.')
+    titles <- rep(titles, length(glist))
+  }
+  if (length(glist)>1 & norm.method=='z' & single.plot & !match.unit) {
+    warning('\'match.unit\' coerced to TRUE: cannot draw axes in Hz when normalizing via z-transform with multiple groups.')
+    match.unit <- TRUE
+  }
+
+  # NORMALIZE THE DATA
+  if (norm.method == 'nearey2') {
+    df[,1:2] <- normalizeVowels(f1=df$f1,f2=df$f2,f3=df$f3,f0=df$f0,method=norm.method)[,2:3]
+  } else if (norm.method == 'z') {
+    df[,1:2] <- normalizeVowels(f1=df$f1,f2=df$f2,method=norm.method,grouping.factor=df$group)
+  } else if (norm.method != 'none') {
+    df[,1:2] <- normalizeVowels(f1=df$f1,f2=df$f2,method=norm.method)
+  }
+  
+  # DETERMINE AXIS UNITS
+  if (norm.method %in% c('log','logmean','nearey1','nearey2')) {
+    unit <- 'log'
+  } else if (norm.method %in% c('lobanov','ztransform','zscore','z')) {
+    unit <- 'st.dev.'
+  } else if (norm.method == 'mel') {
+    unit <- 'Mel'
+  } else if (norm.method == 'bark') {
+    unit <- 'Bark'
+  } else if (norm.method == 'erb') {
+    unit <- 'E.R.B.'
+  } else {
+    unit <- 'Hz'
+  }
 
 
-plotVowels <- function(data, vowel.column, f1.column, f2.column, f3.column=NULL, grouping.factor.column=NULL, normalize='hertz', unit=normalize, points='dots', means='text', ellipse=FALSE, polygon=FALSE, polygon.order=c('i','e','ɪ','ɛ','æ','a','ɔ','o','ʊ','u','ʌ'), polygon.draw=length(polygon.order), match.axes='absolute', overplotting=TRUE, output='screen') {
-	# EXPLANATION OF FUNCTION ARGUMENTS
-	# data						a data frame containing the values to be plotted
-	# vowel.column				the name of the column in which vowel symbols are found
-	# f1.column					the name of the column in which F1 values are found
-	# f2.column					the name of the column in which F2 values are found
-	# f3.column					the name of the column in which F3 values are found
-	# grouping.factor.column	the name of the column in which a grouping factor is found.  
-	#							The grouping factor will organize data points by color on a single plot (if overplotting=TRUE), 
-	#							or each value of the grouping factor on a separate plot (if overplotting=FALSE) 
-	# points					How should indiviual vowel tokens be plotted?  "text" plots the character string in vowel.column,
-	#							"dots" plots them as filled circles, and "none" omits plotting the vowel tokens
-	# means						How should vowel means be plotted?  "text" plots the character string in vowel.column,
-	#							"dots" plots the means as filled circles, and "none" omits plotting the vowel means 
-	# ellipse					Boolean indicating whether to plot an ellipse around each vowel mean.  Ellipses default to 1 standard deviation ???????????
-	# polygon					Boolean indicating whether to plot a line connecting the vowel means into the standard "vowel polygon"
-	# overplotting				Boolean indicating whether each value of the grouping factor should be on a separate graph (FALSE) or all on the same graph (TRUE) 
-	# output					Possible values are "screen", "pdf", "jpg"
-	# match.axes				"absolute" means XXXX  "relative" means XXXX  "none" means XXXX
+  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+  # CALCULATE ABSOLUTE EXTREMA & TABLES OF EXTREMA BY SUBJECT #
+  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #  
+  if (match.unit & norm.method != 'none') { # use normalized values for everything
+    x <- df$f2
+    y <- df$f1
+    xmin.table <- tapply(df$f2,df$group,min)
+    xmax.table <- tapply(df$f2,df$group,max)
+    ymin.table <- tapply(df$f1,df$group,min)
+    ymax.table <- tapply(df$f1,df$group,max)
+  } else { # either don't match units or don't normalize, so use Hertz for everything
+    x <- df$f2hz
+    y <- df$f1hz
+    xmin.table <- tapply(df$f2hz,df$group,min)
+    xmax.table <- tapply(df$f2hz,df$group,max)
+    ymin.table <- tapply(df$f1hz,df$group,min)
+    ymax.table <- tapply(df$f1hz,df$group,max)
+  }
+  
+  if (means != 'none') {
+    f2means <- tapply(x,list(df$vowel,df$group),mean) #rownames=vowels, colnames=groups
+    f1means <- tapply(y,list(df$vowel,df$group),mean)
+  }
+  
+  if (ellipses) {
+    subsets <- by(cbind(x,y), list(df$vowel,df$group), subset)
+    centers <- lapply(subsets, colMeans)
+    covars <- lapply(subsets, cov)
+    ellipse.args <- apply(cbind('mu'=centers, 'sigma'=covars, 'alpha'=ellipse.alpha, 'draw'=FALSE), 1, c)
+    ellipse.points <- lapply(ellipse.args, function(x){ do.call('ellipse',x) })
+    # extrema: formant x vowel x group (3-dimensional array)
+    ellipse.maxima <- array(unlist(lapply(ellipse.points, function(x){apply(x,2,max)})),dim=c(2,length(vlist),length(glist)),dimnames=list(c('f2','f1'),vlist,glist))
+    ellipse.minima <- array(unlist(lapply(ellipse.points, function(x){apply(x,2,min)})),dim=c(2,length(vlist),length(glist)),dimnames=list(c('f2','f1'),vlist,glist))
+    # extrema: formant x group (matrix)
+    ellipse.maxima.by.group <- apply(ellipse.maxima, c(1,3), max)
+    ellipse.minima.by.group <- apply(ellipse.minima, c(1,3), min)
+    # overall extrema by formant (vector)
+    ellipse.maxima.overall <- apply(ellipse.maxima, 1, max)
+    ellipse.minima.overall <- apply(ellipse.minima, 1, min)
+  }
+  
+  if (match.axes=='absolute') {
+    # USE THE EXTREMA FROM THE WHOLE DATA FRAME (ALL AXES IDENTICAL)
+    if (ellipses) {
+      if (points=='none' & ignore.hidden) {
+        # USE ELLIPSES TO CALCULATE EXTREMA
+        xmin <- ellipse.minima.overall[1]
+        xmax <- ellipse.maxima.overall[1]
+        ymin <- ellipse.minima.overall[2]
+        ymax <- ellipse.maxima.overall[2]
+      } else {
+        # COMPARE POINTS & ELLIPSES TO CALCULATE EXTREMA
+        xmin <- min(c(ellipse.minima.overall[1], min(x)))
+        xmax <- max(c(ellipse.maxima.overall[1], max(x)))
+        ymin <- min(c(ellipse.minima.overall[2], min(y)))
+        ymax <- max(c(ellipse.maxima.overall[2], max(y)))
+      }
+    } else { # !ellipses
+      if (points=='none' & ignore.hidden) {
+        # USE MEANS TO CALCULATE EXTREMA
+        xmin <- min(f2means)
+        xmax <- max(f2means)
+        ymin <- min(f1means)
+        ymax <- max(f1means)
+      } else {
+        # USE POINTS TO CALCULATE EXTREMA
+        xmin <- min(xmin.table)
+        xmax <- max(xmax.table)
+        ymin <- min(ymin.table)
+        ymax <- max(ymax.table)
+      }
+    }
+  } else if (match.axes=='relative') {
+    # FIGURE OUT WHICH GROUP HAS THE LARGEST POINT RANGE & PAD THE OTHER GROUPS' EXTREMA TO MAKE UP THE DIFFERENCE
+    ranges.by.group <- rbind('f2'=xmax.table-xmin.table, 'f1'=ymax.table-ymin.table)
+    range.shortfall <- matrix(rep(apply(ranges.by.group,1,max), each=length(glist)), ncol=length(glist), byrow=TRUE) - ranges.by.group
+    point.maxima.by.group <- rbind('f2'=xmax.table,'f1'=ymax.table) + range.shortfall/2
+    point.minima.by.group <- rbind('f2'=xmin.table,'f1'=ymin.table) - range.shortfall/2
+    #     grp1  grp2  grp3  grp4  ...
+    # f2   x     x     x     x
+    # f1   y     y     y     y
 
-	# Normalization formulae taken from: Adank, P., Smits, R., & van Hout, R. (2004). A comparison of vowel normalization procedures for language variation research. Journal of the Acoustical Society of America, 116, 3099. doi:10.1121/1.1795335.  Original references from that paper are indicated here:
-	# bark <- 26.81*Hz/(1960+Hz)-0.53						# traunmüller 1990; zwicker & terhardt 1980
-	# mel  <- 2595*log(1+Hz/700)							# stevens & volkmann 1940
-	# erb  <- 21.4*log(1+Hz*0.00437)						# glasberg & moore 1990
-	# zscore <- (Hz-grandMeanForTalker)/stanDevForTalker	# Lobanov 1971
+    if (ellipses) {
+      # FIGURE OUT WHICH GROUP HAS THE LARGEST ELLIPSE RANGE & PAD THE OTHER GROUPS' EXTREMA TO MAKE UP THE DIFFERENCE
+      ellipse.ranges.by.group <- ellipse.maxima.by.group - ellipse.minima.by.group
+      ellipse.range.shortfall <- matrix(rep(apply(ellipse.ranges.by.group,1,max), each=length(glist)), ncol=length(glist), byrow=TRUE) - ellipse.ranges.by.group
+      ellipse.maxima.by.group <- ellipse.maxima.by.group + ellipse.range.shortfall/2
+      ellipse.minima.by.group <- ellipse.minima.by.group - ellipse.range.shortfall/2
 
-	if(ellipse) {
-		# LOAD LIBRARY FOR ELLIPSE FUNCTION
-		library(mixtools)
-	}
-	
-	# EXTRACT ONLY THE COLUMNS WE NEED
-	if(is.null(grouping.factor.column)) {
-		df <- data.frame(cbind( 
-			data[,match(f1.column, colnames(data))], # F1
-			data[,match(f2.column, colnames(data))], # F2 
-			as.character(data[,match(vowel.column, colnames(data))])   # vowel
-		))
-		colnames(df) <- c('f1','f2','v')
+      if (points=='none' & ignore.hidden) {
+        # USE ELLIPSES TO CALCULATE EXTREMA
+        xmin <- ellipse.minima.by.group[1,] # vector by group
+        xmax <- ellipse.maxima.by.group[1,]
+        ymin <- ellipse.minima.by.group[2,]
+        ymax <- ellipse.maxima.by.group[2,]
+      } else {
+        # COMPARE POINTS & ELLIPSES TO CALCULATE EXTREMA
+        xmin <- apply(rbind(point.minima.by.group[1,], ellipse.minima.by.group[1,]), 2, min) # vector by group
+        xmax <- apply(rbind(point.maxima.by.group[1,], ellipse.maxima.by.group[1,]), 2, max)
+        ymin <- apply(rbind(point.minima.by.group[2,], ellipse.minima.by.group[2,]), 2, min)
+        ymax <- apply(rbind(point.maxima.by.group[2,], ellipse.maxima.by.group[2,]), 2, max)
+      }
+    } else { # !ellipses
+      if (points=='none' & ignore.hidden) {
+        # USE MEANS TO CALCULATE EXTREMA
+        means.minima.by.group <- rbind('f2'=apply(f2means,2,min), 'f1'=apply(f1means,2,min))
+        means.maxima.by.group <- rbind('f2'=apply(f2means,2,max), 'f1'=apply(f1means,2,max))
+        means.ranges.by.group <- means.maxima.by.group - means.minima.by.group
+        means.range.shortfall <- matrix(rep(apply(means.ranges.by.group,1,max), each=length(glist)), ncol=length(glist), byrow=TRUE) - means.ranges.by.group
+        means.maxima.by.group <- means.maxima.by.group + means.range.shortfall/2
+        means.minima.by.group <- means.minima.by.group - means.range.shortfall/2
+        xmin <- means.minima.by.group[1,]
+        xmax <- means.maxima.by.group[1,]
+        ymin <- means.minima.by.group[2,]
+        ymax <- means.maxima.by.group[2,]
+      } else {
+        # USE POINTS TO CALCULATE EXTREMA
+        xmin <- point.minima.by.group[1,] # vector by group
+        xmax <- point.maxima.by.group[1,]
+        ymin <- point.minima.by.group[2,]
+        ymax <- point.maxima.by.group[2,]
+      }
+    }    
+  } else { # match.axes=='none'
+    # USE DIFFERENT EXTREMA FOR EACH SUBSET (DIFFERENT PLOTS MAY VARY IN AXIS SCALES)
+    if (ellipses) {
+      if (points=='none' & ignore.hidden) {
+        # USE ELLIPSES TO CALCULATE EXTREMA
+        xmin <- ellipse.minima.by.group[1,]
+        xmax <- ellipse.maxima.by.group[1,]
+        ymin <- ellipse.minima.by.group[2,]
+        ymax <- ellipse.maxima.by.group[2,]
+      } else {
+        # COMPARE POINTS & ELLIPSES TO CALCULATE EXTREMA
+        xmin <- apply(rbind(ellipse.minima.by.group[1,], xmin.table), 2, max)
+        xmax <- apply(rbind(ellipse.maxima.by.group[1,], xmax.table), 2, max)
+        ymin <- apply(rbind(ellipse.minima.by.group[2,], ymin.table), 2, max)
+        ymax <- apply(rbind(ellipse.maxima.by.group[2,], ymax.table), 2, max)
+      }
+    } else { # !ellipses
+      if (points=='none' & ignore.hidden) {
+        # USE MEANS TO CALCULATE EXTREMA
+        xmin <- apply(f2means,2,min)
+        xmax <- apply(f2means,2,max)
+        ymin <- apply(f1means,2,min)
+        ymax <- apply(f1means,2,max)
+      } else {
+        # USE POINTS TO CALCULATE EXTREMA
+        xmin <- xmin.table 
+        xmax <- xmax.table
+        ymin <- ymin.table
+        ymax <- ymax.table
+      }
+    }
+  }
+
+
+  # # # # # # # # # # # # # # # # # # # # # #
+  # CALCULATE A SENSIBLE TICKMARK STEP SIZE #
+  # # # # # # # # # # # # # # # # # # # # # #
+  xrange <- xmax-xmin
+  yrange <- ymax-ymin
+  xsteps <- 10^(floor(log(xrange,10)))
+  ysteps <- 10^(floor(log(yrange,10)))
+  for (i in 1:length(xsteps)) {
+    if (xrange[i]/xsteps[i] < 1) {
+      xsteps[i] <- 0.1*xsteps[i] 
+    } else if (xrange[i]/xsteps[i] < 2) {
+      xsteps[i] <- 0.2*xsteps[i]
+    } else if (xrange[i]/xsteps[i] < 5) {
+      xsteps[i] <- 0.5*xsteps[i]
+    }
+  }
+  for (i in 1:length(ysteps)) {
+    if (yrange[i]/ysteps[i] < 1) {
+      ysteps[i] <- 0.1*ysteps[i] 
+    } else if (yrange[i]/ysteps[i] < 2) {
+      ysteps[i] <- 0.2*ysteps[i]
+    } else if (yrange[i]/ysteps[i] < 5) {
+      ysteps[i] <- 0.5*ysteps[i]
+    }
+  }
+    
+
+  # # # # # # # #
+  # COLORS, ETC #
+  # # # # # # # #
+  topmargin <- ifelse(length(titles)==1 & titles[1]=='none', 3, 5)
+  vowelcolors <- rep('#000000FF', length=length(glist)) # default color: black
+  pointcolors <- rep('#00000099', length=length(glist)) # default color: semitransparent black
+  linetypes <- rep(1, length=length(glist)) # default linetype: solid
+  symbols <- rep(20, length=length(glist)) # default symbol: filled circle
+  if (!uniform.style) {
+    if (vary.shapes) {
+      symbols <- rep(c(0:2,5,15:18,3,4,6), length=length(glist)) # open{square,circle,triangle,diamond}, filled{square,circle,triangle,diamond}, plus, x, inverted triangle
+    }
+    if (vary.lines) {
+      linetypes <- rep(c(1:6),length=length(glist))
+    }
+    if (!grayscale & length(glist)>1) {
+      vowelcolors <- hcl(seq(0,360-(360/length(glist)),length=length(glist)), c=100, l=35, alpha=means.alpha, fixup=TRUE)
+      pointcolors <- hcl(seq(0,360-(360/length(glist)),length=length(glist)), c=100, l=35, alpha=points.alpha, fixup=TRUE)
+    }
+  }
+
+
+  # # # # # # # # # #
+  # PREPARE TO PLOT #
+  # # # # # # # # # #
+  
+  # IF PLOTTING ALL GROUPS ON ONE GRAPH, INITIALIZE OUTPUT DEVICE ONLY ONCE
+  if (single.plot) {
+    # PDF OUTPUT
+    if (output=='pdf') {
+      Cairo(file=paste(grouping.factor,'.pdf',sep=''), width=plot.dims[1], height=plot.dims[2], type='pdf', dpi='auto', units=plot.unit)
+
+    # JPEG OUTPUT
+    } else if (output=='jpg') {
+      Cairo(file=paste(grouping.factor,'.jpg',sep=''), width=plot.dims[1], height=plot.dims[2], type='jpeg', dpi=96, units=plot.unit)
+
+#    # SCREEN OUTPUT
+#    } else {
+#      Cairo(width=plot.dims[1], height=plot.dims[2], type='x11', units=plot.units)
+    }
+    par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family='Charis SIL')
+    
+  } else if (output=='screen') {
+      # SET UP FOR LATTICE PLOTTING
+      num.rows <- floor(sqrt(length(glist)))
+      num.cols <- ceiling(sqrt(length(glist)))
+      par(mfrow=c(num.rows,num.cols), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family='Charis SIL')
+  }
+
+
+  # # # # #
+  # PLOT! #
+  # # # # #
+
+  for (i in 1:length(glist)) {
+    # GET CURRENT GROUP'S DATA
+    currentGroup <- glist[i]
+    curData <- subset(df, group==currentGroup)
+    f2means <- tapply(curData$f2, curData$vowel, mean)
+    f1means <- tapply(curData$f1, curData$vowel, mean)
+
+    # IF PLOTTING EACH GROUP ON A SEPARATE GRAPH, INITIALIZE OUTPUT DEVICE SEPARATELY FOR EACH GROUP
+    if (!single.plot) { 
+      # PDF OUTPUT
+      if (output=='pdf') {
+	      Cairo(file=paste(currentGroup,'.pdf',sep=''), width=plot.dims[1], height=plot.dims[2], type='pdf', dpi='auto', units=plot.unit)
+        par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family='Charis SIL')
+
+      # JPEG OUTPUT
+      } else if (output=='jpg') {
+	      Cairo(file=paste(currentGroup,'.jpg',sep=''), width=plot.dims[1], height=plot.dims[2], type='jpeg', dpi=96, units=plot.unit)
+        par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family='Charis SIL')
+
+#      # SCREEN OUTPUT
+#      } else {
+#        Cairo(width=plot.dims[1], height=plot.dims[2], type='x11', units=plot.units)
+      }
+    }
+
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # CALCULATE PLOT LIMITS & TICKS (MAX BEFORE MIN, TO GET THE AXES TO INCREASE LEFT/DOWN INSTEAD OF RIGHT/UP) #
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    if (match.axes == 'absolute') { # ALL AXES IDENTICAL
+      xs <- max(xsteps)
+      ys <- max(ysteps)
+      xlims <- c(ceiling(max(xmax)/xs)*xs, floor(min(xmin)/xs)*xs)
+      ylims <- c(ceiling(max(ymax)/ys)*ys, floor(min(ymin)/ys)*ys)
+      xticks <- seq(xlims[2],xlims[1],xs)
+      yticks <- seq(ylims[2],ylims[1],ys)
+      
+    } else if (match.axes == 'relative') { # SAME SCALE, MAYBE DIFFERENT LIMITS
+      xs <- max(xsteps)
+      ys <- max(ysteps)
+      xdiff <- max(ceiling(xmax/xs)-floor(xmin/xs)) - ceiling(xmax[i]/xs-floor(xmin[i]/xs))
+      ydiff <- max(ceiling(ymax/ys)-floor(ymin/ys)) - ceiling(ymax[i]/ys-floor(ymin[i]/ys))
+      xlims <- c(ceiling(ceiling(xdiff/2)+xmax[i]/xs)*xs, floor(floor(xdiff/2)+xmin[i]/xs)*xs)
+      ylims <- c(ceiling(ceiling(ydiff/2)+ymax[i]/ys)*ys, floor(floor(ydiff/2)+ymin[i]/ys)*ys)
+      xticks <- seq(xlims[2],xlims[1],xs)
+      yticks <- seq(ylims[2],ylims[1],ys)
+      
+    } else { # match.axes == 'none' # AXES MAYBE DIFFERENT SCALES & LIMITS
+      xs <- xsteps[i]
+      ys <- ysteps[i]
+      xlims <- c(ceiling(xmax[i]/xs)*xs, floor(xmin[i]/xs)*xs)
+      ylims <- c(ceiling(ymax[i]/ys)*ys, floor(ymin[i]/ys)*ys)
+      xticks <- seq(xlims[2],xlims[1],xs)
+      yticks <- seq(ylims[2],ylims[1],ys)
+    }
+    
+    # TRANSFORM TICKMARKS FROM HERTZ TO NORMALIZED UNIT (IF REQUIRED)
+    xtext <- xticks
+    ytext <- yticks
+
+    if (norm.method != 'none' & !match.unit) {
+      if (norm.method == 'z') {
+	xticks <- (xticks-mean(curData$f2hz))/sd(curData$f2hz)
+	yticks <- (yticks-mean(curData$f1hz))/sd(curData$f1hz)
+
+      } else if (norm.method == 'logmean') {
+	xticks <- log(xticks)-mean(log(curData$f2hz))
+	yticks <- log(yticks)-mean(log(curData$f1hz))
+
+      } else {
+	xticks <- normalizeVowels(f2=xticks,method=norm.method) # y,x
+	yticks <- normalizeVowels(f1=yticks,method=norm.method) # y,x
+      }
+      xlims <- c(max(xticks),min(xticks))
+      ylims <- c(max(yticks),min(yticks))
+    }
+
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # DRAW AXES & MARGIN TEXT, UNLESS OVERPLOTTING AND WE'RE ALREADY PAST THE FIRST GROUP #
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    if (!single.plot | i==1) {
+      # INITIALIZE EMPTY PLOT
+      plot(0, 0, xaxt='n', yaxt='n', xlim=xlims, ylim=ylims, type='n', ann=FALSE, frame.plot=FALSE, asp=aspect.ratio) #main='', 
+
+      # AXES
+      axis(3, at=xticks, labels=xtext, las=0, col=axis.col, col.ticks=axis.col, col.axis=axis.col, cex.axis=0.8, tck=-.005)
+      axis(4, at=yticks, labels=ytext, las=2, col=axis.col, col.ticks=axis.col, col.axis=axis.col, cex.axis=0.8, tck=-.005)
+      
+      # TITLE
+      if (titles[1]=='auto') {
+	# AUTO-GENERATE TITLES
+	if(glist[1] == 'noGroupsDefined') {
+	  mtext('Vowels', side=3, cex=1.2, las=1, line=3.25, font=2)
+	} else if (!single.plot) {
+	  mtext(paste('Vowels (', currentGroup,')',sep=''), side=3, cex=1.2, las=1, line=3.25, font=2)
 	} else {
-		df <- data.frame(cbind( 
-			data[,match(f1.column, colnames(data))], # F1
-			data[,match(f2.column, colnames(data))], # F2 
-			as.character(data[,match(vowel.column, colnames(data))]),   # vowel
-			as.character(data[,match(grouping.factor.column,colnames(data))])   # grouping factor
-		))
-		colnames(df) <- c('f1','f2','v','g')
+	  mtext(paste('Vowels by', grouping.factor), side=3, cex=1.2, las=1, line=3.25, font=2)
 	}
-	df$f1 <- as.numeric(as.character(df$f1))
-	df$f2 <- as.numeric(as.character(df$f2))
-	df$v <- polygon.order
-#	df$v <- factor(df$v, levels=c('i', 'e', 'ɪ', 'ɛ', 'æ', 'a', 'ɔ', 'o', 'ʊ', 'u', 'ʌ'))
-
-	# NORMALIZE
-	if (normalize=='bark') {
-		df$f1n <- 26.81*df$f1/(1960+df$f1)-0.53
-		df$f2n <- 26.81*df$f2/(1960+df$f2)-0.53
-		df$f3n <- 26.81*df$f3/(1960+df$f3)-0.53
-	} else if (normalize=='log') {
-		df$f1n <- log(df$f1)
-		df$f2n <- log(df$f2)
-		df$f3n <- log(df$f3)
-	} else if (normalize=='mel') {
-		df$f1n <- 2595*log(1+df$f1/700)
-		df$f2n <- 2595*log(1+df$f2/700)
-		df$f3n <- 2595*log(1+df$f3/700)
-	} else if (normalize=='erb') {
-		df$f1n <- 21.4*log(0.00437*df$f1+1)
-		df$f2n <- 21.4*log(0.00437*df$f2+1)
-		df$f3n <- 21.4*log(0.00437*df$f3+1)
-	} else if (normalize=='lobanov' | normalize='z') {
-		df$f1n <- (df$f1-mean(df$f1))/sd(df$f1)
-		df$f2n <- (df$f2-mean(df$f2))/sd(df$f2)
-		df$f3n <- (df$f3-mean(df$f3))/sd(df$f3)
-	} else if (normalize=='nearey1') {
-		df$f1n <- log(df$f1)-mean(log(df$f1))
-		df$f2n <- log(df$f2)-mean(log(df$f2))
-		df$f3n <- log(df$f3)-mean(log(df$f3))
-#	} else if (normalize=='nearey2') {
-#		df$f1n <- log(df$f1)-mean(log(df$f0))-mean(log(df$f1))-mean(log(df$f2))-mean(log(df$f3))
-#		df$f2n <- log(df$f2)-mean(log(df$f0))-mean(log(df$f1))-mean(log(df$f2))-mean(log(df$f3))
-#		df$f3n <- log(df$f3)-mean(log(df$f0))-mean(log(df$f1))-mean(log(df$f2))-mean(log(df$f3))
-	} else { # Return untransformed Hz
-		df$f1n <- df$f1
-		df$f2n <- df$f2
-		df$f3n <- df$f3
-	}
-
-	# SORT THE DATA BY VOWEL, SO THAT POLYGON WILL DRAW IN PROPER ORDER
-	df <- df[order(df$v),]
-
-	# EXTRACT LISTS OF VOWEL & GROUP VALUES
-	vowels <- unique(df$v)
-	groups <- unique(df$g)
-	if(is.null(groups)) {
-		groups <- 'noGroups'
-	}
+      } else if (titles[1]!='none') {
+	# USE USER-SUPPLIED TITLES
+	mtext(titles[i], side=3, cex=1.2, las=1, line=3.25, font=2)
 	
-	# COLORS
-	vowelcolors <- '#000000FF' # first color always black
-	numcol <- length(groups)-1
-	if (numcol>0) {
-		vowelcolors <- c(vowelcolors, hcl(seq(0,360-(360/numcol),length=numcol), c=100, l=45, alpha=1))
-	}
-	
-	# SET GRAPH SIZE (BUT NOT BOUNDS) BASED ON NEW "match.axes" ARGUMENT
-	
-	# CALCULATE GLOBAL MIN AND MAX FOR X AND Y AXES (IN HERTZ)
-	xmax <- ceiling(max(df$f2)/100)*100
-	xmin <- floor(min(df$f2)/100)*100
-	ymax <- ceiling(max(df$f1)/100)*100
-	ymin <- floor(min(df$f1)/100)*100
-	xticks <- seq(xmin, xmax, 100)
-	yticks <- seq(ymin, ymax, 100)
+      }
+      
+      # AXIS LABELS
+      if (norm.method != 'none' & !match.unit) {
+	mtext(paste('F2 (Hz on',unit,'scale)'), side=3, cex=1, las=1, line=1.5, font=2, col=axis.col)
+	mtext(paste('F1 (Hz on',unit,'scale)'), side=4, cex=1, las=3, line=2.5, font=2, col=axis.col)
+      } else {
+	mtext(paste('F2 (',unit,')',sep=''), side=3, cex=1, las=1, line=1.5, font=2, col=axis.col)
+	mtext(paste('F1 (',unit,')',sep=''), side=4, cex=1, las=3, line=2.5, font=2, col=axis.col)
+      }
 
-	# CALCULATE TICK MARKS
-	# bark log mel erb lobanov|z nearey1 hz
-	if(unit==normalize) {
-		# figure out what are reasonable whole-number-like values to round to for each of the normalization scales
-		# create xticks and yticks accordingly
-		
+    } else if (single.plot) {
+      # REUSE THE SAME PLOT
+      par(new=TRUE)
+    } # if (!single.plot | i==1)
+
+
+    # # # # # # # # # # # #
+    # PLOT VARIOUS THINGS #
+    # # # # # # # # # # # #
+
+    # PLOT VOWEL POINTS
+    if (points=='shape') {
+      points(curData$f2, curData$f1, type='p', pch=symbols[i], cex=0.5, col=pointcolors[i])
+    } else if (points=='text') {
+      text(curData$f2, curData$f1, labels=curData$vowel, col=pointcolors[i], font=1, cex=0.8)
+    }
+
+    # DRAW POLYGON BETWEEN MEANS
+    if (polygon) {
+      points(f2means[1:poly.include], f1means[1:poly.include], type='c', cex=1, col=vowelcolors[i], lty=linetypes[i])
+    }
+
+    # PLOT VOWEL MEANS
+    if (means=='shape') {	
+      points(f2means, f1means, type='p', pch=symbols[i], cex=1.5, col=vowelcolors[i])
+    } else if (means=='text') {	
+      text(f2means, f1means, labels=vlist, col=vowelcolors[i], font=2, cex=1.5)
+    } 
+
+    # PLOT ELLIPSES AROUND VOWEL MEANS
+    if (ellipses) {
+      # CALCULATE COVARIANCE MATRICES
+      covar <- list()
+      for (j in 1:length(vlist)) {
+	cVowelData <- subset(curData, vowel==vlist[j])
+	covar[[j]] <- cov(cbind(cVowelData$f2, cVowelData$f1))
+	# PLOT ELLIPSES
+	ellipse(c(f2means[j], f1means[j]), covar[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.alpha)
+      }
+    }
+
+    if (legend & (!single.plot | i==length(glist))) {
+      if (points=='shape' | means=='shape') {
+	if (ellipses | polygon) {
+	  legend('bottomleft', legend=glist, fill=NA, border=NA, col=vowelcolors, lty=linetypes, pch=symbols, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1 
 	} else {
-		# transform tick marks from "unit" dimension to "normalize" dimension
-		# create xticks and yticks accordingly
+	  legend('bottomleft', legend=glist, fill=NA, border=NA, col=vowelcolors, lty=NA, pch=symbols, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1 
 	}
+      } else {
+	legend('bottomleft', legend=glist, fill=legendboxes, border=NA, col=vowelcolors, lty=NA, pch=NA, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1 
+      }
 
-	# LOAD CAIRO PACKAGE
-#	if(output != 'screen') {
-		library(Cairo)
-		CairoFonts(regular='Charis SIL:style=Regular', bold='Charis SIL:style=Bold', italic='Charis SIL:style=Italic', bolditalic='Charis SIL:style=Bold Italic,BoldItalic', symbol='Symbol' )
-#	}
+#      legendshapes <- symbols
+#      legendlines <- linetypes
+#      legendboxes <- vowelcolors
+#      legendshapes <- ifelse(points=='shape' | means=='shape', symbols, NA)
+#      legendlines <- ifelse(ellipses | polygon, linetypes, NA)
+#      legendboxes <- ifelse(grayscale, NA, vowelcolors)
+#      legend('bottomleft', legend=glist, fill=legendboxes, border=NA, col=vowelcolors, lty=legendlines, pch=legendshapes, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1 
+    }
+
+    # # # # # # #
+    # FINISH UP #
+    # # # # # # #
+		
+    # CLOSE THE OUTPUT DEVICE FOR EACH INDIVIDUAL GROUP PLOT (UNLESS OUTPUT = SCREEN)
+    if (!single.plot) {
+      if (output != 'screen') {
+      	dev.off()
+      }
+    }
+
+  } # for(i in 1:length(groups))
+
 	
-	# IF PLOTTING ALL GROUPS ON ONE GRAPH, INITIALIZE OUTPUT DEVICE ONLY ONCE
-	if(overplotting) {
-		# PDF OUTPUT
-		if(output=='pdf') {
-			Cairo(file=grouping.factor.column, width=7, height=7, type='pdf', dpi='auto', units='in')
-			
-		# JPEG OUTPUT
-		} else if(output=='jpeg' | output=='jpg') {
-			Cairo(file=grouping.factor.column, width=7, height=7, type='jpeg', dpi=96, units='in')
-			
-		# SCREEN OUTPUT
-		} else {
-			Cairo(width=7, height=7, type='x11', units='in')
-		}
-	}
-	
-	for(i in 1:length(groups)) {
-		# IF PLOTTING EACH GROUP ON A SEPARATE GRAPH, INITIALIZE OUTPUT DEVICE SEPARATELY FOR EACH GROUP
-		if(!overplotting) {
-			# PDF OUTPUT
-			if(output=='pdf') {
-				Cairo(file=paste(grouping.factor.column,i,sep='_'), width=7, height=7, type='pdf', dpi='auto', units='in')
+  # CLOSE THE OUTPUT DEVICE FOR SINGLE OVERPLOTTED GRAPH (UNLESS OUTPUT = SCREEN)
+  if (single.plot) {
+    if (output != 'screen') {
+      dev.off()
+    }
+  }
 
-			# JPEG OUTPUT
-			} else if(output=='jpeg' | output=='jpg') {
-				Cairo(file=paste(grouping.factor.column,i,sep='_'), width=7, height=7, type='jpeg', dpi=96, units='in')
-			
-			# SCREEN OUTPUT
-			} else {
-				Cairo(width=7, height=7, type='x11', units='in')
-			}
-		}
-		
-		# GET CURRENT GROUP'S DATA
-		if(groups[1] == 'noGroups') {
-			curData <- df
-		} else {
-			curData <- subset(df, g==groups[i])
-		}
-		
-		# CURRENT GROUP'S VOWEL MEANS
-		F2means <- tapply(curData$f2, curData$v, mean)
-		F1means <- tapply(curData$f1, curData$v, mean)
-
-		# DRAW AXES & MARGIN TEXT, UNLESS OVERPLOTTING AND WE'RE ALREADY PAST THE FIRST GROUP
-		if (!overplotting | i==1) {
-			par(mfcol=c(1,1), mar=c(1,1,6.5,4.5), family='Charis SIL')
-
-			# INITIALIZE EMPTY PLOT
-			plot(0, 0, xaxt='n', yaxt='n', xlim=c(xmax,xmin), ylim=c(ymax,ymin), type='n', main='', frame.plot=FALSE)
-
-			# AXES & MARGIN TEXT
-			axis(3, at=seq(xmin, xmax, 100), las=0, col.axis='black', cex.axis=0.8, tck=-.01)
-			axis(4, at=seq(ymin, ymax, 100), las=2, col.axis='black', cex.axis=0.8, tck=-.01)
-			mtext(paste('Vowels by', grouping.factor.column), side=3, cex=1.2, las=1, line=4.5, font=2)
-			mtext('F2 (Hz)', side=3, cex=1, las=1, line=2.5, font=2)
-			mtext('F1 (Hz)', side=4, cex=1, las=3, line=2.5, font=2)
-
-		# IF OVERPLOTTING, TELL par() TO REUSE THE SAME GRAPH
-		} else if (overplotting) {
-			par(mfcol=c(1,1), mar=c(1,1,6.5,4.5), family='Charis SIL', new=TRUE)
-		}
-		
-		# PLOT VOWEL POINTS
-		if(points=='dots') {
-			points(curData$f2, curData$f1, type='p', pch=16, cex=0.5, col=vowelcolors[i])
-		} else if(points=='text') {
-			text(curData$f2, curData$f1, curData$vowels, col=vowelcolors[i], font=2, cex=1)
-		}
-		
-		# DRAW POLYGON BETWEEN MEANS
-		if(polygon) {
-			points(F2means[1:polygon.draw], F1means[1:polygon.draw], type='c', cex=1, col=vowelcolors[i])
-		}
-
-		# PLOT VOWEL MEANS
-		if(means=='dots') {	
-			points(F2means, F1means, type='p', pch=16, cex=1, col=vowelcolors[i])
-		} else if(means=='text') {	
-			text(F2means, F1means, vowels, col=vowelcolors[i], font=2, cex=1.5)
-		} 
-		
-		# PLOT +/- ONE S.D. ELLIPSES AROUND VOWEL MEANS
-		if(ellipse) {
-			# CALCULATE COVARIANCE MATRICES
-			covar <- list()
-			for (j in 1:length(vowels)) {
-				cVowelData <- subset(curData, v==vowels[j])
-				covar[[j]] <- cov(cbind(cVowelData$f2, cVowelData$f1))
-				# PLOT ELLIPSES
-				ellipse(c(F2means[j], F1means[j]), covar[[j]], type='l', col=vowelcolors[i])
-			}
-		}
-		
-		# CLOSE THE OUTPUT DEVICE FOR EACH INDIVIDUAL GROUP PLOT (UNLESS OUTPUT = SCREEN)
-		if(!overplotting) {
-			if(output != 'screen') {
-				dev.off()
-			}
-		}
-	}
-	
-	# CLOSE THE OUTPUT DEVICE FOR SINGLE OVERPLOTTED GRAPH (UNLESS OUTPUT = SCREEN)
-	if(overplotting) {
-		if(output != 'screen') {
-			dev.off()
-		}
-	}
-}
-
-# plotvowels(data=data, f1.column="F1", f2.column="F2", vowel.column="vowel")
+} #plotVowels <- function(...)
