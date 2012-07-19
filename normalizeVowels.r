@@ -8,9 +8,11 @@ normalizeVowels <- function(f0=NULL, f1=NULL, f2=NULL, f3=NULL, method, grouping
   # nearey1 <- log(Hz) - mean(log(Hz))					        # Nearey 1978
   # nearey2 <- log(Hz) - sum(mean(log(f0)),mean(log(f1)),mean(log(f2)),mean(log(f3)))
   #
-  # VERSION 0.2 (2012 07 17)
+  # VERSION 0.3 (2012 07 19)
   #
   # CHANGELOG
+  # VERSION 0.3: minor improvement to error handling.
+  #
   # VERSION 0.2: implementation of group-based subsetting for z-score and nearey normalizations.
   #
   # AUTHOR: DANIEL MCCLOY (drmccloy@uw.edu)
@@ -26,7 +28,11 @@ normalizeVowels <- function(f0=NULL, f1=NULL, f2=NULL, f3=NULL, method, grouping
     warning('Missing values: at least one of the arguments (f0, f1, f2, or f3) must be supplied.')
   }
 
-  if (!is.null(grouping.factor) & !(method %in% c('z','zscore','ztransform','lobanov','logmean','nearey1','nearey2'))) {
+  if (!(m %in% c('bark','mel','log','erb','z','zscore','ztransform','lobanov','logmean','nearey1','nearey2'))) {
+    warning('Method must be one of: bark, mel, log, erb, z|zscore|ztransform|lobanov, logmean|nearey1, nearey2')
+  }
+
+  if (!is.null(grouping.factor) & !(m %in% c('z','zscore','ztransform','lobanov','logmean','nearey1','nearey2'))) {
     warning('Grouping factor ignored for normalization method \"',method,'.\"')
   }
 
