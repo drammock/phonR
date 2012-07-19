@@ -1,0 +1,10 @@
+Follow the instructions for your system below.  After that is done, you'll still need to install the R library "Cairo" from within R.
+
+LINUX
+You should be able to find the packages through your package manager; on Ubuntu-like systems look for "libcairo2" and "libcairo2-dev"
+
+OSX
+I am told that it's fairly easy to install Cairo using MacPorts or fink.  See this page for instructions: http://www.cairographics.org/download/
+
+WINDOWS
+Getting the Cairo graphics engine to work on Windows is tricky, and the guidance on the Cairo Graphics website doesn't fully work. I recommend going to the page http://www.gtk.org/download/ and clicking on Windows (either 32bit or 64bit depending on your computer).  Then scroll down to "Required third party dependencies" and download the "run-time" files for zlib, cairo, libpng, fontconfig, freetype, and expat.  Unzip them and gather up all the DLL files from the "bin" folders that were in each zipped package.  Then move/copy those DLL files into this folder: C:\Program Files\R\R-2.14.0\bin\i386  (or on 64bit systems, into C:\Program Files\R\R-2.14.0\bin\x64).  Also take the "fonts.conf" file from the fontconfig zip file, and put that into C:\Program Files\R\R-2.14.0\etc\i386\fonts\ (or on 64bit systems, C:\Program Files\R\R-2.14.0\etc\x64\fonts\).  That should do the trick.  Note that if your R installation is newer than 2.14.0, then substitute the correct version number into the folder paths above.
