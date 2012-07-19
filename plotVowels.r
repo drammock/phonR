@@ -1,11 +1,12 @@
-plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.6, means.alpha=1, ignore.hidden=TRUE, ellipses=TRUE, ellipse.size=1, polygon=TRUE, poly.order=c('i','ɪ','e','ɛ','æ','a','ɑ','ɔ','o','ʊ','u','ʌ'), poly.include=length(poly.order), single.plot=TRUE, axis.col='#666666FF', titles='auto', grayscale=FALSE, vary.shapes=grayscale, vary.lines=grayscale, uniform.style=!single.plot, legend=single.plot, aspect.ratio=1.5, plot.dims=c(7,7), plot.unit='in', output='screen') {
-  # # # # # # # # # # # # # # # # # # # # # # # #
+plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.6, means.alpha=1, ignore.hidden=TRUE, ellipses=TRUE, ellipse.size=0.3173, polygon=TRUE, poly.order=c('i','ɪ','e','ɛ','æ','a','ɑ','ɔ','o','ʊ','u','ʌ'), poly.include=NULL, single.plot=TRUE, axis.col='#666666FF', titles='auto', grayscale=FALSE, vary.shapes=grayscale, vary.lines=grayscale, uniform.style=!single.plot, legend=single.plot, aspect.ratio=NULL, plot.dims=c(7,7), plot.unit='in', output='screen') {
   # R FUNCTION "plotVowels"
   # This function plots vowel formants F1 and F2 with lots of options. 
   #
-  # VERSION 0.2 (2012 07 17)
+  # VERSION 0.3 (2012 07 19)
   #
   # CHANGELOG
+  # VERSION 0.3: Bugfix (wrong calculation) in ellipse.size, improved legend handling, and a bugfix related to excess factor levels in grouping.factor.  
+  #
   # VERSION 0.2: implementation of normalization, grayscale, transparency of vowel tokens/means, on-screen trellis plotting for multiple graphs, various improvements to efficiency, documentation, & error-handling.
   #
   # AUTHOR: DANIEL MCCLOY (drmccloy@uw.edu) & AUGUST MCGRATH
@@ -28,8 +29,8 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
   # points.alpha      opacity of individual vowel points [0,1]
   # means.alpha       opacity of vowel means [0,1]
   # ignore.hidden     BOOLEAN: if points='none', calculate extrema based only on means, or ellipses (if present)
-  # ellipses	    	    BOOLEAN: plot an ellipse around each vowel mean tracing the bivariate normal density contour.  Defaults to alpha level of 0.3173 (1 standard deviation).
-  # ellipse.size    	Size (in standard deviations) of the ellipse.
+  # ellipses	    	    BOOLEAN: plot an ellipse around each vowel mean tracing an equidensity contour of the bivariate normal distribution.
+  # ellipse.size    	Size of the ellipse [0,1] expressed as an alpha-level (i.e., 0.05 gives a 95% confidence ellipse).  Defaults to alpha level of 0.3173 (equivalent to an ellipse encompassing ±1 standard deviation from the mean).  Note that because this is an alpha level, HIGHER numbers give SMALLER ellipses.
   # polygon   		    BOOLEAN: plot a line connecting the vowel means into the standard "vowel polygon"
   # poly.order        vector of strings that should match the values of 'vowel'.  Determines the order in which connecting lines are drawn for the vowel polygon.
   # poly.include      INTEGER: indicates how many of the vowels in poly.order should be connected into a polygon (to exclude vowels from the polygon drawing, put them at the end of 'poly.order' and provide a value for 'poly.include' shorter than length(poly.order))
@@ -41,7 +42,7 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
   # vary.lines        BOOLEAN: when ellipses=TRUE or polygons=TRUE, vary line styles by group. Defaults to same value as 'grayscale'.  Ignored if uniform.style=TRUE.
   # uniform.style     BOOLEAN: plot each group's data using the same color, shape, and linestyle. Defaults to TRUE if single.plot==FALSE, and FALSE if single.plot==TRUE.
   # legend            BOOLEAN: print a legend on the graph
-  # aspect.ratio      aspect ratio for plot units
+  # aspect.ratio      aspect ratio for plot units. Default is NULL, which changes the aspect ratio to maximize use of the available plot area.
   # plot.dims         vector of length two, giving width & height of the plot.
   # plot.unit         Unit of plot dimensions: 'in', 'cm', etc.
   # output		        Possible values are "screen", "pdf", "jpg"
@@ -55,8 +56,8 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
   output <- tolower(output)
   points <- tolower(points)
   means <- tolower(means)
-
   if (output=='jpeg') {output <- 'jpg'}
+
   if (single.plot & match.axes != 'absolute') {
     match.axes <- 'absolute'
     warning('When \'single.plot\'=TRUE, \'match.axes\' is coerced to \'absolute\'.')
@@ -81,9 +82,11 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
     warning('Ellipse size is measured in standard deviations, and cannot be a negative number.')
     stop()
   }
-  if (!is.numeric(aspect.ratio) | aspect.ratio <= 0) {
-    warning('Aspect ratio (horizontal/vertical) must be a positive number.')
-    stop()
+  if(!is.null(aspect.ratio)) {
+    if (!is.numeric(aspect.ratio) | aspect.ratio <= 0) {
+      warning('Aspect ratio (horizontal/vertical) must be a positive number.')
+      stop()
+    }
   }
   
 
@@ -92,8 +95,9 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
   # # # # # # # # #
   require(mixtools)
   require(Cairo)
-  if (ellipses) { 
-    ellipse.alpha <- 0.3173/ellipse.size # 0.3173 gives +/- 1 standard deviation
+  if (ellipses & (ellipse.size>1 | ellipse.size<0)) { 
+    warning('ellipse.size is an alpha level, and must be between 0 and 1 (inclusive)')
+#    ellipse.size # 0.3173 gives +/- 1 standard deviation
   }
   if (output!='screen') {
     CairoFonts(regular='Charis SIL:style=Regular', bold='Charis SIL:style=Bold', italic='Charis SIL:style=Italic', bolditalic='Charis SIL:style=Bold Italic,BoldItalic', symbol='Symbol')
@@ -116,6 +120,7 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
     if (!is.null(f0)) { f0 <- data[,match(eval(f0),colnames(data))] }
     if (!is.null(grouping.factor)) {
       group <- data[,match(eval(grouping.factor),colnames(data))]
+      group <- factor(group)
     } else {
       group <- rep('noGroupsDefined',length(f1))
     }
@@ -125,10 +130,20 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
   df$group <- group
   rm(vowel,group)
 
+
   # SORT THE DATA BY VOWEL, SO THAT POLYGON WILL DRAW IN PROPER ORDER.  SECONDARY ORDERING BY GROUP FOR CONVENIENCE
   df$vowel <- factor(df$vowel, levels=poly.order)
   df$vowel <- factor(df$vowel) # second call drops unused levels
   df <- df[order(df$vowel,df$group),]
+
+  # COMPENSATE FOR MISMATCHES BETWEEN DEFAULT/PROVIDED LEVELS, AND LEVELS ACTUALLY PRESENT IN THE DATA
+  poly.order <- levels(df$vowel)
+  if (is.null(poly.include)) {
+    poly.include <- length(poly.order)
+  } else if(poly.include>length(poly.order)) {
+    poly.include <- length(poly.order)
+  }
+
   # SAVE FOR LATER, SINCE THE MAIN f1 AND f2 COLUMNS MAY GET NORMALIZED
   df$f1hz <- df$f1
   df$f2hz <- df$f2
@@ -206,7 +221,7 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
     subsets <- by(cbind(x,y), list(df$vowel,df$group), subset)
     centers <- lapply(subsets, colMeans)
     covars <- lapply(subsets, cov)
-    ellipse.args <- apply(cbind('mu'=centers, 'sigma'=covars, 'alpha'=ellipse.alpha, 'draw'=FALSE), 1, c)
+    ellipse.args <- apply(cbind('mu'=centers, 'sigma'=covars, 'alpha'=ellipse.size, 'draw'=FALSE), 1, c)
     ellipse.points <- lapply(ellipse.args, function(x){ do.call('ellipse',x) })
     # extrema: formant x vowel x group (3-dimensional array)
     ellipse.maxima <- array(unlist(lapply(ellipse.points, function(x){apply(x,2,max)})),dim=c(2,length(vlist),length(glist)),dimnames=list(c('f2','f1'),vlist,glist))
@@ -406,8 +421,10 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
     
   } else if (output=='screen') {
       # SET UP FOR LATTICE PLOTTING
-      num.rows <- floor(sqrt(length(glist)))
-      num.cols <- ceiling(sqrt(length(glist)))
+      num.rows <- num.cols <- ceiling(sqrt(length(glist)))
+      if(length(glist) <= num.rows*(num.rows-1)) {
+	num.rows <- num.rows-1
+      }
       par(mfrow=c(num.rows,num.cols), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family='Charis SIL')
   }
 
@@ -509,11 +526,11 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
       if (titles[1]=='auto') {
 	# AUTO-GENERATE TITLES
 	if(glist[1] == 'noGroupsDefined') {
-	  mtext('Vowels', side=3, cex=1.2, las=1, line=3.25, font=2)
+	  mtext('Vowels', side=3, cex=1, las=1, line=3.25, font=2)
 	} else if (!single.plot) {
-	  mtext(paste('Vowels (', currentGroup,')',sep=''), side=3, cex=1.2, las=1, line=3.25, font=2)
+	  mtext(paste('Vowels (', currentGroup,')',sep=''), side=3, cex=1, las=1, line=3.25, font=2)
 	} else {
-	  mtext(paste('Vowels by', grouping.factor), side=3, cex=1.2, las=1, line=3.25, font=2)
+	  mtext(paste('Vowels by', grouping.factor), side=3, cex=1, las=1, line=3.25, font=2)
 	}
       } else if (titles[1]!='none') {
 	# USE USER-SUPPLIED TITLES
@@ -523,11 +540,11 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
       
       # AXIS LABELS
       if (norm.method != 'none' & !match.unit) {
-	mtext(paste('F2 (Hz on',unit,'scale)'), side=3, cex=1, las=1, line=1.5, font=2, col=axis.col)
-	mtext(paste('F1 (Hz on',unit,'scale)'), side=4, cex=1, las=3, line=2.5, font=2, col=axis.col)
+	mtext(paste('F2 (Hz on',unit,'scale)'), side=3, cex=0.8, las=1, line=1.5, font=2, col=axis.col)
+	mtext(paste('F1 (Hz on',unit,'scale)'), side=4, cex=0.8, las=3, line=2.5, font=2, col=axis.col)
       } else {
-	mtext(paste('F2 (',unit,')',sep=''), side=3, cex=1, las=1, line=1.5, font=2, col=axis.col)
-	mtext(paste('F1 (',unit,')',sep=''), side=4, cex=1, las=3, line=2.5, font=2, col=axis.col)
+	mtext(paste('F2 (',unit,')',sep=''), side=3, cex=0.8, las=1, line=1.5, font=2, col=axis.col)
+	mtext(paste('F1 (',unit,')',sep=''), side=4, cex=0.8, las=3, line=2.5, font=2, col=axis.col)
       }
 
     } else if (single.plot) {
@@ -567,7 +584,7 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
 	cVowelData <- subset(curData, vowel==vlist[j])
 	covar[[j]] <- cov(cbind(cVowelData$f2, cVowelData$f1))
 	# PLOT ELLIPSES
-	ellipse(c(f2means[j], f1means[j]), covar[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.alpha)
+	ellipse(c(f2means[j], f1means[j]), covar[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.size)
       }
     }
 
@@ -579,7 +596,7 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
 	  legend('bottomleft', legend=glist, fill=NA, border=NA, col=vowelcolors, lty=NA, pch=symbols, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1 
 	}
       } else {
-	legend('bottomleft', legend=glist, fill=legendboxes, border=NA, col=vowelcolors, lty=NA, pch=NA, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1 
+	legend('bottomleft', legend=glist, fill=vowelcolors, border=NA, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1 
       }
 
 #      legendshapes <- symbols
