@@ -1,6 +1,6 @@
 normalizeVowels <- function(f0=NULL, f1=NULL, f2=NULL, f3=NULL, method, grouping.factor=NULL, vowel=NULL) {
   # R FUNCTION "normalizeVowels"
-  # MOST CURRENT VERSION ALWAYS AT: https://github.com/drammock/plot-vowels-R
+  # MOST CURRENT VERSION ALWAYS AT: https://github.com/drammock/phonR
   #
   # This function normalizes vowel formants using various normalization formulae.  Most of the formulae are taken from Adank et al (2004) and Watt & Fabricius (2002).  Full references are below; schematic formulae and original sources are provided as well.
   # Adank, P., Smits, R., & van Hout, R. (2004). A comparison of vowel normalization procedures for language variation research. Journal of the Acoustical Society of America, 116, 3099. doi:10.1121/1.1795335.
@@ -12,7 +12,7 @@ normalizeVowels <- function(f0=NULL, f1=NULL, f2=NULL, f3=NULL, method, grouping
   # zscore  <- (Hz-grandMeanForTalker)/stDevForTalker	  # Lobanov 1971
   # nearey1 <- log(Hz) - mean(log(Hz))					        # Nearey 1978
   # nearey2 <- log(Hz) - sum(mean(log(f0)),mean(log(f1)),mean(log(f2)),mean(log(f3)))
-  # s-centroid  see Watt & Fabricius 2002 for calculations.
+  # s-centroid                                          # see Watt & Fabricius 2002 for calculations.
   #
   # VERSION 0.4 (2012 07 21)
   #
