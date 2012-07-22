@@ -1,16 +1,24 @@
-normalizeVowels <- function(f0=NULL, f1=NULL, f2=NULL, f3=NULL, method, grouping.factor=NULL, inverse=FALSE) {
+normalizeVowels <- function(f0=NULL, f1=NULL, f2=NULL, f3=NULL, method, grouping.factor=NULL, vowel=NULL) {
   # R FUNCTION "normalizeVowels"
-  # This function normalizes vowel formants using various normalization formulae, taken from: Adank, P., Smits, R., & van Hout, R. (2004). A comparison of vowel normalization procedures for language variation research. Journal of the Acoustical Society of America, 116, 3099. doi:10.1121/1.1795335.  Original references from that paper are indicated here:
-  # bark    <- 26.81*Hz/(1960+Hz)-0.53					        # traunmüller 1990; zwicker & terhardt 1980
-  # mel     <- 2595*log(1+Hz/700)							          # stevens & volkmann 1940
-  # erb     <- 21.4*log(1+Hz*0.00437)		        				# glasberg & moore 1990
+  # MOST CURRENT VERSION ALWAYS AT: https://github.com/drammock/plot-vowels-R
+  #
+  # This function normalizes vowel formants using various normalization formulae.  Most of the formulae are taken from Adank et al (2004) and Watt & Fabricius (2002).  Full references are below; schematic formulae and original sources are provided as well.
+  # Adank, P., Smits, R., & van Hout, R. (2004). A comparison of vowel normalization procedures for language variation research. Journal of the Acoustical Society of America, 116, 3099. doi:10.1121/1.1795335.
+  # Watt, D., & Fabricius, A. H. (2002). Evaluation of a technique for improving the mapping of multiple speakers’ vowel spaces in the F1 ~ F2 plane. (D. Nelson, Ed.) Leeds Working Papers in Linguistics and Phonetics, 9, 159–173.
+  #
+  # bark    <- 26.81*Hz/(1960+Hz)-0.53					        # Traunmüller 1990; Zwicker & Terhardt 1980
+  # mel     <- 2595*log(1+Hz/700)							          # Stevens & Volkmann 1940
+  # erb     <- 21.4*log(1+Hz*0.00437)		        				# Glasberg & Moore 1990
   # zscore  <- (Hz-grandMeanForTalker)/stDevForTalker	  # Lobanov 1971
   # nearey1 <- log(Hz) - mean(log(Hz))					        # Nearey 1978
   # nearey2 <- log(Hz) - sum(mean(log(f0)),mean(log(f1)),mean(log(f2)),mean(log(f3)))
+  # s-centroid  see Watt & Fabricius 2002 for calculations.
   #
-  # VERSION 0.3 (2012 07 19)
+  # VERSION 0.4 (2012 07 21)
   #
   # CHANGELOG
+  # VERSION 0.4: added S-centroid normalization method.
+  #
   # VERSION 0.3: minor improvement to error handling.
   #
   # VERSION 0.2: implementation of group-based subsetting for z-score and nearey normalizations.
@@ -22,18 +30,26 @@ normalizeVowels <- function(f0=NULL, f1=NULL, f2=NULL, f3=NULL, method, grouping
   m <- tolower(method)
 
   f <- cbind(as.vector(f0),as.vector(f1),as.vector(f2),as.vector(f3))
-  #length(unique(sapply(list(f0, f1, f2, f3), length))) == 1
 
   if (is.null(f)) {
     warning('Missing values: at least one of the arguments (f0, f1, f2, or f3) must be supplied.')
   }
 
-  if (!(m %in% c('bark','mel','log','erb','z','zscore','ztransform','lobanov','logmean','nearey1','nearey2'))) {
-    warning('Method must be one of: bark, mel, log, erb, z|zscore|ztransform|lobanov, logmean|nearey1, nearey2')
+  if (!(m %in% c('bark','mel','log','erb','z','zscore','ztransform','lobanov','logmean','nearey1','nearey2','scentroid','s','wattfabricius'))) {
+    warning('Method must be one of: bark, mel, log, erb, z|zscore|ztransform|lobanov, logmean|nearey1, nearey2, s|scentroid|wattfabricius')
   }
 
-  if (!is.null(grouping.factor) & !(m %in% c('z','zscore','ztransform','lobanov','logmean','nearey1','nearey2'))) {
-    warning('Grouping factor ignored for normalization method \"',method,'.\"')
+  if (!is.null(grouping.factor) & !(m %in% c('z','zscore','ztransform','lobanov','logmean','nearey1','nearey2','s','scentroid','wattfabricius'))) {
+    warning('Argument \"grouping.factor\" is ignored for normalization method \"',method,'.\"')
+  }
+
+  if (!is.null(vowel) & !(m %in% c('s','scentroid','wattfabricius'))) {
+    warning('Argument \"vowel\" is ignored for normalization method \"',method,'.\"')
+  }
+
+  if ((!is.null(f3) | !is.null(f0)) & !(m %in% c('s','scentroid','wattfabricius'))) {
+    warning('f0 and F3 values ignored for s-centroid normalization method. Only F1 and F2 values returned.')
+    f <- cbind(as.vector(f1),as.vector(f2))
   }
 
   if (m=='bark') {
@@ -47,6 +63,32 @@ normalizeVowels <- function(f0=NULL, f1=NULL, f2=NULL, f3=NULL, method, grouping
 
   } else if (m=='erb') {
     fn <- 21.4*log(0.00437*f+1)
+
+  } else if (m %in% c('s','scentroid','wattfabricius')) {
+    if (is.null(grouping.factor)) { grouping.factor <- 'noGroups' }
+    subsets <- by(f, list(grouping.factor,vowel), subset) # 2D list (group x vowel) of lists (f1,f2)
+    means.list <- matrix(lapply(subsets, function(x){apply(x,2,mean)}), ncol=ncol(subsets), dimnames=dimnames(subsets))
+    f1maxima <- apply(means.list,1,function(x){max(matrix(unlist(x),ncol=2,byrow=TRUE)[,1])})
+    f1minima <- apply(means.list,1,function(x){min(matrix(unlist(x),ncol=2,byrow=TRUE)[,1])})
+    f1max.id <- apply(means.list,1,function(x){which.max(matrix(unlist(x),ncol=2,byrow=TRUE)[,1])})
+    f1min.id <- apply(means.list,1,function(x){which.min(matrix(unlist(x),ncol=2,byrow=TRUE)[,1])})
+    if (length(unique(f1min.id))>1) {
+      warning('The vowel with the lowest mean F1 value (usually /i/) does not match across all speakers/groups. You\'ll have to calculate s-centroid by hand.')
+      data.frame(minF1=round(f1minima), vowel=dimnames(means.list)[[2]][f1min.id])
+      stop()
+    }
+    if (length(unique(f1max.id))>1) {
+      warning('The vowel with the highest mean F1 value (usually /a/) does not match across all speakers/groups. You\'ll have to calculate s-centroid by hand.')
+      data.frame(maxF1=round(f1maxima), vowel=dimnames(means.list)[[2]][f1max.id])
+      stop()
+    }
+    f2lowvow <- apply(means.list,1,function(x){matrix(unlist(x),ncol=2,byrow=TRUE)[unique(f1max.id),2]})
+    f2maxima <- apply(means.list,1,function(x){matrix(unlist(x),ncol=2,byrow=TRUE)[unique(f1min.id),2]})
+    f2minima <- f1minima
+    f1.centroid <- (2*f1minima+f1maxima)/3
+    f2.centroid <- (f2minima+f2maxima+f2lowvow)/3
+    centroid <- cbind(apply(as.matrix(grouping.factor),1,function(x){f1.centroid[x]}), apply(as.matrix(grouping.factor),1,function(x){f2.centroid[x]}))
+    fn <- f/centroid
 
   } else if (is.null(grouping.factor)) {
     if (m %in% c('lobanov','ztransform','zscore','z')) {
@@ -65,7 +107,7 @@ normalizeVowels <- function(f0=NULL, f1=NULL, f2=NULL, f3=NULL, method, grouping
     }
     
   } else {
-  subsets <- lapply(by(f, grouping.factor, subset),as.matrix) # list of matrices
+    subsets <- lapply(by(f, grouping.factor, subset),as.matrix) # list of matrices
     if (m %in% c('lobanov','ztransform','zscore','z')) {
       means.list <- lapply(subsets, function(x){apply(x,2,mean)})
       stdev.list <- lapply(subsets, function(x){apply(x,2,sd)})
