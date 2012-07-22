@@ -1,10 +1,14 @@
 plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.6, means.alpha=1, ignore.hidden=TRUE, ellipses=TRUE, ellipse.size=0.3173, polygon=TRUE, poly.order=c('i','ɪ','e','ɛ','æ','a','ɑ','ɔ','o','ʊ','u','ʌ'), poly.include=NULL, single.plot=TRUE, axis.col='#666666FF', titles='auto', grayscale=FALSE, vary.shapes=grayscale, vary.lines=grayscale, uniform.style=!single.plot, legend=single.plot, aspect.ratio=NULL, plot.dims=c(7,7), plot.unit='in', output='screen') {
   # R FUNCTION "plotVowels"
+  # MOST CURRENT VERSION ALWAYS AT: https://github.com/drammock/plot-vowels-R
+  #
   # This function plots vowel formants F1 and F2 with lots of options. 
   #
-  # VERSION 0.3 (2012 07 19)
+  # VERSION 0.4 (2012 07 21)
   #
   # CHANGELOG
+  # VERSION 0.4: Added support for s-centroid normalization method. 
+  #
   # VERSION 0.3: Bugfix (wrong calculation) in ellipse.size, improved legend handling, and a bugfix related to excess factor levels in grouping.factor.  
   #
   # VERSION 0.2: implementation of normalization, grayscale, transparency of vowel tokens/means, on-screen trellis plotting for multiple graphs, various improvements to efficiency, documentation, & error-handling.
@@ -48,6 +52,9 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
   # output		        Possible values are "screen", "pdf", "jpg"
 
 
+# FIXME: off-graph plotting discovered:
+# plotVowels(data=d, f1='F1', f2='F2', vowel='vowel', grouping.factor='group', single.plot=TRUE, norm.method='logmean', points='none', ellipses=FALSE, match.unit=FALSE)
+
   # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
   # MAKE CASE-INSENSITIVE, CHECK FOR BOGUS ARGUMENTS, ETC #
   # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -78,15 +85,19 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
     warning('Unknown argument value \'', points, '\'. \'points\' must be one of \'shape\', \'text\', or \'none\'.')
     stop()
   }
-  if (ellipses & ellipse.size<0) {
-    warning('Ellipse size is measured in standard deviations, and cannot be a negative number.')
+  if (ellipses & (ellipse.size<0 | ellipse.size>1)) {
+    warning('Ellipse size is measured as an alpha level [0,1], and cannot be a negative number.')
     stop()
   }
-  if(!is.null(aspect.ratio)) {
+  if (!is.null(aspect.ratio)) {
     if (!is.numeric(aspect.ratio) | aspect.ratio <= 0) {
       warning('Aspect ratio (horizontal/vertical) must be a positive number.')
       stop()
     }
+  }
+  if (!match.unit & norm.method %in% c('s','scentroid','wattfabricius')) {
+    warning('Argument \"match.unit\" coerced to TRUE with norm.method \"s-centroid\": plotting Hz on axes is uninformative for linear transforms.')
+    match.unit <- TRUE
   }
   
 
@@ -163,16 +174,18 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
     warning('Mismatch between number of titles and number of groups. Titles will be recycled or discarded as necessary.')
     titles <- rep(titles, length(glist))
   }
-  if (length(glist)>1 & norm.method=='z' & single.plot & !match.unit) {
-    warning('\'match.unit\' coerced to TRUE: cannot draw axes in Hz when normalizing via z-transform with multiple groups.')
+  if (length(glist)>1 & norm.method %in% c('z','zscore','ztransform','lobanov','s','scentroid','wattfabricius') & single.plot & !match.unit) {
+    warning('\'match.unit\' coerced to TRUE: cannot draw axes in Hz when normalizing via z-transform or s-centroid with multiple groups.')
     match.unit <- TRUE
   }
 
   # NORMALIZE THE DATA
   if (norm.method == 'nearey2') {
     df[,1:2] <- normalizeVowels(f1=df$f1,f2=df$f2,f3=df$f3,f0=df$f0,method=norm.method)[,2:3]
-  } else if (norm.method == 'z') {
+  } else if (norm.method %in% c('z','ztransform','zscore','lobanov')) {
     df[,1:2] <- normalizeVowels(f1=df$f1,f2=df$f2,method=norm.method,grouping.factor=df$group)
+  } else if (norm.method %in% c('s','scentroid','wattfabricius')) {
+    df[,1:2] <- normalizeVowels(f1=df$f1,f2=df$f2,method=norm.method,grouping.factor=df$group,vowel=df$vowel)
   } else if (norm.method != 'none') {
     df[,1:2] <- normalizeVowels(f1=df$f1,f2=df$f2,method=norm.method)
   }
@@ -182,6 +195,8 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
     unit <- 'log'
   } else if (norm.method %in% c('lobanov','ztransform','zscore','z')) {
     unit <- 'st.dev.'
+  } else if (norm.method %in% c('s','scentroid','wattfabricius')) {
+    unit <- 'Fn/S(Fn)'
   } else if (norm.method == 'mel') {
     unit <- 'Mel'
   } else if (norm.method == 'bark') {
@@ -494,11 +509,11 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
     ytext <- yticks
 
     if (norm.method != 'none' & !match.unit) {
-      if (norm.method == 'z') {
+      if (norm.method %in% c('z','zscore','ztransform','lobanov')) {
 	xticks <- (xticks-mean(curData$f2hz))/sd(curData$f2hz)
 	yticks <- (yticks-mean(curData$f1hz))/sd(curData$f1hz)
 
-      } else if (norm.method == 'logmean') {
+      } else if (norm.method %in% c('logmean','nearey1')) {
 	xticks <- log(xticks)-mean(log(curData$f2hz))
 	yticks <- log(yticks)-mean(log(curData$f1hz))
 
