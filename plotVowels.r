@@ -1,6 +1,6 @@
 plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.6, means.alpha=1, ignore.hidden=TRUE, ellipses=TRUE, ellipse.size=0.3173, polygon=TRUE, poly.order=c('i','ɪ','e','ɛ','æ','a','ɑ','ɔ','o','ʊ','u','ʌ'), poly.include=NULL, single.plot=TRUE, axis.col='#666666FF', titles='auto', grayscale=FALSE, vary.shapes=grayscale, vary.lines=grayscale, uniform.style=!single.plot, legend=single.plot, aspect.ratio=NULL, plot.dims=c(7,7), plot.unit='in', output='screen') {
   # R FUNCTION "plotVowels"
-  # MOST CURRENT VERSION ALWAYS AT: https://github.com/drammock/plot-vowels-R
+  # MOST CURRENT VERSION ALWAYS AT: https://github.com/drammock/phonR
   #
   # This function plots vowel formants F1 and F2 with lots of options. 
   #
