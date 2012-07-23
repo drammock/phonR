@@ -554,8 +554,8 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
 
 			# AXIS LABELS
 			if (norm.method != 'none' & !match.unit) {
-				mtext(paste('F2 (',unit,'-scaled Hz)'), side=3, cex=0.8, las=1, line=1.5, font=2, col=axis.col)
-				mtext(paste('F1 (',unit,'-scaled Hz)'), side=4, cex=0.8, las=3, line=2.5, font=2, col=axis.col)
+				mtext(paste('F2 (',unit,'-scaled Hz)', sep=''), side=3, cex=0.8, las=1, line=1.5, font=2, col=axis.col)
+				mtext(paste('F1 (',unit,'-scaled Hz)', sep=''), side=4, cex=0.8, las=3, line=2.5, font=2, col=axis.col)
 			} else {
 				mtext(paste('F2 (',unit,')',sep=''), side=3, cex=0.8, las=1, line=1.5, font=2, col=axis.col)
 				mtext(paste('F1 (',unit,')',sep=''), side=4, cex=0.8, las=3, line=2.5, font=2, col=axis.col)
