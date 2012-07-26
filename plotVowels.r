@@ -4,9 +4,11 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
 	#
 	# This function plots vowel formants F1 and F2 with lots of options.
 	#
-	# VERSION 0.4 (2012 07 21)
+	# VERSION 0.5 (2012 07 26)
 	#
 	# CHANGELOG
+	# VERSION 0.5: Bugfix: unequal group handling (levels of grouping.factor no longer need contain all levels of vowel)
+	#
 	# VERSION 0.4: Added support for s-centroid normalization method.
 	#
 	# VERSION 0.3: Bugfix (wrong calculation) in ellipse.size, improved legend handling, and a bugfix related to excess factor levels in grouping.factor.
@@ -53,7 +55,8 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
 
 
 # FIXME: off-graph plotting discovered:
-# plotVowels(data=d, f1='F1', f2='F2', vowel='vowel', grouping.factor='group', single.plot=TRUE, norm.method='logmean', points='none', ellipses=FALSE, match.unit=FALSE)
+# plotVowels(data=d, f1='F1', f2='F2', vowel='vowel', grouping.factor='group', single.plot=TRUE, norm.method='logmean', points='none', ellipses=FALSE, match.unit=FALSE) # (d3, excl nwf)
+
 
 	# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 	# MAKE CASE-INSENSITIVE, CHECK FOR BOGUS ARGUMENTS, ETC #
@@ -108,7 +111,6 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
 	require(Cairo)
 	if (ellipses & (ellipse.size>1 | ellipse.size<0)) {
 		warning('ellipse.size is an alpha level, and must be between 0 and 1 (inclusive)')
-#    ellipse.size # 0.3173 gives +/- 1 standard deviation
 	}
 	if (output!='screen') {
 		CairoFonts(regular='Charis SIL:style=Regular', bold='Charis SIL:style=Bold', italic='Charis SIL:style=Italic', bolditalic='Charis SIL:style=Bold Italic,BoldItalic', symbol='Symbol')
@@ -234,8 +236,8 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
 
 	if (ellipses) {
 		subsets <- by(cbind(x,y), list(df$vowel,df$group), subset)
-		centers <- lapply(subsets, colMeans)
-		covars <- lapply(subsets, cov)
+		centers <- lapply(subsets[!unlist(lapply(subsets, is.null))], colMeans)
+		covars <- lapply(subsets[!unlist(lapply(subsets, is.null))], cov)
 		ellipse.args <- apply(cbind('mu'=centers, 'sigma'=covars, 'alpha'=ellipse.size, 'draw'=FALSE), 1, c)
 		ellipse.points <- lapply(ellipse.args, function(x){ do.call('ellipse',x) })
 		# extrema: formant x vowel x group (3-dimensional array)
@@ -260,24 +262,24 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
 				ymax <- ellipse.maxima.overall[2]
 			} else {
 				# COMPARE POINTS & ELLIPSES TO CALCULATE EXTREMA
-				xmin <- min(c(ellipse.minima.overall[1], min(x)))
-				xmax <- max(c(ellipse.maxima.overall[1], max(x)))
-				ymin <- min(c(ellipse.minima.overall[2], min(y)))
-				ymax <- max(c(ellipse.maxima.overall[2], max(y)))
+				xmin <- min(c(ellipse.minima.overall[1], min(x,na.rm=TRUE)))
+				xmax <- max(c(ellipse.maxima.overall[1], max(x,na.rm=TRUE)))
+				ymin <- min(c(ellipse.minima.overall[2], min(y,na.rm=TRUE)))
+				ymax <- max(c(ellipse.maxima.overall[2], max(y,na.rm=TRUE)))
 			}
 		} else { # !ellipses
 			if (points=='none' & ignore.hidden) {
 				# USE MEANS TO CALCULATE EXTREMA
-				xmin <- min(f2means)
-				xmax <- max(f2means)
-				ymin <- min(f1means)
-				ymax <- max(f1means)
+				xmin <- min(f2means, na.rm=TRUE)
+				xmax <- max(f2means, na.rm=TRUE)
+				ymin <- min(f1means, na.rm=TRUE)
+				ymax <- max(f1means, na.rm=TRUE)
 			} else {
 				# USE POINTS TO CALCULATE EXTREMA
-				xmin <- min(xmin.table)
-				xmax <- max(xmax.table)
-				ymin <- min(ymin.table)
-				ymax <- max(ymax.table)
+				xmin <- min(xmin.table, na.rm=TRUE)
+				xmax <- max(xmax.table, na.rm=TRUE)
+				ymin <- min(ymin.table, na.rm=TRUE)
+				ymax <- max(ymax.table, na.rm=TRUE)
 			}
 		}
 	} else if (match.axes=='relative') {
@@ -313,8 +315,8 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
 		} else { # !ellipses
 			if (points=='none' & ignore.hidden) {
 				# USE MEANS TO CALCULATE EXTREMA
-				means.minima.by.group <- rbind('f2'=apply(f2means,2,min), 'f1'=apply(f1means,2,min))
-				means.maxima.by.group <- rbind('f2'=apply(f2means,2,max), 'f1'=apply(f1means,2,max))
+				means.minima.by.group <- rbind('f2'=apply(f2means,2,min,na.rm=TRUE), 'f1'=apply(f1means,2,min,na.rm=TRUE))
+				means.maxima.by.group <- rbind('f2'=apply(f2means,2,max,na.rm=TRUE), 'f1'=apply(f1means,2,max,na.rm=TRUE))
 				means.ranges.by.group <- means.maxima.by.group - means.minima.by.group
 				means.range.shortfall <- matrix(rep(apply(means.ranges.by.group,1,max), each=length(glist)), ncol=length(glist), byrow=TRUE) - means.ranges.by.group
 				means.maxima.by.group <- means.maxima.by.group + means.range.shortfall/2
@@ -531,7 +533,7 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
 		# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 		if (!single.plot | i==1) {
 			# INITIALIZE EMPTY PLOT
-			plot(0, 0, xaxt='n', yaxt='n', xlim=xlims, ylim=ylims, type='n', ann=FALSE, frame.plot=FALSE, asp=aspect.ratio) #main='',
+			plot(0, 0, xaxt='n', yaxt='n', xlim=xlims, ylim=ylims, type='n', ann=FALSE, frame.plot=FALSE, asp=aspect.ratio)
 
 			# AXES
 			axis(3, at=xticks, labels=xtext, las=0, col=axis.col, col.ticks=axis.col, col.axis=axis.col, cex.axis=0.8, tck=-.005)
@@ -595,10 +597,12 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
 			# CALCULATE COVARIANCE MATRICES
 			covar <- list()
 			for (j in 1:length(vlist)) {
-	cVowelData <- subset(curData, vowel==vlist[j])
-	covar[[j]] <- cov(cbind(cVowelData$f2, cVowelData$f1))
-	# PLOT ELLIPSES
-	ellipse(c(f2means[j], f1means[j]), covar[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.size)
+				cVowelData <- subset(curData, vowel==vlist[j])
+				covar[[j]] <- cov(cbind(cVowelData$f2, cVowelData$f1))
+				# PLOT ELLIPSES
+				if (!is.na(covar[[j]][1])) {
+					ellipse(c(f2means[j], f1means[j]), covar[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.size)
+				}
 			}
 		}
 
@@ -607,7 +611,7 @@ plotVowels <- function(data=NULL, vowel, f1, f2, f3=NULL, f0=NULL, grouping.fact
 	      if (ellipses | polygon) {
 		      legend('bottomleft', legend=glist, fill=NA, border=NA, col=vowelcolors, lty=linetypes, pch=symbols, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1
 	      } else {
-		      legend('bottomleft', legend=glist, fill=NA, border=NA, col=vowelcolors, lty=NA, pch=symbols, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1
+		      legend('bottomleft', legend=glist, fill=NA, border=NA, col=vowelcolors, pch=symbols, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1
 	      }
 			} else {
       	legend('bottomleft', legend=glist, fill=vowelcolors, border=NA, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1
