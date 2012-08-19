@@ -1,4 +1,4 @@
-normalizeVowels <- function(f0=NULL, f1=NULL, f2=NULL, f3=NULL, method, grouping.factor=NULL, vowel=NULL) {
+normalizeVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NULL, grouping.factor=NULL) {
   # R FUNCTION "normalizeVowels"
   # MOST CURRENT VERSION ALWAYS AT: https://github.com/drammock/phonR
   #
