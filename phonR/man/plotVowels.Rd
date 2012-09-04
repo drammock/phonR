@@ -11,10 +11,10 @@ ellipses=TRUE, ellipse.size=0.3173, polygon=TRUE,
 poly.order=c('i','\u026A','e','\u025B','\u00E6','a','\u0251',
 '\u0252','\u0254','o','\u028A','u','\u028C','\u0259'), 
 poly.include=NULL, single.plot=TRUE, axis.col='#666666FF', 
-titles='auto', grayscale=FALSE, vary.shapes=grayscale, 
-vary.lines=grayscale, uniform.style=!single.plot, 
-legend=single.plot, aspect.ratio=NULL, plot.dims=c(7,7), 
-plot.unit='in', output='screen')
+titles='auto', axis.titles='auto', grayscale=FALSE, 
+vary.shapes=grayscale, vary.lines=grayscale, 
+uniform.style=!single.plot, legend=single.plot, aspect.ratio=NULL, 
+plot.dims=c(6.5,6.5), plot.unit='in', output='screen')
 }
 \arguments{
     \item{vowel}{Vector (or column from \code{data}) of vowel symbols.}
@@ -40,6 +40,7 @@ plot.unit='in', output='screen')
     \item{single.plot}{If TRUE, plot each value of the grouping factor on the same graph.  If FALSE and \code{output} is \dQuote{screen}, result is an on-screen lattice plot.  If FALSE and \code{output} is \dQuote{pdf} or \dQuote{jpg}, result is a collection of separate PDF or JPG files (one per level of \code{grouping.factor}).}
     \item{axis.col}{Color for the axis lines, ticks, numbers, and labels.}
     \item{titles}{If \dQuote{auto}, will auto-generate titles based on \code{grouping.factor}.  If \dQuote{none}, titles are omitted.  Also accepts a single string (all titles will be the same), or a vector of strings that matches the number of levels in \code{grouping.factor}.}
+    \item{axis.titles}{If \dQuote{auto}, will auto-generate axis labels based on \code{norm.method}.  Also accepts a two-element vector of strings (e.g., for cases where the values passed to the function have already been normalized).  Order of elements is \code{c('F2 (horizontal) axis label', 'F1 (vertical) axis label')}.}
     \item{grayscale}{If TRUE, plot without color.  Note that if \code{grayscale} is FALSE, graphs may still come out colorless if \code{uniform.style} is TRUE and there is only one group on the graph, because the first color plotted defaults to black.}
     \item{vary.shapes}{If TRUE, vary token or mean shapes by group (when either \code{points} or \code{means} has the value \dQuote{shape}).  Defaults to same value as \code{grayscale}.  Ignored if \code{uniform.style} is TRUE.}
     \item{vary.lines}{If TRUE, vary line style by group (when \code{ellipses} or \code{polygon} are TRUE).  Defaults to same value as \code{grayscale}.  Ignored if \code{uniform.style} is TRUE.}
