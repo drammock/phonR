@@ -1,12 +1,13 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# phonR version 0.1
+# phonR version 0.2
 # Functions for phoneticians and phonologists using R
 # Daniel McCloy, drmccloy@uw.edu
-# LICENSED UNDER THE GNU GENERAL PUBLIC LICENSE v3.0:
-# http://www.gnu.org/licenses/gpl.html
-# DEVELOPMENT OF THIS PACKAGE WAS FUNDED IN PART
-# BY THE NATIONAL INSTITUTES OF HEALTH, GRANT
-# NUMBER R01DC006014 TO PAMELA SOUZA
+# LICENSED UNDER THE GNU GENERAL PUBLIC LICENSE v3.0: http://www.gnu.org/licenses/gpl.html
+# DEVELOPMENT OF THIS PACKAGE WAS FUNDED IN PART BY THE NATIONAL INSTITUTES OF HEALTH, GRANT NUMBER R01DC006014 TO PAMELA SOUZA
+#
+# CHANGELOG:
+# v0.2: bugfixes: points.alpha and means.alpha now work for grayscale plots. Plots with polygons or ellipses but no shapes now get proper legend type (lines, not boxes).  Enhancements: support for custom axis titles (to accommodate pre-normalized values).
+#
 # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # USAGE: source("phonR.r")
@@ -107,7 +108,7 @@ normalizeVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NU
 }
 
 # VOWEL PLOTTING FUNCTION
-plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, data=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.3, means.alpha=1, ignore.hidden=TRUE, ellipses=TRUE, ellipse.size=0.3173, polygon=TRUE, poly.order=c('i','\u026A','e','\u025B','\u00E6','a','\u0251','\u0252','\u0254','o','\u028A','u','\u028C','\u0259'), poly.include=NULL, single.plot=TRUE, axis.col='#666666FF', titles='auto', grayscale=FALSE, vary.shapes=grayscale, vary.lines=grayscale, uniform.style=!single.plot, legend=single.plot, aspect.ratio=NULL, plot.dims=c(7,7), plot.unit='in', output='screen') {
+plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, data=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.3, means.alpha=1, ignore.hidden=TRUE, ellipses=TRUE, ellipse.size=0.3173, polygon=TRUE, poly.order=c('i','\u026A','e','\u025B','\u00E6','a','\u0251','\u0252','\u0254','o','\u028A','u','\u028C','\u0259'), poly.include=NULL, single.plot=TRUE, axis.col='#666666FF', titles='auto', axis.titles='auto', grayscale=FALSE, vary.shapes=grayscale, vary.lines=grayscale, uniform.style=!single.plot, legend=single.plot, aspect.ratio=NULL, plot.dims=c(6.5,6.5), plot.unit='in', output='screen') {
 	# MAKE CASE-INSENSITIVE, CHECK FOR BOGUS ARGUMENTS, ETC
 	norm.method <- tolower(norm.method)
 	match.axes <- tolower(match.axes)
@@ -206,6 +207,11 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 	} else if (length(titles) != length(glist)) {
 		warning('Mismatch between number of titles and number of groups. Titles will be recycled or discarded as necessary.')
 		titles <- rep(titles, length(glist))
+	}
+	if (length(axis.titles)>2) {
+	  warning('Too many axis titles supplied; only the first two will be used.')
+	} else if (length(axis.titles)<2 & axis.titles[1]!='auto') {
+	  warning('Too few axis titles supplied; values will be recycled.')
 	}
 	if (length(glist)>1 & norm.method %in% c('z','zscore','ztransform','lobanov','s','scentroid','wattfabricius') & single.plot & !match.unit) {
 		warning('\'match.unit\' coerced to TRUE: cannot draw axes in Hz when normalizing via z-transform or s-centroid with multiple groups.')
@@ -410,10 +416,10 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 	}
 	# COLORS, ETC
 	topmargin <- ifelse(length(titles)==1 & titles[1]=='none', 3, 5)
-	vowelcolors <- rep('#000000FF', length=length(glist)) # default color: black
-	pointcolors <- rep('#00000099', length=length(glist)) # default color: semitransparent black
+	vowelcolors <- rep(hcl(0,0,0,means.alpha), length=length(glist)) # default color: black
+	pointcolors <- rep(hcl(0,0,0,points.alpha), length=length(glist)) # default color: semitransparent black
 	linetypes <- rep(1, length=length(glist)) # default linetype: solid
-	symbols <- rep(20, length=length(glist)) # default symbol: filled circle
+	symbols <- rep(16, length=length(glist)) # default symbol: filled circle
 	if (!uniform.style) {
 		if (vary.shapes) {
 			symbols <- rep(c(0:2,5,15:18,3,4,6), length=length(glist)) # open{square,circle,triangle,diamond}, filled{square,circle,triangle,diamond}, plus, x, inverted triangle
@@ -421,9 +427,14 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 		if (vary.lines) {
 			linetypes <- rep(c(1:6),length=length(glist))
 		}
-		if (!grayscale & length(glist)>1) {
-			vowelcolors <- hcl(seq(0,360-(360/length(glist)),length=length(glist)), c=100, l=35, alpha=means.alpha, fixup=TRUE)
-			pointcolors <- hcl(seq(0,360-(360/length(glist)),length=length(glist)), c=100, l=35, alpha=points.alpha, fixup=TRUE)
+		if (length(glist)>1) {
+		  if (grayscale) {
+			  vowelcolors <- rep(hcl(h=0, c=0, l=0, alpha=means.alpha, fixup=TRUE), length(glist))
+			  pointcolors <- rep(hcl(h=0, c=0, l=0, alpha=points.alpha, fixup=TRUE), length(glist))
+		  } else {
+			  vowelcolors <- hcl(h=seq(0,360-(360/length(glist)),length=length(glist)), c=100, l=35, alpha=means.alpha, fixup=TRUE)
+			  pointcolors <- hcl(h=seq(0,360-(360/length(glist)),length=length(glist)), c=100, l=35, alpha=points.alpha, fixup=TRUE)
+		  }
 		}
 	}
 	# IF PLOTTING ALL GROUPS ON ONE GRAPH, INITIALIZE OUTPUT DEVICE ONLY ONCE
@@ -522,24 +533,31 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 			if (titles[1]=='auto') {
 				# AUTO-GENERATE TITLES
 				if(glist[1] == 'noGroupsDefined') {
-					mtext('Vowels', side=3, cex=1, las=1, line=3.25, font=2)
+				  title <- 'Vowels'
 				} else if (!single.plot) {
-					mtext(paste('Vowels (', currentGroup,')',sep=''), side=3, cex=1, las=1, line=3.25, font=2)
+				  title <- paste('Vowels (', currentGroup,')',sep='')
 				} else {
-					mtext(paste('Vowels by', grouping.factor), side=3, cex=1, las=1, line=3.25, font=2)
+				  title <- paste('Vowels by', grouping.factor)
 				}
+  			mtext(title, side=3, cex=1.2, las=1, line=3.25, font=2)
 			} else if (titles[1]!='none') {
 				# USE USER-SUPPLIED TITLES
 				mtext(titles[i], side=3, cex=1.2, las=1, line=3.25, font=2)
 			}
 			# AXIS LABELS
-			if (norm.method != 'none' & !match.unit) {
-				mtext(paste('F2 (',unit,'-scaled Hz)', sep=''), side=3, cex=0.8, las=1, line=1.5, font=2, col=axis.col)
-				mtext(paste('F1 (',unit,'-scaled Hz)', sep=''), side=4, cex=0.8, las=3, line=2.5, font=2, col=axis.col)
+			if (axis.titles[1] != 'auto') {
+			  hlabel <- axis.titles[1]
+			  vlabel <- axis.titles[2]
+			} else if (norm.method != 'none' & !match.unit) {
+			  hlabel <- paste('F2 (',unit,'-scaled Hz)', sep='')
+			  vlabel <- paste('F1 (',unit,'-scaled Hz)', sep='')
 			} else {
-				mtext(paste('F2 (',unit,')',sep=''), side=3, cex=0.8, las=1, line=1.5, font=2, col=axis.col)
-				mtext(paste('F1 (',unit,')',sep=''), side=4, cex=0.8, las=3, line=2.5, font=2, col=axis.col)
+			  hlabel <- paste('F2 (',unit,')',sep='')
+			  vlabel <- paste('F1 (',unit,')',sep='')
 			}
+			mtext(hlabel, side=3, cex=0.8, las=1, line=1.5, font=2, col=axis.col)
+			mtext(vlabel, side=4, cex=0.8, las=3, line=2.5, font=2, col=axis.col)
+
 		} else if (single.plot) {
 			# REUSE THE SAME PLOT
 			par(new=TRUE)
@@ -576,13 +594,17 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
     # PLOT LEGEND
 		if (legend & (!single.plot | i==length(glist))) {
 			if (points=='shape' | means=='shape') {
-	      if (ellipses | polygon) {
+	      if (ellipses | polygon) { # lines, symbols
 		      legend('bottomleft', legend=glist, fill=NA, border=NA, col=vowelcolors, lty=linetypes, pch=symbols, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1
-	      } else {
+	      } else { # symbols only
 		      legend('bottomleft', legend=glist, fill=NA, border=NA, col=vowelcolors, pch=symbols, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1
 	      }
 			} else {
-      	legend('bottomleft', legend=glist, fill=vowelcolors, border=NA, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1
+			  if (ellipses | polygon) { # lines only
+		      legend('bottomleft', legend=glist, fill=NA, border=NA, col=vowelcolors, lty=linetypes, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1
+			  } else { # boxes only
+        	legend('bottomleft', legend=glist, fill=vowelcolors, border=NA, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1
+			  }
 			}
 		}
 		# CLOSE THE OUTPUT DEVICE FOR EACH INDIVIDUAL GROUP PLOT (UNLESS OUTPUT = SCREEN)
