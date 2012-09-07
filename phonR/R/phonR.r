@@ -6,7 +6,7 @@
 # DEVELOPMENT OF THIS PACKAGE WAS FUNDED IN PART BY THE NATIONAL INSTITUTES OF HEALTH, GRANT NUMBER R01DC006014 TO PAMELA SOUZA
 #
 # CHANGELOG:
-# v0.2: bugfixes: points.alpha and means.alpha now work for grayscale plots. Plots with polygons or ellipses but no shapes now get proper legend type (lines, not boxes).  Enhancements: support for custom axis titles (to accommodate pre-normalized values).
+# v0.2: bugfixes: points.alpha and means.alpha now work for grayscale plots. Plots with polygons or ellipses but no shapes now get proper legend type (lines, not boxes).  Enhancements: support for custom axis titles (to accommodate pre-normalized values) and custom point and mean sizes.
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -108,7 +108,7 @@ normalizeVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NU
 }
 
 # VOWEL PLOTTING FUNCTION
-plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, data=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.3, means.alpha=1, ignore.hidden=TRUE, ellipses=TRUE, ellipse.size=0.3173, polygon=TRUE, poly.order=c('i','\u026A','e','\u025B','\u00E6','a','\u0251','\u0252','\u0254','o','\u028A','u','\u028C','\u0259'), poly.include=NULL, single.plot=TRUE, axis.col='#666666FF', titles='auto', axis.titles='auto', grayscale=FALSE, vary.shapes=grayscale, vary.lines=grayscale, uniform.style=!single.plot, legend=single.plot, aspect.ratio=NULL, plot.dims=c(6.5,6.5), plot.unit='in', output='screen') {
+plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, data=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, poly.include=NULL, single.plot=TRUE, axis.col='#666666FF', titles='auto', axis.titles='auto', font.family='', grayscale=FALSE, vary.shapes=grayscale, vary.lines=grayscale, uniform.style=!single.plot, legend=single.plot, aspect.ratio=NULL, plot.dims=c(6.5,6.5), plot.unit='in', output='screen') {
 	# MAKE CASE-INSENSITIVE, CHECK FOR BOGUS ARGUMENTS, ETC
 	norm.method <- tolower(norm.method)
 	match.axes <- tolower(match.axes)
@@ -136,7 +136,7 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 		warning('Unknown argument value \'', points, '\'. \'points\' must be one of \'shape\', \'text\', or \'none\'.')
 		stop()
 	}
-	if (ellipses & (ellipse.size<0 | ellipse.size>1)) {
+	if (ellipses & (ellipse.alpha<0 | ellipse.alpha>1)) {
 		warning('Ellipse size is measured as an alpha level [0,1], and cannot be a negative number.')
 		stop()
 	}
@@ -150,42 +150,60 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 		warning('Argument \"match.unit\" coerced to TRUE with norm.method \"s-centroid\": plotting Hz on axes is uninformative for linear transforms.')
 		match.unit <- TRUE
 	}
+	if (ellipses & (ellipse.alpha>1 | ellipse.alpha<0)) {
+		warning('ellipse.alpha is an alpha level, and must be between 0 and 1 (inclusive)')
+	}
 	# LOAD DEPENDENCIES
 	require(mixtools)
 	require(Cairo)
-	if (ellipses & (ellipse.size>1 | ellipse.size<0)) {
-		warning('ellipse.size is an alpha level, and must be between 0 and 1 (inclusive)')
-	}
-	if (output!='screen') {
-		CairoFonts(regular='Charis SIL:style=Regular', bold='Charis SIL:style=Bold', italic='Charis SIL:style=Italic', bolditalic='Charis SIL:style=Bold Italic,BoldItalic', symbol='Symbol')
+	# FONT HANDLING
+	if (output!='screen' & font.family!='') {
+	  CairoFonts(regular=paste(font.family,':style=Regular,Book,Roman',sep=''), bold=paste(font.family,':style=Bold',sep=''), italic=paste(font.family,':style=Italic,Oblique',sep=''), bolditalic=paste(font.family,':style=Bold Italic,BoldItalic,Bold Oblique,BoldOblique',sep=''), symbol='Symbol')
 	}
 	# DATA PREPROCESSING
 	# PREALLOCATE
-	group <- NULL
+	gp <- NULL
 	# GET THE DATA
 	if (!is.null(data)) {
 		f1 <- data[,match(eval(f1),colnames(data))]
 		f2 <- data[,match(eval(f2),colnames(data))]
-		vowel  <- data[,match(vowel,colnames(data))]
+		vw <- data[,match(eval(vowel),colnames(data))]
 		if (!is.null(f3)) { f3 <- data[,match(eval(f3),colnames(data))] }
 		if (!is.null(f0)) { f0 <- data[,match(eval(f0),colnames(data))] }
 		if (!is.null(grouping.factor)) {
-			group <- data[,match(eval(grouping.factor),colnames(data))]
-			group <- factor(group)
+			gp <- data[,match(eval(grouping.factor),colnames(data))]
+			gp <- factor(gp)
 		} else {
-			group <- rep('noGroupsDefined',length(f1))
+			gp <- rep('noGroupsDefined',length(f1))
 		}
 	}
 	df <- data.frame(cbind(f1,f2,f3,f0))
-	df$vowel <- vowel
-	df$group <- group
-	rm(vowel,group)
-	# SORT THE DATA BY VOWEL, SO THAT POLYGON WILL DRAW IN PROPER ORDER.  SECONDARY ORDERING BY GROUP FOR CONVENIENCE
+	df$vowel <- vw
+	df$group <- gp
+	rm(vw,gp)
+  # ADJUST poly.order TO INCLUDE VOWELS PRESENT IN THE DATA THAT ARE NOT IN THE DEFAULT SET
+  v <- unique(df$vowel)
+  if (is.null(poly.order)) {
+    poly.order <- c('i','\u026A','e','\u025B','\u00E6','a','\u0251','\u0252','\u0254','o','\u028A','u','\u028C','\u0259') # i ɪ e ɛ æ a ɑ ɒ ɔ o ʊ u ʌ ə
+    if (polygon) {
+      warning('No vowel order specified for polygon drawing. Polygon(s) may not draw correctly.')
+    }
+  } else {
+    v.match <- v %in% poly.order
+    if (sum(v.match) < length(v.match) & polygon) {
+      warning('Mismatch between values present in \'vowel\' vector and \'poly.order\'. Polygon(s) may not draw correctly.')
+    }
+  }
+  for (i in 1:length(v)) {
+    if (!(v[i] %in% poly.order)) {
+      poly.order <- c(poly.order,v[i])
+    }
+  }
+	# SORT THE DATA BY VOWEL, SO THAT POLYGON HAS A CHANCE OF DRAWING IN PROPER ORDER.  SECONDARY ORDERING BY GROUP FOR CONVENIENCE
 	df$vowel <- factor(df$vowel, levels=poly.order)
 	df$vowel <- factor(df$vowel) # second call drops unused levels
 	df <- df[order(df$vowel,df$group),]
 	# COMPENSATE FOR MISMATCHES BETWEEN DEFAULT/PROVIDED LEVELS, AND LEVELS ACTUALLY PRESENT IN THE DATA
-	poly.order <- levels(df$vowel)
 	if (is.null(poly.include)) {
 		poly.include <- length(poly.order)
 	} else if(poly.include>length(poly.order)) {
@@ -267,7 +285,10 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 		subsets <- by(cbind(x,y), list(df$vowel,df$group), subset)
 		centers <- lapply(subsets[!unlist(lapply(subsets, is.null))], colMeans)
 		covars <- lapply(subsets[!unlist(lapply(subsets, is.null))], cov)
-		ellipse.args <- apply(cbind('mu'=centers, 'sigma'=covars, 'alpha'=ellipse.size, 'draw'=FALSE), 1, c)
+		for (i in 1:length(covars)) {
+		  covars[[i]][is.na(covars[[i]])] <- 0
+		}
+		ellipse.args <- apply(cbind('mu'=centers, 'sigma'=covars, 'alpha'=ellipse.alpha, 'draw'=FALSE), 1, c)
 		ellipse.points <- lapply(ellipse.args, function(x){ do.call('ellipse',x) })
 		# extrema: formant x vowel x group (3-dimensional array)
 		ellipse.maxima <- array(unlist(lapply(ellipse.points, function(x){apply(x,2,max)})),dim=c(2,length(vlist),length(glist)),dimnames=list(c('f2','f1'),vlist,glist))
@@ -378,10 +399,10 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 		} else { # !ellipses
 			if (points=='none' & ignore.hidden) {
 				# USE MEANS TO CALCULATE EXTREMA
-				xmin <- apply(f2means,2,min)
-				xmax <- apply(f2means,2,max)
-				ymin <- apply(f1means,2,min)
-				ymax <- apply(f1means,2,max)
+				xmin <- apply(f2means,2,min,na.rm=TRUE)
+				xmax <- apply(f2means,2,max,na.rm=TRUE)
+				ymin <- apply(f1means,2,min,na.rm=TRUE)
+				ymax <- apply(f1means,2,max,na.rm=TRUE)
 			} else {
 				# USE POINTS TO CALCULATE EXTREMA
 				xmin <- xmin.table
@@ -416,8 +437,8 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 	}
 	# COLORS, ETC
 	topmargin <- ifelse(length(titles)==1 & titles[1]=='none', 3, 5)
-	vowelcolors <- rep(hcl(0,0,0,means.alpha), length=length(glist)) # default color: black
-	pointcolors <- rep(hcl(0,0,0,points.alpha), length=length(glist)) # default color: semitransparent black
+	vowelcolors <- rep(hcl(0,0,0,means.alpha), length=length(glist)) # default color: (semitransparent) black
+	pointcolors <- rep(hcl(0,0,0,points.alpha), length=length(glist)) # default color: (semitransparent) black
 	linetypes <- rep(1, length=length(glist)) # default linetype: solid
 	symbols <- rep(16, length=length(glist)) # default symbol: filled circle
 	if (!uniform.style) {
@@ -425,15 +446,15 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 			symbols <- rep(c(0:2,5,15:18,3,4,6), length=length(glist)) # open{square,circle,triangle,diamond}, filled{square,circle,triangle,diamond}, plus, x, inverted triangle
 		}
 		if (vary.lines) {
-			linetypes <- rep(c(1:6),length=length(glist))
+      linetypes <- rep(c('solid', '43', '83852325', '13', 'F3131313', '93', '28282383', 'F323', '292323', '4313', 'F3'), length=length(glist))
 		}
 		if (length(glist)>1) {
-		  if (grayscale) {
-			  vowelcolors <- rep(hcl(h=0, c=0, l=0, alpha=means.alpha, fixup=TRUE), length(glist))
-			  pointcolors <- rep(hcl(h=0, c=0, l=0, alpha=points.alpha, fixup=TRUE), length(glist))
-		  } else {
+		  if (!grayscale) {
 			  vowelcolors <- hcl(h=seq(0,360-(360/length(glist)),length=length(glist)), c=100, l=35, alpha=means.alpha, fixup=TRUE)
 			  pointcolors <- hcl(h=seq(0,360-(360/length(glist)),length=length(glist)), c=100, l=35, alpha=points.alpha, fixup=TRUE)
+#		  } else {
+#			  vowelcolors <- rep(hcl(0,0,0,means.alpha), length=length(glist))
+#			  pointcolors <- rep(hcl(0,0,0,points.alpha), length=length(glist))
 		  }
 		}
 	}
@@ -449,32 +470,34 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 #    } else {
 #      Cairo(width=plot.dims[1], height=plot.dims[2], type='x11', units=plot.units)
 		}
-		par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family='Charis SIL')
+		op <- par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family=font.family)
 	} else if (output=='screen') {
 		# SET UP FOR LATTICE PLOTTING
 		num.rows <- num.cols <- ceiling(sqrt(length(glist)))
 		if(length(glist) <= num.rows*(num.rows-1)) {
     	num.rows <- num.rows-1
 		}
-		par(mfrow=c(num.rows,num.cols), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family='Charis SIL')
+		op <- par(mfrow=c(num.rows,num.cols), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family=font.family)
 	}
+
 	# PLOT!
 	for (i in 1:length(glist)) {
 		# GET CURRENT GROUP'S DATA
-		currentGroup <- glist[i]
-		curData <- subset(df, group==currentGroup)
-		f2means <- tapply(curData$f2, curData$vowel, mean)
-		f1means <- tapply(curData$f1, curData$vowel, mean)
+		curGroup <- glist[i]
+		curData <- subset(df, group==curGroup)
+		curData$vowel <- factor(curData$vowel) # drop unused levels
+		f2m <- tapply(curData$f2, curData$vowel, mean)
+		f1m <- tapply(curData$f1, curData$vowel, mean)
 		# IF PLOTTING EACH GROUP ON A SEPARATE GRAPH, INITIALIZE OUTPUT DEVICE SEPARATELY FOR EACH GROUP
 		if (!single.plot) {
 			# PDF OUTPUT
 			if (output=='pdf') {
-				Cairo(file=paste(currentGroup,'.pdf',sep=''), width=plot.dims[1], height=plot.dims[2], type='pdf', dpi='auto', units=plot.unit)
-				par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family='Charis SIL')
+				Cairo(file=paste(curGroup,'.pdf',sep=''), width=plot.dims[1], height=plot.dims[2], type='pdf', dpi='auto', units=plot.unit)
+				op <- par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family='Charis SIL')
 			# JPG OUTPUT
 			} else if (output=='jpg') {
-				Cairo(file=paste(currentGroup,'.jpg',sep=''), width=plot.dims[1], height=plot.dims[2], type='jpeg', dpi=96, units=plot.unit)
-				par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family='Charis SIL')
+				Cairo(file=paste(curGroup,'.jpg',sep=''), width=plot.dims[1], height=plot.dims[2], type='jpeg', dpi=96, units=plot.unit)
+				op <- par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family='Charis SIL')
 #      # SCREEN OUTPUT
 #      } else {
 #        Cairo(width=plot.dims[1], height=plot.dims[2], type='x11', units=plot.units)
@@ -535,7 +558,7 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 				if(glist[1] == 'noGroupsDefined') {
 				  title <- 'Vowels'
 				} else if (!single.plot) {
-				  title <- paste('Vowels (', currentGroup,')',sep='')
+				  title <- paste('Vowels (', curGroup,')',sep='')
 				} else {
 				  title <- paste('Vowels by', grouping.factor)
 				}
@@ -562,32 +585,34 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 			# REUSE THE SAME PLOT
 			par(new=TRUE)
 		} # if (!single.plot | i==1)
+
 		# PLOT VOWEL POINTS
 		if (points=='shape') {
-			points(curData$f2, curData$f1, type='p', pch=symbols[i], cex=0.5, col=pointcolors[i])
+			points(curData$f2, curData$f1, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
 		} else if (points=='text') {
-			text(curData$f2, curData$f1, labels=curData$vowel, col=pointcolors[i], font=1, cex=0.8)
+			text(curData$f2, curData$f1, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
 		}
 		# DRAW POLYGON BETWEEN MEANS
 		if (polygon) {
-			points(f2means[1:poly.include], f1means[1:poly.include], type='c', cex=1, col=vowelcolors[i], lty=linetypes[i])
+	    points(f2m, f1m, type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
 		}
 		# PLOT VOWEL MEANS
 		if (means=='shape') {
-			points(f2means, f1means, type='p', pch=symbols[i], cex=1.5, col=vowelcolors[i])
+			points(f2m, f1m, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
 		} else if (means=='text') {
-			text(f2means, f1means, labels=vlist, col=vowelcolors[i], font=2, cex=1.5)
+			text(f2m, f1m, names(f2m), col=vowelcolors[i], font=2, cex=means.cex)
 		}
 		# PLOT ELLIPSES AROUND VOWEL MEANS
 		if (ellipses) {
 			# CALCULATE COVARIANCE MATRICES
 			covar <- list()
-			for (j in 1:length(vlist)) {
-				cVowelData <- subset(curData, vowel==vlist[j])
-				covar[[j]] <- cov(cbind(cVowelData$f2, cVowelData$f1))
+			curVowels <- names(f2m) # unique(curData$vowel)
+			for (j in 1:length(curVowels)) {
+				curVowelData <- subset(curData, vowel==curVowels[j])
+				covar[[j]] <- cov(cbind(curVowelData$f2, curVowelData$f1))
 				# PLOT ELLIPSES
 				if (!is.na(covar[[j]][1])) {
-					ellipse(c(f2means[j], f1means[j]), covar[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.size)
+					ellipse(c(f2m[j], f1m[j]), covar[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.alpha)
 				}
 			}
 		}
@@ -620,5 +645,6 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 			dev.off()
 		}
 	}
+	# RESET ORIGINAL GRAPHING PARAMETERS
+	par(op)
 } #plotVowels <- function(...)
-
