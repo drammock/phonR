@@ -6,8 +6,8 @@
 # DEVELOPMENT OF THIS PACKAGE WAS FUNDED IN PART BY THE NATIONAL INSTITUTES OF HEALTH, GRANT NUMBER R01DC006014 TO PAMELA SOUZA
 #
 # CHANGELOG:
-# v0.2: bugfixes: points.alpha and means.alpha now work for grayscale plots. Plots with polygons or ellipses but no shapes now get proper legend type (lines, not boxes).  Enhancements: support for custom axis titles (to accommodate pre-normalized values) and custom point and mean sizes.
-#
+# v0.2 bugfixes: points.alpha and means.alpha now work for grayscale plots. Plots with polygons or ellipses but no shapes now get proper legend type (lines, not boxes). Graphical parameters now captured and restored when plotting to onscreen device. Vowels with no variance (e.g., single tokens) no longer crash ellipse function. Vowels not in default poly.order() no longer go unplotted when points='text'. 
+# v0.2 enhancements: support for custom axis titles (to accommodate pre-normalized values), point and mean sizes, and fonts. Custom line types added (11 total now).
 # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # USAGE: source("phonR.r")
@@ -159,6 +159,10 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 	# FONT HANDLING
 	if (output!='screen' & font.family!='') {
 	  CairoFonts(regular=paste(font.family,':style=Regular,Book,Roman',sep=''), bold=paste(font.family,':style=Bold',sep=''), italic=paste(font.family,':style=Italic,Oblique',sep=''), bolditalic=paste(font.family,':style=Bold Italic,BoldItalic,Bold Oblique,BoldOblique',sep=''), symbol='Symbol')
+	}
+	if (.Platform$OS.type == "windows") {
+		windowsFonts(phonR=windowsFont(font.family))
+		font.family <- 'phonR'
 	}
 	# DATA PREPROCESSING
 	# PREALLOCATE
@@ -446,7 +450,7 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 			symbols <- rep(c(0:2,5,15:18,3,4,6), length=length(glist)) # open{square,circle,triangle,diamond}, filled{square,circle,triangle,diamond}, plus, x, inverted triangle
 		}
 		if (vary.lines) {
-      linetypes <- rep(c('solid', '43', '83852325', '13', 'F3131313', '93', '28282383', 'F323', '292323', '4313', 'F3'), length=length(glist))
+      linetypes <- rep(c('solid', '43', '23258385', '13', 'F3131313', '93', '28282383', '23F3', '232923', '4313', 'F3'), length=length(glist))
 		}
 		if (length(glist)>1) {
 		  if (!grayscale) {
@@ -620,13 +624,13 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 		if (legend & (!single.plot | i==length(glist))) {
 			if (points=='shape' | means=='shape') {
 	      if (ellipses | polygon) { # lines, symbols
-		      legend('bottomleft', legend=glist, fill=NA, border=NA, col=vowelcolors, lty=linetypes, pch=symbols, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1
+		      legend('bottomleft', legend=glist, fill=NA, border=NA, col=vowelcolors, lty=linetypes, pch=symbols, bty='n', inset=0.05, seg.len=3.5) # cex, lwd=1, border='n', text.font=1
 	      } else { # symbols only
 		      legend('bottomleft', legend=glist, fill=NA, border=NA, col=vowelcolors, pch=symbols, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1
 	      }
 			} else {
 			  if (ellipses | polygon) { # lines only
-		      legend('bottomleft', legend=glist, fill=NA, border=NA, col=vowelcolors, lty=linetypes, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1
+		      legend('bottomleft', legend=glist, fill=NA, border=NA, col=vowelcolors, lty=linetypes, bty='n', inset=0.05, seg.len=3.5) # cex, lwd=1, border='n', text.font=1
 			  } else { # boxes only
         	legend('bottomleft', legend=glist, fill=vowelcolors, border=NA, bty='n', inset=0.05) # cex, lwd=1, border='n', text.font=1
 			  }
@@ -645,6 +649,8 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 			dev.off()
 		}
 	}
-	# RESET ORIGINAL GRAPHING PARAMETERS
-	par(op)
+  # RESET ORIGINAL GRAPHING PARAMETERS
+	if (output == 'screen') {
+    par(op)
+	}
 } #plotVowels <- function(...)
