@@ -58,5 +58,10 @@ plot.dims=c(6.5,6.5), plot.unit='in', output='screen')
 McCloy, D. R. 2012 \dQuote{Normalizing and plotting vowels with the phonR package.} \emph{Technical Reports of the UW Linguistic Phonetics Laboratory}. \url{http://depts.washington.edu/phonlab/pubs/McCloy2012_phonR.pdf}
 }
 \seealso{\code{\link{normalizeVowels}}}
+\examples{
+	data(indoVowelData)
+	plotVowels(vowel=indo$vowel, f1=indo$f1, f2=indo$f2, grouping.factor=indo$gender, norm.method='bark', match.unit=FALSE)
+	plotVowels(data=indo, vowel='vowel', f1='f1', f2='f2', grouping.factor='subj', single.plot=FALSE, match.axes='relative')
+}
 \keyword{device}
 \keyword{hplot}
