@@ -1,8 +1,8 @@
 Package: phonR
 Type: Package
 Title: R tools for phoneticians and phonologists
-Version: 0.1
-Date: 2012-08-12
+Version: 0.2
+Date: 2012-09-07
 Author: Daniel R. McCloy
 Maintainer: Daniel R. McCloy <drmccloy@uw.edu>
 Depends: mixtools, Cairo, R (>= 2.10)
@@ -11,4 +11,4 @@ License: GPL-3
 URL: https://github.com/drammock/phonR
 BugReports: https://github.com/drammock/phonR/issues 
 LazyLoad: yes
-LazyData: no
+LazyData: yes
