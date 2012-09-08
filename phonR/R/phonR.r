@@ -166,25 +166,31 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 	}
 	# DATA PREPROCESSING
 	# PREALLOCATE
-	gp <- NULL
+	group <- NULL
 	# GET THE DATA
 	if (!is.null(data)) {
 		f1 <- data[,match(eval(f1),colnames(data))]
 		f2 <- data[,match(eval(f2),colnames(data))]
-		vw <- data[,match(eval(vowel),colnames(data))]
+		vowel <- data[,match(eval(vowel),colnames(data))]
 		if (!is.null(f3)) { f3 <- data[,match(eval(f3),colnames(data))] }
 		if (!is.null(f0)) { f0 <- data[,match(eval(f0),colnames(data))] }
 		if (!is.null(grouping.factor)) {
-			gp <- data[,match(eval(grouping.factor),colnames(data))]
-			gp <- factor(gp)
+			group <- data[,match(eval(grouping.factor),colnames(data))]
+			group <- factor(group)
 		} else {
-			gp <- rep('noGroupsDefined',length(f1))
+			group <- rep('noGroupsDefined',length(f1))
 		}
+	} else {
+	  if (!is.null(grouping.factor)) {
+  	  group <- factor(grouping.factor)
+	  } else {
+	    group <- rep('noGroupsDefined',length(f1))
+	  }
 	}
 	df <- data.frame(cbind(f1,f2,f3,f0))
-	df$vowel <- vw
-	df$group <- gp
-	rm(vw,gp)
+	df$vowel <- vowel
+	df$group <- group
+	rm(vowel,group)
   # ADJUST poly.order TO INCLUDE VOWELS PRESENT IN THE DATA THAT ARE NOT IN THE DEFAULT SET
   v <- unique(df$vowel)
   if (is.null(poly.order)) {
@@ -557,6 +563,11 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 			axis(3, at=xticks, labels=xtext, las=0, col=axis.col, col.ticks=axis.col, col.axis=axis.col, cex.axis=0.8, tck=-.005)
 			axis(4, at=yticks, labels=ytext, las=2, col=axis.col, col.ticks=axis.col, col.axis=axis.col, cex.axis=0.8, tck=-.005)
 			# TITLE
+			if (is.null(data)) {
+			  title.factor <- as.character(quote(grouping.factor))
+			} else {
+			  title.factor <- grouping.factor
+			}
 			if (titles[1]=='auto') {
 				# AUTO-GENERATE TITLES
 				if(glist[1] == 'noGroupsDefined') {
@@ -564,7 +575,7 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 				} else if (!single.plot) {
 				  title <- paste('Vowels (', curGroup,')',sep='')
 				} else {
-				  title <- paste('Vowels by', grouping.factor)
+				  title <- paste('Vowels by', title.factor)
 				}
   			mtext(title, side=3, cex=1.2, las=1, line=3.25, font=2)
 			} else if (titles[1]!='none') {
