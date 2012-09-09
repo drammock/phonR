@@ -17,9 +17,9 @@ vowel=NULL, grouping.factor=NULL)
 }
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
 \references{
-Glasberg, B. R., & Moore, B. C. J. 1990 \dQuote{Derivation of auditory filter shapes from notched-noise data.} \emph{Hearing Research}, 47(1-2), 103-138. \url{doi:10.1016/0378-5955(90)90170-T}
+Glasberg, B. R., & Moore, B. C. J. 1990 \dQuote{Derivation of auditory filter shapes from notched-noise data.} \emph{Hearing Research}, 47(1-2), 103-138. \url{http://dx.doi.org/10.1016/0378-5955(90)90170-T}
 
-Lobanov, B. M. 1971 \dQuote{Classification of Russian vowels spoken by different speakers.} \emph{The Journal of the Acoustical Society of America}, 49(2), 606-608.
+Lobanov, B. M. 1971 \dQuote{Classification of Russian vowels spoken by different speakers.} \emph{The Journal of the Acoustical Society of America}, 49(2), 606-608. \url{http://dx.doi.org/10.1121/1.1912396}
 
 McCloy, D. R. 2012 \dQuote{Normalizing and plotting vowels with the phonR package.} \emph{Technical Reports of the UW Linguistic Phonetics Laboratory}. \url{http://depts.washington.edu/phonlab/pubs/McCloy2012_phonR.pdf}
 
@@ -27,11 +27,16 @@ Nearey, T. M. 1978 \dQuote{Phonetic feature systems for vowels} (Doctoral disser
 
 Stevens, S. S., & Volkmann, J. 1940 \dQuote{The relation of pitch to frequency: A revised scale.} \emph{The American Journal of Psychology}, 53(3), pp. 329-353.
 
-Traunmuller, H. 1990 \dQuote{Analytical expressions for the tonotopic sensory scale.} \emph{The Journal of the Acoustical Society of America}, 88(1), 97-100. \url{doi:10.1121/1.399849}
+Traunmuller, H. 1990 \dQuote{Analytical expressions for the tonotopic sensory scale.} \emph{The Journal of the Acoustical Society of America}, 88(1), 97-100. \url{http://dx.doi.org/10.1121/1.399849}
 
 Watt, D., & Fabricius, A. H. 2002 \dQuote{Evaluation of a technique for improving the mapping of multiple speakers' vowel spaces in the F1 ~ F2 plane.} \emph{Leeds Working Papers in Linguistics and Phonetics}, 9, 159-173.
 
-Zwicker, E., & Terhardt, E. 1980 \dQuote{Analytical expressions for critical-band rate and critical bandwidth as a function of frequency.} \emph{The Journal of the Acoustical Society of America}, 68(5), 1523-1525. \url{doi:10.1121/1.385079}
+Zwicker, E., & Terhardt, E. 1980 \dQuote{Analytical expressions for critical-band rate and critical bandwidth as a function of frequency.} \emph{The Journal of the Acoustical Society of America}, 68(5), 1523-1525. \url{http://dx.doi.org/10.1121/1.385079}
 }
 \seealso{\code{\link{plotVowels}}}
+\examples{
+	data(indoVowelData)
+	bark <- normalizeVowels('bark', f1=indo$f1, f2=indo$f2)
+	wattfab <- normalizeVowels('wattfabricius', f1=indo$f1, f2=indo$f2, vowel=indo$vowel, grouping.factor=indo$subj)
+}
 \keyword{methods}
