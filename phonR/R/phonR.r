@@ -18,7 +18,7 @@
 # NORMALIZATION FUNCTION
 normalizeVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NULL, grouping.factor=NULL) {
   m <- tolower(method)
-  f <- cbind(as.vector(f0),as.vector(f1),as.vector(f2),as.vector(f3))
+  f <- cbind(f0=as.vector(f0),f1=as.vector(f1),f2=as.vector(f2),f3=as.vector(f3))
   if (is.null(f)) {
     warning('Missing values: at least one of the arguments (f0, f1, f2, or f3) must be supplied.')
   }
