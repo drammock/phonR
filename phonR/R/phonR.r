@@ -108,7 +108,7 @@ normalizeVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NU
 }
 
 # VOWEL PLOTTING FUNCTION
-plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, data=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='shape', means='text', points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, poly.include=NULL, single.plot=TRUE, axis.col='#666666FF', titles='auto', axis.titles='auto', font.size=12, font.family='', grayscale=FALSE, vary.shapes=grayscale, vary.lines=grayscale, uniform.style=!single.plot, legend=single.plot, aspect.ratio=NULL, plot.dims=c(6.5,6.5), plot.unit='in', dpi=NULL, output='screen') {
+plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, data=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, poly.include=NULL, single.plot=TRUE, axis.col='#666666FF', titles='auto', axis.titles='auto', font.size=12, font.family='', grayscale=FALSE, vary.shapes=grayscale, vary.lines=grayscale, uniform.style=!single.plot, legend=single.plot, aspect.ratio=NULL, plot.dims=c(6.5,6.5), plot.unit='in', dpi=NULL, output='screen') {
 	# MAKE CASE-INSENSITIVE
 	norm.method <- tolower(norm.method)
 	match.axes <- tolower(match.axes)
@@ -494,22 +494,22 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 	  }
 		# PDF
 		if (output=='pdf') {
-			cairo_pdf(file=paste('vowels_by_',grouping.factor,'.pdf',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
+			cairo_pdf(filename=paste('vowels_by_',grouping.factor,'.pdf',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
 		# SVG
 		} else if (output=='svg') {
-			svg(file=paste('vowels_by_',grouping.factor,'.svg',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
+			svg(filename=paste('vowels_by_',grouping.factor,'.svg',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
 		# JPG
 		} else if (output=='jpg') {
-			jpeg(file=paste('vowels_by_',grouping.factor,'.jpg',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, quality=100)
+			jpeg(filename=paste('vowels_by_',grouping.factor,'.jpg',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, quality=100)
 		# TIF
 		} else if (output=='tif') {
-			tiff(file=paste('vowels_by_',grouping.factor,'.tif',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, compression='lzw')
+			tiff(filename=paste('vowels_by_',grouping.factor,'.tif',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, compression='lzw')
 		# PNG
 		} else if (output=='png') {
-			png(file=paste('vowels_by_',grouping.factor,'.png',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
+			png(filename=paste('vowels_by_',grouping.factor,'.png',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
 		# BMP
 		} else if (output=='bmp') {
-			bmp(file=paste('vowels_by_',grouping.factor,'.bmp',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
+			bmp(filename=paste('vowels_by_',grouping.factor,'.bmp',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
 		}
 		par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0))
 	}
@@ -539,22 +539,22 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 		  } else {
 			  # PDF
 			  if (output=='pdf') {
-				  cairo_pdf(file=paste(curGroup,'.pdf',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
+				  cairo_pdf(filename=paste(curGroup,'.pdf',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
 			  # SVG
 			  } else if (output=='svg') {
-				  svg(file=paste(curGroup,'.svg',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
+				  svg(filename=paste(curGroup,'.svg',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
 			  # JPG
 			  } else if (output=='jpg') {
-				  jpeg(file=paste(curGroup,'.jpg',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, quality=100)
+				  jpeg(filename=paste(curGroup,'.jpg',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, quality=100)
 			  # TIF
 			  } else if (output=='tif') {
-				  tiff(file=paste(curGroup,'.tif',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, compression='lzw')
+				  tiff(filename=paste(curGroup,'.tif',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, compression='lzw')
 			  # PNG
 			  } else if (output=='png') {
-				  png(file=paste(curGroup,'.png',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
+				  png(filename=paste(curGroup,'.png',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
 			  # BMP
 			  } else if (output=='bmp') {
-				  bmp(file=paste(curGroup,'.bmp',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
+				  bmp(filename=paste(curGroup,'.bmp',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
 			  }
 			  par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0))
 		  }
