@@ -1,7 +1,7 @@
 \name{plotVowels}
 \alias{plotVowels}
 \title{Plot F1 and F2 values from separate vectors or from a data frame}
-\description{Generates high-quality plots of provided formant values using either the default onscreen device (X11, Quartz, or Win32) or direct-to-file using the Cairo graphics package (PDF or JPG). Can also normalize values on-the-fly before plotting, through a call to \code{normalizeVowels}.}
+\description{Generates high-quality plots of provided formant values using either the default onscreen device (X11, Quartz, or Win32) or direct-to-file using R base graphics functions (PDF, SVG, JPG, PNG, TIFF, or BMP). Can also normalize values on-the-fly before plotting, through a call to \code{normalizeVowels}.}
 \usage{
 plotVowels(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, 
 data=NULL, norm.method='none', match.unit=TRUE, 
@@ -62,8 +62,10 @@ McCloy, D. R. 2012 \dQuote{Normalizing and plotting vowels with the phonR packag
 \seealso{\code{\link{normalizeVowels}}}
 \examples{
 	data(indoVowelData)
-	plotVowels(vowel=indo$vowel, f1=indo$f1, f2=indo$f2, grouping.factor=indo$gender, norm.method='bark', match.unit=FALSE)
-	plotVowels(data=indo, vowel='vowel', f1='f1', f2='f2', grouping.factor='subj', single.plot=FALSE, match.axes='relative', points='shape')
+	plotVowels(vowel=indo$vowel, f1=indo$f1, f2=indo$f2, grouping.factor=
+	           indo$gender, norm.method='bark', match.unit=FALSE)
+	plotVowels(data=indo, vowel='vowel', f1='f1', f2='f2', grouping.factor=
+	           'subj', single.plot=FALSE, match.axes='relative', points='shape')
 }
 \keyword{device}
 \keyword{hplot}
