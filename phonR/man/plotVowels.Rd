@@ -63,7 +63,7 @@ McCloy, D. R. 2012 \dQuote{Normalizing and plotting vowels with the phonR packag
 \examples{
 	data(indoVowelData)
 	plotVowels(vowel=indo$vowel, f1=indo$f1, f2=indo$f2, grouping.factor=indo$gender, norm.method='bark', match.unit=FALSE)
-	plotVowels(data=indo, vowel='vowel', f1='f1', f2='f2', grouping.factor='subj', single.plot=FALSE, match.axes='relative')
+	plotVowels(data=indo, vowel='vowel', f1='f1', f2='f2', grouping.factor='subj', single.plot=FALSE, match.axes='relative', points='shape')
 }
 \keyword{device}
 \keyword{hplot}
