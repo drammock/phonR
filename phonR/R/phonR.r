@@ -1,17 +1,17 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# phonR version 0.2
+# phonR version 0.3-0
 # Functions for phoneticians and phonologists using R
 # Daniel McCloy, drmccloy@uw.edu
 # LICENSED UNDER THE GNU GENERAL PUBLIC LICENSE v3.0: http://www.gnu.org/licenses/gpl.html
 # DEVELOPMENT OF THIS PACKAGE WAS FUNDED IN PART BY THE NATIONAL INSTITUTES OF HEALTH, GRANT NUMBER R01DC006014 TO PAMELA SOUZA
 #
 # CHANGELOG:
-# v0.2 bugfixes: points.alpha and means.alpha now work for grayscale plots. Plots with polygons or ellipses but no shapes now get proper legend type (lines, not boxes). Graphical parameters now captured and restored when plotting to onscreen device. Vowels with no variance (e.g., single tokens) no longer crash ellipse function. Vowels not in default poly.order() no longer go unplotted when points='text'. 
-# v0.2 enhancements: support for custom axis titles (to accommodate pre-normalized values), point and mean sizes, and fonts. Custom line types added (11 total now).
+# v0.3 bugfixes: font specification on windows now works for direct-to-file output. Enhancements: graphics handling overhauled to use base graphics instead of Cairo(). Several new output formats added. Raster resolution and font size now specifiable. Improved error handling.
+# v0.2 bugfixes: points.alpha and means.alpha now work for grayscale plots. Plots with polygons or ellipses but no shapes now get proper legend type (lines, not boxes). Graphical parameters now captured and restored when plotting to onscreen device. Vowels with no variance (e.g., single tokens) no longer crash ellipse function. Vowels not in default poly.order() no longer go unplotted when points='text'. Enhancements: support for custom axis titles (to accommodate pre-normalized values), point and mean sizes, and fonts. Custom line types added (11 total now).
 # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # USAGE: source("phonR.r")
-# --or-- R CMD install phonR_0.1.tar.gz (from command line)
+# --or-- R CMD install phonR_0.3-0.tar.gz (from command line)
 # Then library(phonR)
 # Then call functions as needed
 
@@ -108,64 +108,78 @@ normalizeVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NU
 }
 
 # VOWEL PLOTTING FUNCTION
-plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, data=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, poly.include=NULL, single.plot=TRUE, axis.col='#666666FF', titles='auto', axis.titles='auto', font.family='', grayscale=FALSE, vary.shapes=grayscale, vary.lines=grayscale, uniform.style=!single.plot, legend=single.plot, aspect.ratio=NULL, plot.dims=c(6.5,6.5), plot.unit='in', output='screen') {
-	# MAKE CASE-INSENSITIVE, CHECK FOR BOGUS ARGUMENTS, ETC
+plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, data=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='shape', means='text', points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, poly.include=NULL, single.plot=TRUE, axis.col='#666666FF', titles='auto', axis.titles='auto', font.size=12, font.family='', grayscale=FALSE, vary.shapes=grayscale, vary.lines=grayscale, uniform.style=!single.plot, legend=single.plot, aspect.ratio=NULL, plot.dims=c(6.5,6.5), plot.unit='in', dpi=NULL, output='screen') {
+	# MAKE CASE-INSENSITIVE
 	norm.method <- tolower(norm.method)
 	match.axes <- tolower(match.axes)
 	output <- tolower(output)
 	points <- tolower(points)
 	means <- tolower(means)
+	# OUTPUT TYPES
 	if (output=='jpeg') {output <- 'jpg'}
+	if (output=='tiff') {output <- 'tif'}
+	if (output %in% c('pdf','svg','screen')) {
+		if (plot.unit=='cm') {
+			plot.dims <- plot.dims/2.54
+		} else if (plot.unit=='mm') {
+			plot.dims <- plot.dims/2540
+		} else if (plot.unit=='px') {
+			plot.dims <- plot.dims/72
+		}
+#		if (!is.null(dpi)) {
+#			warning('Argument \'dpi\' ignored for output formats \'pdf\', \'svg\', and \'screen\'')
+#		}
+	} else if (is.null(dpi)) { # output type is raster
+		warning('No resolution specified, using default (72dpi).')
+		dpi <- 72
+#	} else {
+#		warning('Generating raster graphics can be very slow, especially at high DPI settings or if single.plot=FALSE. Be patient if R appears to have frozen.')
+	}
+	# CHECK FOR BOGUS ARGUMENTS, ETC
 	if (single.plot & match.axes != 'absolute') {
 		match.axes <- 'absolute'
 		warning('When \'single.plot\'=TRUE, \'match.axes\' is coerced to \'absolute\'.')
 	}
 	if (!(match.axes %in% c('absolute','relative','none'))) {
-		warning('Unknown argument value \'', match.axes, '\'. \'match.axes\' must be one of \'absolute\', \'relative\', or \'none\'.')
-		stop()
+		warning('Unknown argument value \'', match.axes, '\': \'match.axes\' must be one of \'absolute\', \'relative\', or \'none\'. Using default (\'absolute\').')
+		match.axes <- 'absolute'
 	}
-	if (!(output %in% c('pdf','jpg','screen'))) {
-		warning('Unknown argument value \'', output, '\'. \'output\' must be one of \'pdf\', \'jpg\', or \'screen\'.')
-		stop()
+	if (!(plot.unit %in% c('in','cm','mm','px'))) {
+	  warning('Unknown argument value \'', plot.unit, '\': \'plot.unit\' must be one of \'in\', \'cm\', \'mm\', or \'px\'. Using default (\'in\').')
+	  plot.unit <- 'in'
+	}
+	if (!(output %in% c('pdf','svg','jpg','tif','png','bmp','screen'))) {
+		warning('Unknown argument value \'', output, '\': \'output\' must be one of \'pdf\', \'svg\', \'png\', \'tif\', \'bmp\', \'jpg\', or \'screen\'. Using default (\'screen\').')
+		output <- 'screen'
 	}
 	if (!(points %in% c('shape','text','none'))) {
-		warning('Unknown argument value \'', points, '\'. \'points\' must be one of \'shape\', \'text\', or \'none\'.')
-		stop()
+		warning('Unknown argument value \'', points, '\': \'points\' must be one of \'shape\', \'text\', or \'none\'. Using default (\'text\').')
+		points <- 'text'
 	}
 	if (!(means %in% c('shape','text','none'))) {
-		warning('Unknown argument value \'', points, '\'. \'points\' must be one of \'shape\', \'text\', or \'none\'.')
-		stop()
+		warning('Unknown argument value \'', means, '\': \'means\' must be one of \'shape\', \'text\', or \'none\'. Using default (\'text\').')
+		means <- 'text'
 	}
 	if (ellipses & (ellipse.alpha<0 | ellipse.alpha>1)) {
-		warning('Ellipse size is measured as an alpha level [0,1], and cannot be a negative number.')
-		stop()
+		warning('Ellipse size is measured as an alpha level, and must be within [0,1]. Using default (0.3173).')
+		ellipse.alpha <- 0.3173
 	}
 	if (!is.null(aspect.ratio)) {
 		if (!is.numeric(aspect.ratio) | aspect.ratio <= 0) {
-			warning('Aspect ratio (horizontal/vertical) must be a positive number.')
-			stop()
+			warning('Aspect ratio (horizontal/vertical) must be a positive number. Using default (\'NULL\', which adapts aspect ratio to maximize plot area usage).')
+			aspect.ratio <- NULL
 		}
 	}
 	if (!match.unit & norm.method %in% c('s','scentroid','wattfabricius')) {
-		warning('Argument \"match.unit\" coerced to TRUE with norm.method \"s-centroid\": plotting Hz on axes is uninformative for linear transforms.')
+		warning('Argument \'match.unit\' coerced to TRUE with norm.method \'s-centroid\': plotting Hz on axes is uninformative for linear transforms.')
 		match.unit <- TRUE
 	}
-	if (ellipses & (ellipse.alpha>1 | ellipse.alpha<0)) {
-		warning('ellipse.alpha is an alpha level, and must be between 0 and 1 (inclusive)')
-	}
-	# LOAD DEPENDENCIES
-	require(mixtools)
-	require(Cairo)
-	# FONT HANDLING
-	if (output!='screen' & font.family!='') {
-	  CairoFonts(regular=paste(font.family,':style=Regular,Book,Roman',sep=''), bold=paste(font.family,':style=Bold',sep=''), italic=paste(font.family,':style=Italic,Oblique',sep=''), bolditalic=paste(font.family,':style=Bold Italic,BoldItalic,Bold Oblique,BoldOblique',sep=''), symbol='Symbol')
-	}
-	if (.Platform$OS.type == "windows") {
+	# FONT HANDLING FOR WINDOWS
+	if (.Platform$OS.type == 'windows' & output %in% c('png','jpg','bmp','tif','screen')) {
 		windowsFonts(phonR=windowsFont(font.family))
 		font.family <- 'phonR'
 	}
 	# DATA PREPROCESSING
-	# PREALLOCATE
 	group <- NULL
 	# GET THE DATA
 	if (!is.null(data)) {
@@ -468,26 +482,36 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 		  }
 		}
 	}
-	# IF PLOTTING ALL GROUPS ON ONE GRAPH, INITIALIZE OUTPUT DEVICE ONLY ONCE
+	# IF PLOTTING ALL GROUPS ON ONE GRAPH, INITIALIZE OUTPUT DEVICE ONLY ONCE (BEFORE THE 'FOR' LOOP)
 	if (single.plot) {
-		# PDF OUTPUT
+	  if (output=='screen') {
+#    	if (.Platform$OS.type == 'windows') {
+#  		  windows(width=plot.dims[1], height=plot.dims[2], family=font.family, pointsize=font.size)
+#		  } else {
+#  		  x11(width=plot.dims[1], height=plot.dims[2], family=font.family, pointsize=font.size)
+#		  }
+		op <- par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family=font.family, pointsize=font.size)
+	  }
+		# PDF
 		if (output=='pdf') {
-			Cairo(file=paste(grouping.factor,'.pdf',sep=''), width=plot.dims[1], height=plot.dims[2], type='pdf', dpi='auto', units=plot.unit)
-		# JPG OUTPUT
+			cairo_pdf(file=paste('vowels_by_',grouping.factor,'.pdf',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
+		# SVG
+		} else if (output=='svg') {
+			svg(file=paste('vowels_by_',grouping.factor,'.svg',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
+		# JPG
 		} else if (output=='jpg') {
-			Cairo(file=paste(grouping.factor,'.jpg',sep=''), width=plot.dims[1], height=plot.dims[2], type='jpeg', dpi=96, units=plot.unit)
-#    # SCREEN OUTPUT
-#    } else {
-#      Cairo(width=plot.dims[1], height=plot.dims[2], type='x11', units=plot.units)
+			jpeg(file=paste('vowels_by_',grouping.factor,'.jpg',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, quality=100)
+		# TIF
+		} else if (output=='tif') {
+			tiff(file=paste('vowels_by_',grouping.factor,'.tif',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, compression='lzw')
+		# PNG
+		} else if (output=='png') {
+			png(file=paste('vowels_by_',grouping.factor,'.png',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
+		# BMP
+		} else if (output=='bmp') {
+			bmp(file=paste('vowels_by_',grouping.factor,'.bmp',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
 		}
-		op <- par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family=font.family)
-	} else if (output=='screen') {
-		# SET UP FOR LATTICE PLOTTING
-		num.rows <- num.cols <- ceiling(sqrt(length(glist)))
-		if(length(glist) <= num.rows*(num.rows-1)) {
-    	num.rows <- num.rows-1
-		}
-		op <- par(mfrow=c(num.rows,num.cols), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family=font.family)
+		par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0))
 	}
 
 	# PLOT!
@@ -498,20 +522,42 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 		curData$vowel <- factor(curData$vowel) # drop unused levels
 		f2m <- tapply(curData$f2, curData$vowel, mean)
 		f1m <- tapply(curData$f1, curData$vowel, mean)
-		# IF PLOTTING EACH GROUP ON A SEPARATE GRAPH, INITIALIZE OUTPUT DEVICE SEPARATELY FOR EACH GROUP
+		# IF PLOTTING EACH GROUP ON A SEPARATE GRAPH, INITIALIZE OUTPUT DEVICE ANEW FOR EACH GROUP
 		if (!single.plot) {
-			# PDF OUTPUT
-			if (output=='pdf') {
-				Cairo(file=paste(curGroup,'.pdf',sep=''), width=plot.dims[1], height=plot.dims[2], type='pdf', dpi='auto', units=plot.unit)
-				op <- par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family='Charis SIL')
-			# JPG OUTPUT
-			} else if (output=='jpg') {
-				Cairo(file=paste(curGroup,'.jpg',sep=''), width=plot.dims[1], height=plot.dims[2], type='jpeg', dpi=96, units=plot.unit)
-				op <- par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family='Charis SIL')
-#      # SCREEN OUTPUT
-#      } else {
-#        Cairo(width=plot.dims[1], height=plot.dims[2], type='x11', units=plot.units)
-			}
+		  if (output=='screen') {
+			  # SET UP FOR LATTICE PLOTTING
+			  num.rows <- num.cols <- ceiling(sqrt(length(glist)))
+			  if(length(glist) <= num.rows*(num.rows-1)) {
+				  num.rows <- num.rows-1
+			  }
+#      	if (.Platform$OS.type == 'windows') {
+#    			windows(width=plot.dims[1], height=plot.dims[2], family=font.family, pointsize=font.size)
+#			  } else {
+#    			x11(width=plot.dims[1], height=plot.dims[2], family=font.family, pointsize=font.size)
+#			  }
+			  op <- par(mfrow=c(num.rows,num.cols), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family=font.family, pointsize=font.size)
+		  } else {
+			  # PDF
+			  if (output=='pdf') {
+				  cairo_pdf(file=paste(curGroup,'.pdf',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
+			  # SVG
+			  } else if (output=='svg') {
+				  svg(file=paste(curGroup,'.svg',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
+			  # JPG
+			  } else if (output=='jpg') {
+				  jpeg(file=paste(curGroup,'.jpg',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, quality=100)
+			  # TIF
+			  } else if (output=='tif') {
+				  tiff(file=paste(curGroup,'.tif',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, compression='lzw')
+			  # PNG
+			  } else if (output=='png') {
+				  png(file=paste(curGroup,'.png',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
+			  # BMP
+			  } else if (output=='bmp') {
+				  bmp(file=paste(curGroup,'.bmp',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
+			  }
+			  par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0))
+		  }
 		}
 		# CALCULATE PLOT LIMITS & TICKS (MAX BEFORE MIN, TO GET THE AXES TO INCREASE LEFT/DOWN INSTEAD OF RIGHT/UP)
 		if (match.axes == 'absolute') { # ALL AXES IDENTICAL
@@ -558,7 +604,7 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 		# DRAW AXES & MARGIN TEXT, UNLESS OVERPLOTTING AND WE'RE ALREADY PAST THE FIRST GROUP
 		if (!single.plot | i==1) {
 			# INITIALIZE EMPTY PLOT
-			plot(0, 0, xaxt='n', yaxt='n', xlim=xlims, ylim=ylims, type='n', ann=FALSE, frame.plot=FALSE, asp=aspect.ratio)
+			plot(0, 0, xlim=xlims, ylim=ylims, type='n', axes=FALSE, ann=FALSE, frame.plot=FALSE, asp=aspect.ratio)
 			# AXES
 			axis(3, at=xticks, labels=xtext, las=0, col=axis.col, col.ticks=axis.col, col.axis=axis.col, cex.axis=0.8, tck=-.005)
 			axis(4, at=yticks, labels=ytext, las=2, col=axis.col, col.ticks=axis.col, col.axis=axis.col, cex.axis=0.8, tck=-.005)
