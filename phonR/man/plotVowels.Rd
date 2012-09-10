@@ -10,10 +10,10 @@ points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2,
 ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, 
 polygon=TRUE, poly.order=NULL, poly.include=NULL, 
 single.plot=TRUE, axis.col='#666666FF', titles='auto', 
-axis.titles='auto', font.family='', grayscale=FALSE, 
-vary.shapes=grayscale, vary.lines=grayscale, 
+axis.titles='auto', font.size=12, font.family='', 
+grayscale=FALSE, vary.shapes=grayscale, vary.lines=grayscale, 
 uniform.style=!single.plot, legend=single.plot, aspect.ratio=NULL, 
-plot.dims=c(6.5,6.5), plot.unit='in', output='screen')
+plot.dims=c(6.5,6.5), plot.unit='in', dpi=NULL, output='screen')
 }
 \arguments{
     \item{vowel}{Vector (or column from \code{data}) of vowel symbols.}
@@ -30,8 +30,8 @@ plot.dims=c(6.5,6.5), plot.unit='in', output='screen')
     \item{means}{If \dQuote{text}, plots vowel means with the character string given in \code{vowel}. If \dQuote{shape}, plots vowel means as geometric shapes.  If \dQuote{none}, omits plotting the vowel means.}
     \item{points.alpha}{Opacity of individual vowel points (permissible values between 0 and 1 inclusive.)}
     \item{means.alpha}{Opacity of vowel means (permissible values between 0 and 1 inclusive.)}
-    \item{points.cex}{Size of individual vowel points relative to the default pointsize of the graph.}
-    \item{means.cex}{Size of vowel means relative to the default pointsize of the graph.}
+    \item{points.cex}{Size of individual vowel points relative to \code{font.size}.}
+    \item{means.cex}{Size of vowel means relative to \code{font.size}.}
     \item{ignore.hidden}{If TRUE and if \code{points} is \dQuote{none}, plotting dimensions are calculated based only on means, (or ellipses, if present).}
     \item{ellipses}{If TRUE, plot an ellipse around each vowel mean tracing an equidensity contour of the bivariate normal distribution.}
     \item{ellipse.alpha}{Size of the ellipse [0,1] expressed as an alpha-level (i.e., 0.05 gives a 95\% confidence ellipse).  Defaults to alpha level of 0.3173 (an ellipse encompassing 68.27\% of the data points, equivalent to plus-or-minus 1 standard deviation).  Note that because this is an alpha level, HIGHER numbers give SMALLER ellipses.}
@@ -42,6 +42,7 @@ plot.dims=c(6.5,6.5), plot.unit='in', output='screen')
     \item{axis.col}{Color for the axis lines, ticks, numbers, and labels.}
     \item{titles}{If \dQuote{auto}, will auto-generate titles based on \code{grouping.factor}.  If \dQuote{none}, titles are omitted.  Also accepts a single string (all titles will be the same), or a vector of strings that matches the number of levels in \code{grouping.factor}.}
     \item{axis.titles}{If \dQuote{auto}, will auto-generate axis labels based on \code{norm.method}.  Also accepts a two-element vector of strings (e.g., for cases where the values passed to the function have already been normalized).  Order of elements is F2 (horizontal) label before F1 (vertical) label.}
+    \item{font.size}{Base size of font (in points) used for plotting.}
     \item{font.family}{Character string indicating the name of the font family to use for all text in the plot. If \code{points='text'} or \code{means='text'} and \code{vowels} includes non-ASCII unicode IPA symbols, be sure to specify a font that has glyphs at those codepoints.}
     \item{grayscale}{If TRUE, plot without color.  Note that if \code{grayscale} is FALSE, graphs may still come out colorless if \code{uniform.style} is TRUE and there is only one group on the graph, because the first color plotted defaults to black.}
     \item{vary.shapes}{If TRUE, vary token or mean shapes by group (when either \code{points} or \code{means} has the value \dQuote{shape}).  Defaults to same value as \code{grayscale}.  Ignored if \code{uniform.style} is TRUE.}
@@ -51,6 +52,7 @@ plot.dims=c(6.5,6.5), plot.unit='in', output='screen')
     \item{aspect.ratio}{Aspect ratio for plot area. Default is NULL, which changes the aspect ratio to maximize use of the available plot area; if specified, must be a positive numeric value.}
     \item{plot.dims}{A vector of length two, giving width & height of the plot.  Ignored when \code{output} is \dQuote{screen}.}
     \item{plot.unit}{Unit of plot dimensions: \dQuote{in}, \dQuote{cm}, etc.  Ignored when \code{output} is \dQuote{screen}.}
+    \item{dpi}{Resolution of output in dots-per-inch. Ignored for screen or vector output formats (pdf, svg), defaults to 72dpi for raster formats.}
     \item{output}{Possible values are \dQuote{screen}, \dQuote{pdf}, \dQuote{jpg}.}
 }
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
