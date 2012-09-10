@@ -37,6 +37,7 @@ Zwicker, E., & Terhardt, E. 1980 \dQuote{Analytical expressions for critical-ban
 \examples{
 	data(indoVowelData)
 	bark <- normalizeVowels('bark', f1=indo$f1, f2=indo$f2)
-	wattfab <- normalizeVowels('wattfabricius', f1=indo$f1, f2=indo$f2, vowel=indo$vowel, grouping.factor=indo$subj)
+	wattfab <- normalizeVowels('wattfabricius', f1=indo$f1, f2=indo$f2, 
+	           vowel=indo$vowel, grouping.factor=indo$subj)
 }
 \keyword{methods}
