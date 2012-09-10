@@ -490,30 +490,37 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 #		  } else {
 #  		  x11(width=plot.dims[1], height=plot.dims[2], family=font.family, pointsize=font.size)
 #		  }
-		op <- par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family=font.family, pointsize=font.size)
+  		op <- par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family=font.family, ps=font.size)
+	  } else {
+		  # PDF
+		  if (output=='pdf') {
+			  cairo_pdf(filename=paste('vowels_by_',grouping.factor,'.pdf',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
+		  # SVG
+		  } else if (output=='svg') {
+			  svg(filename=paste('vowels_by_',grouping.factor,'.svg',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
+		  # JPG
+		  } else if (output=='jpg') {
+			  jpeg(filename=paste('vowels_by_',grouping.factor,'.jpg',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, quality=100)
+		  # TIF
+		  } else if (output=='tif') {
+			  tiff(filename=paste('vowels_by_',grouping.factor,'.tif',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, compression='lzw')
+		  # PNG
+		  } else if (output=='png') {
+			  png(filename=paste('vowels_by_',grouping.factor,'.png',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
+		  # BMP
+		  } else if (output=='bmp') {
+			  bmp(filename=paste('vowels_by_',grouping.factor,'.bmp',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
+		  }
+		  par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0))
 	  }
-		# PDF
-		if (output=='pdf') {
-			cairo_pdf(filename=paste('vowels_by_',grouping.factor,'.pdf',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
-		# SVG
-		} else if (output=='svg') {
-			svg(filename=paste('vowels_by_',grouping.factor,'.svg',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
-		# JPG
-		} else if (output=='jpg') {
-			jpeg(filename=paste('vowels_by_',grouping.factor,'.jpg',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, quality=100)
-		# TIF
-		} else if (output=='tif') {
-			tiff(filename=paste('vowels_by_',grouping.factor,'.tif',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, compression='lzw')
-		# PNG
-		} else if (output=='png') {
-			png(filename=paste('vowels_by_',grouping.factor,'.png',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
-		# BMP
-		} else if (output=='bmp') {
-			bmp(filename=paste('vowels_by_',grouping.factor,'.bmp',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
-		}
-		par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0))
-	}
-
+	} else if (output=='screen') { # single.plot==FALSE
+	  # SET UP FOR LATTICE PLOTTING
+	  num.rows <- num.cols <- ceiling(sqrt(length(glist)))
+	  if(length(glist) <= num.rows*(num.rows-1)) {
+		  num.rows <- num.rows-1
+	  }
+  }
+  
 	# PLOT!
 	for (i in 1:length(glist)) {
 		# GET CURRENT GROUP'S DATA
@@ -523,41 +530,27 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 		f2m <- tapply(curData$f2, curData$vowel, mean)
 		f1m <- tapply(curData$f1, curData$vowel, mean)
 		# IF PLOTTING EACH GROUP ON A SEPARATE GRAPH, INITIALIZE OUTPUT DEVICE ANEW FOR EACH GROUP
-		if (!single.plot) {
-		  if (output=='screen') {
-			  # SET UP FOR LATTICE PLOTTING
-			  num.rows <- num.cols <- ceiling(sqrt(length(glist)))
-			  if(length(glist) <= num.rows*(num.rows-1)) {
-				  num.rows <- num.rows-1
-			  }
-#      	if (.Platform$OS.type == 'windows') {
-#    			windows(width=plot.dims[1], height=plot.dims[2], family=font.family, pointsize=font.size)
-#			  } else {
-#    			x11(width=plot.dims[1], height=plot.dims[2], family=font.family, pointsize=font.size)
-#			  }
-			  op <- par(mfrow=c(num.rows,num.cols), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family=font.family, pointsize=font.size)
-		  } else {
-			  # PDF
-			  if (output=='pdf') {
-				  cairo_pdf(filename=paste(curGroup,'.pdf',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
-			  # SVG
-			  } else if (output=='svg') {
-				  svg(filename=paste(curGroup,'.svg',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
-			  # JPG
-			  } else if (output=='jpg') {
-				  jpeg(filename=paste(curGroup,'.jpg',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, quality=100)
-			  # TIF
-			  } else if (output=='tif') {
-				  tiff(filename=paste(curGroup,'.tif',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, compression='lzw')
-			  # PNG
-			  } else if (output=='png') {
-				  png(filename=paste(curGroup,'.png',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
-			  # BMP
-			  } else if (output=='bmp') {
-				  bmp(filename=paste(curGroup,'.bmp',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
-			  }
-			  par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0))
+		if (!single.plot & output!='screen') {
+		  # PDF
+		  if (output=='pdf') {
+			  cairo_pdf(filename=paste(curGroup,'.pdf',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
+		  # SVG
+		  } else if (output=='svg') {
+			  svg(filename=paste(curGroup,'.svg',sep=''), width=plot.dims[1], height=plot.dims[2], pointsize=font.size, family=font.family)
+		  # JPG
+		  } else if (output=='jpg') {
+			  jpeg(filename=paste(curGroup,'.jpg',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, quality=100)
+		  # TIF
+		  } else if (output=='tif') {
+			  tiff(filename=paste(curGroup,'.tif',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size, compression='lzw')
+		  # PNG
+		  } else if (output=='png') {
+			  png(filename=paste(curGroup,'.png',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
+		  # BMP
+		  } else if (output=='bmp') {
+			  bmp(filename=paste(curGroup,'.bmp',sep=''), units=plot.unit, width=plot.dims[1], height=plot.dims[2], res=dpi, family=font.family, pointsize=font.size)
 		  }
+		  par(mfrow=c(1,1), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0))
 		}
 		# CALCULATE PLOT LIMITS & TICKS (MAX BEFORE MIN, TO GET THE AXES TO INCREASE LEFT/DOWN INSTEAD OF RIGHT/UP)
 		if (match.axes == 'absolute') { # ALL AXES IDENTICAL
@@ -602,6 +595,10 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 			ylims <- c(max(yticks),min(yticks))
 		}
 		# DRAW AXES & MARGIN TEXT, UNLESS OVERPLOTTING AND WE'RE ALREADY PAST THE FIRST GROUP
+		if (!single.plot & output=='screen' & i==1) {
+		  # INITIALIZE ONSCREEN LATTICE LAYOUT
+		  op <- par(mfrow=c(num.rows,num.cols), mar=c(1,0.5,topmargin,4.5), mgp=c(0,0.3,0), oma=c(0,0,0,0), family=font.family, ps=font.size)
+	  }
 		if (!single.plot | i==1) {
 			# INITIALIZE EMPTY PLOT
 			plot(0, 0, xlim=xlims, ylim=ylims, type='n', axes=FALSE, ann=FALSE, frame.plot=FALSE, asp=aspect.ratio)
@@ -641,9 +638,8 @@ plotVowels <- function(vowel, f1, f2, f3=NULL, f0=NULL, grouping.factor=NULL, da
 			}
 			mtext(hlabel, side=3, cex=0.8, las=1, line=1.5, font=2, col=axis.col)
 			mtext(vlabel, side=4, cex=0.8, las=3, line=2.5, font=2, col=axis.col)
-
+		# REUSE THE SAME PLOT
 		} else if (single.plot) {
-			# REUSE THE SAME PLOT
 			par(new=TRUE)
 		} # if (!single.plot | i==1)
 
