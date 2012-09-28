@@ -1,12 +1,12 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# phonR version 0.3-1
+# phonR version 0.3-2
 # Functions for phoneticians and phonologists using R
 # Daniel McCloy, drmccloy@uw.edu
 # LICENSED UNDER THE GNU GENERAL PUBLIC LICENSE v3.0: http://www.gnu.org/licenses/gpl.html
 # DEVELOPMENT OF THIS PACKAGE WAS FUNDED IN PART BY THE NATIONAL INSTITUTES OF HEALTH, GRANT NUMBER R01DC006014 TO PAMELA SOUZA
 #
 # CHANGELOG:
-# v0.3 bugfixes: font specification on windows now works for direct-to-file output. Enhancements: graphics handling overhauled to use base graphics instead of Cairo(). Several new output formats added. Raster resolution and font size now specifiable. Improved error handling.
+# v0.3 bugfixes: font specification on Windows now works for direct-to-file output. Enhancements: graphics handling overhauled to use base graphics instead of Cairo(). Several new output formats added. Raster resolution and font size now specifiable. Improved error handling. Bugfix in poly.order and poly.include handling.
 # v0.2 bugfixes: points.alpha and means.alpha now work for grayscale plots. Plots with polygons or ellipses but no shapes now get proper legend type (lines, not boxes). Graphical parameters now captured and restored when plotting to onscreen device. Vowels with no variance (e.g., single tokens) no longer crash ellipse function. Vowels not in default poly.order() no longer go unplotted when points='text'. Enhancements: support for custom axis titles (to accommodate pre-normalized values), point and mean sizes, and fonts. Custom line types added (11 total now).
 # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -224,33 +224,28 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 	df$group <- group
 	rm(vowel,group)
 	# ADJUST poly.order TO INCLUDE VOWELS PRESENT IN THE DATA THAT ARE NOT IN THE DEFAULT SET
-	v <- unique(df$vowel)
-	if (is.null(poly.order)) {
-		poly.order <- c('i','\u026A','e','\u025B','\u00E6','a','\u0251','\u0252','\u0254','o','\u028A','u','\u028C','\u0259') # i ɪ e ɛ æ a ɑ ɒ ɔ o ʊ u ʌ ə
-		if (polygon) {
-			warning('No vowel order specified for polygon drawing. Polygon(s) may not draw correctly.')
-		}
-	} else {
-		v.match <- v %in% poly.order
-		if (sum(v.match) < length(v.match) & polygon) {
+	v <- as.character(unique(df$vowel))
+  default.order <- c('i','\u026A','e','\u025B','\u00E6','a','\u0251','\u0252','\u0254','o','\u028A','u','\u028C','\u0259') # i ɪ e ɛ æ a ɑ ɒ ɔ o ʊ u ʌ ə	
+	if (polygon) {
+	  if (is.null(poly.order)) {
+	    warning('No vowel order specified for polygon drawing. Polygon(s) may not draw correctly.')
+	    poly.order <- c(default.order, unique(v[!(v %in% default.order)])) # default vowels in order + any others in the data
+	  } else if (length(v[!(v %in% poly.order)]) > 0) {
 			warning('Mismatch between values present in \'vowel\' vector and \'poly.order\'. Polygon(s) may not draw correctly.')
-		}
-	}
-	for (i in 1:length(v)) {
-		if (!(v[i] %in% poly.order)) {
-			poly.order <- c(poly.order,v[i])
-		}
+	    poly.order <- c(poly.order, unique(v[!(v %in% poly.order)]))
+	  }
+    poly.order <- poly.order[poly.order %in% v] # remove from poly.order any vowels not present in data
+  	# FIXUP NUMBER OF VOWELS TO CONNECT TO POLYGON
+	  if (is.null(poly.include)) {
+		  poly.include <- length(poly.order)
+	  } else if (poly.include>length(poly.order)) {
+		  poly.include <- length(poly.order)
+	  }
 	}
 	# SORT THE DATA BY VOWEL, SO THAT POLYGON HAS A CHANCE OF DRAWING IN PROPER ORDER.  SECONDARY ORDERING BY GROUP FOR CONVENIENCE
 	df$vowel <- factor(df$vowel, levels=poly.order)
-	df$vowel <- factor(df$vowel) # second call drops unused levels
+	df$vowel <- factor(df$vowel) # second call drops unused levels (though there shouldn't be any)
 	df <- df[order(df$vowel,df$group),]
-	# COMPENSATE FOR MISMATCHES BETWEEN DEFAULT/PROVIDED LEVELS, AND LEVELS ACTUALLY PRESENT IN THE DATA
-	if (is.null(poly.include)) {
-		poly.include <- length(poly.order)
-	} else if (poly.include>length(poly.order)) {
-		poly.include <- length(poly.order)
-	}
 	# SAVE FOR LATER, SINCE THE MAIN f1 AND f2 COLUMNS MAY GET NORMALIZED
 	df$f1hz <- df$f1
 	df$f2hz <- df$f2
@@ -664,7 +659,7 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 		}
 		# DRAW POLYGON BETWEEN MEANS
 		if (polygon) {
-			points(f2m, f1m, type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
+			points(f2m[poly.order[1:poly.include]], f1m[poly.order[1:poly.include]], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
 		}
 		# PLOT VOWEL MEANS
 		if (means=='shape') {
