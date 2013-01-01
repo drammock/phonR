@@ -219,6 +219,10 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
     } else {
       if (!identical(dim(f1),dim(f2))) error('F1 and F2 dimensions do not match.')
       if (dim(f1)[2] > 2) error('F1 and F2 must be either vectors or 2-column matrices.')
+      colnames(f1) <- c('f1a','f1b')
+      colnames(f2) <- c('f2a','f2b')
+#      if (!is.null(f3)) colnames(f3) <- c('f3a','f3b')
+#      if (!is.null(f0)) colnames(f0) <- c('f0a','f0b')
       diphthong <- TRUE
     } 
 	  if (!is.null(grouping.factor)) group <- factor(grouping.factor)
@@ -524,11 +528,6 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 			ysteps[i] <- 0.5*ysteps[i]
 		}
 	}
-	# # # # # # # # # # # # # # # # # # #
-	# # # # # # # # # # # # # # # # # # #
-	# PROGRESS TOWARD DIPHTHONG SUPPORT #
-	# # # # # # # # # # # # # # # # # # #
-	# # # # # # # # # # # # # # # # # # #
 	# COLORS, ETC
 	topmargin <- ifelse(length(titles)==1 & titles[1]=='none', 3, 5)
 	vowelcolors <- rep(hcl(0,0,0,means.alpha), length=length(glist)) # default color: (semitransparent) black
@@ -592,10 +591,26 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 	for (i in 1:length(glist)) {
 		# GET CURRENT GROUP'S DATA
 		curGroup <- glist[i]
-		curData <- subset(df, group==curGroup)
-		curData$vowel <- factor(curData$vowel) # drop unused levels
-		f2m <- tapply(curData$f2, curData$vowel, mean)
-		f1m <- tapply(curData$f1, curData$vowel, mean)
+#		curData <- subset(df, group==curGroup)
+#		curData$vowel <- factor(curData$vowel) # drop unused levels
+#		f2m <- tapply(curData$f2, curData$vowel, mean)
+#		f1m <- tapply(curData$f1, curData$vowel, mean)
+		if (diphthong) {
+		  curData <- dg[dg$group %in% curGroup,]
+		  curData$vowel <- factor(curData$vowel) # drop unused levels
+		  f2m <- cbind(tapply(curData$f2a, curData$vowel, mean), tapply(curData$f2b, curData$vowel, mean))
+		  f1m <- cbind(tapply(curData$f1a, curData$vowel, mean), tapply(curData$f1b, curData$vowel, mean))
+		} else {
+		  curData <- df[df$group %in% curGroup,]
+		  curData$vowel <- factor(curData$vowel) # drop unused levels
+		  f2m <- tapply(curData$f2, curData$vowel, mean)
+		  f1m <- tapply(curData$f1, curData$vowel, mean)
+		}	# # # # # # # # # # # # # # # # # # #
+	# # # # # # # # # # # # # # # # # # #
+	# PROGRESS TOWARD DIPHTHONG SUPPORT #
+	# # # # # # # # # # # # # # # # # # #
+	# # # # # # # # # # # # # # # # # # #
+
 		# IF PLOTTING EACH GROUP ON A SEPARATE GRAPH, INITIALIZE OUTPUT DEVICE ANEW FOR EACH GROUP
 		if (!single.plot & output!='screen') {
 		  # PDF
@@ -711,7 +726,22 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 		} # if (!single.plot | i==1)
 
 		# PLOT VOWEL POINTS
-		if (points=='shape') {
+		if (diphthong) {
+		  if (points=='line') {
+		    segments(curData$f2a, curData$f1a, curData$f2b, curData$f1b, col=pointcolors[i])
+		  } else if (points=='shape') {
+  			points(curData$f2a, curData$f1a, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
+  			points(curData$f2b, curData$f1b, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
+		  } else if (points=='text') {
+  			text(curData$f2a, curData$f1a, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
+  			text(curData$f2b, curData$f1b, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
+		  }
+	# # # # # # # # # # # # # # # # # # #
+	# # # # # # # # # # # # # # # # # # #
+	# PROGRESS TOWARD DIPHTHONG SUPPORT #
+	# # # # # # # # # # # # # # # # # # #
+	# # # # # # # # # # # # # # # # # # #
+		} else if (points=='shape') { # !diphthong
 			points(curData$f2, curData$f1, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
 		} else if (points=='text') {
 			text(curData$f2, curData$f1, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
