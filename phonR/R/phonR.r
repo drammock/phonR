@@ -213,16 +213,27 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 		} else {
 			group <- rep('noGroupsDefined',length(f1))
 		}
-	} else {
-	  if (!is.null(grouping.factor)) {
-  	    group <- factor(grouping.factor)
-	  } else {
-	    group <- rep('noGroupsDefined',length(f1))
-	  }
+	} else { # is.null(data)
+	  if (is.null(dim(f1))) {
+	    diphthong <- FALSE
+    } else {
+      if (!identical(dim(f1),dim(f2))) error('F1 and F2 dimensions do not match.')
+      if (dim(f1)[2] > 2) error('F1 and F2 must be either vectors or 2-column matrices.')
+      diphthong <- TRUE
+    } 
+	  if (!is.null(grouping.factor)) group <- factor(grouping.factor)
+	  else group <- rep('noGroupsDefined',nrow(f1))
 	}
-	df <- data.frame(cbind(f1,f2,f3,f0))
-	df$vowel <- vowel
-	df$group <- group
+	if (diphthong) {
+	  df <- data.frame(cbind(f1[,1],f2[,1],f3[,1],f0[,1]))
+	  dg <- data.frame(cbind(f1[,2],f2[,2],f3[,2],f0[,2]))
+	  df$vowel <- dg$vowel <- vowel
+	  df$group <- dg$group <- group
+	} else {
+	  df <- data.frame(cbind(f1,f2,f3,f0))
+	  df$vowel <- vowel
+	  df$group <- group
+	}
 	rm(vowel,group)
 	# ADJUST poly.order TO INCLUDE VOWELS PRESENT IN THE DATA THAT ARE NOT IN THE DEFAULT SET
 	v <- as.character(unique(df$vowel))
@@ -242,12 +253,24 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 	  poly.include <- length(poly.order)
   }
 	# SORT THE DATA BY VOWEL, SO THAT POLYGON HAS A CHANCE OF DRAWING IN PROPER ORDER.  SECONDARY ORDERING BY GROUP FOR CONVENIENCE
-	df$vowel <- factor(df$vowel, levels=poly.order)
-	df$vowel <- factor(df$vowel) # second call drops unused levels (shouldn't be any, but safety first!)
-	df <- df[order(df$vowel,df$group),]
-	# SAVE FOR LATER, SINCE THE MAIN f1 AND f2 COLUMNS MAY GET NORMALIZED
-	df$f1hz <- df$f1
-	df$f2hz <- df$f2
+	if (diphthong) {
+	  df$vowel <- factor(df$vowel, levels=poly.order)
+	  dg$vowel <- factor(paste(df$vowel,rep('offset',length(df$vowel)),sep='_'), levels=paste(poly.order,rep('offset',length(poly.order)),sep='_'))
+	  df <- df[order(df$vowel,df$group),]
+	  dg <- dg[order(dg$vowel,dg$group),]
+	  # SAVE FOR LATER, SINCE THE MAIN f1 AND f2 COLUMNS MAY GET NORMALIZED
+	  df$f1hz <- df$f1
+	  df$f2hz <- df$f2
+	  dg$f1hz <- dg$f1
+	  dg$f2hz <- dg$f2
+	} else {
+	  df$vowel <- factor(df$vowel, levels=poly.order)
+	  df$vowel <- factor(df$vowel) # second call drops unused levels (shouldn't be any, but safety first!)
+	  df <- df[order(df$vowel,df$group),]
+	  # SAVE FOR LATER, SINCE THE MAIN f1 AND f2 COLUMNS MAY GET NORMALIZED
+	  df$f1hz <- df$f1
+	  df$f2hz <- df$f2
+	}
 	# EXTRACT LISTS OF VOWEL & GROUP VALUES
 	glist <- unique(df$group)
 	vlist <- unique(df$vowel)
@@ -274,12 +297,16 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 	# NORMALIZE THE DATA
 	if (norm.method == 'nearey2') {
 		df[,1:2] <- normalizeVowels(f1=df$f1,f2=df$f2,f3=df$f3,f0=df$f0,method=norm.method)[,2:3]
+		if (diphthong) dg[,1:2] <- normalizeVowels(f1=dg$f1,f2=dg$f2,f3=dg$f3,f0=dg$f0,method=norm.method)[,2:3]
 	} else if (norm.method %in% c('z','ztransform','zscore','lobanov')) {
 		df[,1:2] <- normalizeVowels(f1=df$f1,f2=df$f2,method=norm.method,grouping.factor=df$group)
+		if (diphthong) dg[,1:2] <- normalizeVowels(f1=dg$f1,f2=dg$f2,method=norm.method,grouping.factor=dg$group)
 	} else if (norm.method %in% c('s','scentroid','wattfabricius')) {
 		df[,1:2] <- normalizeVowels(f1=df$f1,f2=df$f2,method=norm.method,grouping.factor=df$group,vowel=df$vowel)
+		if (diphthong) df[,1:2] <- normalizeVowels(f1=dg$f1,f2=dg$f2,method=norm.method,grouping.factor=dg$group,vowel=dg$vowel)
 	} else if (norm.method != 'none') {
 		df[,1:2] <- normalizeVowels(f1=df$f1,f2=df$f2,method=norm.method)
+		if (diphthong) dg[,1:2] <- normalizeVowels(f1=dg$f1,f2=dg$f2,method=norm.method)
 	}
 	# DETERMINE AXIS UNITS
 	if (norm.method %in% c('log','logmean','nearey1','nearey2')) {
@@ -299,26 +326,54 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 	}
 	# CALCULATE ABSOLUTE EXTREMA & TABLES OF EXTREMA BY SUBJECT
 	if (match.unit & norm.method != 'none') { # use normalized values for everything
-		x <- df$f2
-		y <- df$f1
-		xmin.table <- tapply(df$f2,df$group,min)
-		xmax.table <- tapply(df$f2,df$group,max)
-		ymin.table <- tapply(df$f1,df$group,min)
-		ymax.table <- tapply(df$f1,df$group,max)
+	  if (diphthong) {
+	    x <- c(df$f2,dg$f2)
+	    y <- c(df$f1,dg$f1)
+	    g <- c(df$group,dg$group)
+	    w <- c(df$vowel,dg$vowel)
+		  xmin.table <- tapply(x,g,min)
+		  xmax.table <- tapply(x,g,max)
+		  ymin.table <- tapply(y,g,min)
+		  ymax.table <- tapply(y,g,max)
+	  } else {
+		  x <- df$f2
+		  y <- df$f1
+		  xmin.table <- tapply(df$f2,df$group,min)
+		  xmax.table <- tapply(df$f2,df$group,max)
+		  ymin.table <- tapply(df$f1,df$group,min)
+		  ymax.table <- tapply(df$f1,df$group,max)
+	  }
 	} else { # either don't match units or don't normalize, so use Hertz for everything
-		x <- df$f2hz
-		y <- df$f1hz
-		xmin.table <- tapply(df$f2hz,df$group,min)
-		xmax.table <- tapply(df$f2hz,df$group,max)
-		ymin.table <- tapply(df$f1hz,df$group,min)
-		ymax.table <- tapply(df$f1hz,df$group,max)
+	  if (diphthong) {
+		  x <- c(df$f2hz,dg$f2hz)
+		  y <- c(df$f1hz,dg$f1hz)
+	    g <- c(df$group,dg$group)
+	    w <- c(df$vowel,dg$vowel)
+		  xmin.table <- tapply(x,g,min)
+		  xmax.table <- tapply(x,g,max)
+		  ymin.table <- tapply(y,g,min)
+		  ymax.table <- tapply(y,g,max)
+	  } else {
+		  x <- df$f2hz
+		  y <- df$f1hz
+		  xmin.table <- tapply(df$f2hz,df$group,min)
+		  xmax.table <- tapply(df$f2hz,df$group,max)
+		  ymin.table <- tapply(df$f1hz,df$group,min)
+		  ymax.table <- tapply(df$f1hz,df$group,max)
+	  }
 	}
 	if (means != 'none') {
-		f2means <- tapply(x,list(df$vowel,df$group),mean) #rownames=vowels, colnames=groups
-		f1means <- tapply(y,list(df$vowel,df$group),mean)
+	  if (diphthong) {
+		  f2means <- tapply(x,list(w,g),mean) #rownames=vowels, colnames=groups
+		  f1means <- tapply(y,list(w,g),mean)
+	  } else {
+		  f2means <- tapply(x,list(df$vowel,df$group),mean) #rownames=vowels, colnames=groups
+		  f1means <- tapply(y,list(df$vowel,df$group),mean)
+	  }
 	}
 	if (ellipses) {
-		subsets <- by(cbind(x,y), list(df$vowel,df$group), identity)
+	  if (diphthong) subsets <- by(cbind(x,y), list(w,g), identity)
+	  else subsets <- by(cbind(x,y), list(df$vowel,df$group), identity)
 		centers <- lapply(subsets[!unlist(lapply(subsets, is.null))], colMeans)
 		covars <- lapply(subsets[!unlist(lapply(subsets, is.null))], cov)
     covars <- lapply(covars,function(x) replace(x,is.na(x),0))
@@ -469,6 +524,11 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 			ysteps[i] <- 0.5*ysteps[i]
 		}
 	}
+	# # # # # # # # # # # # # # # # # # #
+	# # # # # # # # # # # # # # # # # # #
+	# PROGRESS TOWARD DIPHTHONG SUPPORT #
+	# # # # # # # # # # # # # # # # # # #
+	# # # # # # # # # # # # # # # # # # #
 	# COLORS, ETC
 	topmargin <- ifelse(length(titles)==1 & titles[1]=='none', 3, 5)
 	vowelcolors <- rep(hcl(0,0,0,means.alpha), length=length(glist)) # default color: (semitransparent) black
