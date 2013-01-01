@@ -727,20 +727,20 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 
 		# PLOT VOWEL POINTS
 		if (diphthong) {
-		  if (points=='line') {
+      # TODO: add a way to have segments but no points
+      # TODO: add a way to draw arrowheads
+      # TODO: add option for points at only onset or only offset
+		  if (points=='shape') {
 		    segments(curData$f2a, curData$f1a, curData$f2b, curData$f1b, col=pointcolors[i])
-		  } else if (points=='shape') {
   			points(curData$f2a, curData$f1a, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
   			points(curData$f2b, curData$f1b, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
 		  } else if (points=='text') {
+		    segments(curData$f2a, curData$f1a, curData$f2b, curData$f1b, col=pointcolors[i])
   			text(curData$f2a, curData$f1a, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
   			text(curData$f2b, curData$f1b, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
+#		  } else {
+#		    segments(curData$f2a, curData$f1a, curData$f2b, curData$f1b, col=pointcolors[i])
 		  }
-	# # # # # # # # # # # # # # # # # # #
-	# # # # # # # # # # # # # # # # # # #
-	# PROGRESS TOWARD DIPHTHONG SUPPORT #
-	# # # # # # # # # # # # # # # # # # #
-	# # # # # # # # # # # # # # # # # # #
 		} else if (points=='shape') { # !diphthong
 			points(curData$f2, curData$f1, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
 		} else if (points=='text') {
@@ -750,25 +750,54 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 		if (ellipses) {
 			# CALCULATE COVARIANCE MATRICES
 			covar <- list()
+      # TODO: the next line might fail for diphthongs
 			curVowels <- names(f2m) # unique(curData$vowel)
-			for (j in 1:length(curVowels)) {
-				curVowelData <- subset(curData, vowel==curVowels[j])
-				covar[[j]] <- cov(cbind(curVowelData$f2, curVowelData$f1))
-				# PLOT ELLIPSES
-				if (!is.na(covar[[j]][1])) {
-					ellipse(c(f2m[j], f1m[j]), covar[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.alpha)
-				}
+			if (diphthong) {
+			  covar2 <- list()
+			  for (j in 1:length(curVowels)) {
+			    curVowelData <- curData[curData$vowel %in% curVowels[j],]
+			    covar[[j]] <- cov(cbind(curVowelData$f2a, curVowelData$f1a))
+			    covar2[[j]] <- cov(cbind(curVowelData$f2b, curVowelData$f1b))
+				  if (!is.na(covar[[j]][1])) {
+					  ellipse(c(f2m$f2a[j], f1m$f1a[j]), covar[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.alpha)
+					  ellipse(c(f2m$f2b[j], f1m$f1b[j]), covar2[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.alpha)
+				  }
+			  }
+			} else { # !diphthong
+			  for (j in 1:length(curVowels)) {
+				  curVowelData <- curData[curData$vowel %in% curVowels[j],] #	curVowelData <- subset(curData, vowel==curVowels[j])
+				  covar[[j]] <- cov(cbind(curVowelData$f2, curVowelData$f1))
+				  # PLOT ELLIPSES
+				  if (!is.na(covar[[j]][1])) {
+					  ellipse(c(f2m[j], f1m[j]), covar[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.alpha)
+				  }
+			  }
 			}
 		}
 		# DRAW POLYGON BETWEEN MEANS
 		if (polygon) {
-			points(f2m[poly.order[1:poly.include]], f1m[poly.order[1:poly.include]], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
+		  if (diphthong) {
+		    points(f2m$f2a[poly.order[1:poly.include]], f1m$f1a[poly.order[1:poly.include]], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
+		    points(f2m$f2b[poly.order[1:poly.include]], f1m$f1b[poly.order[1:poly.include]], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
+		  } else {
+			  points(f2m[poly.order[1:poly.include]], f1m[poly.order[1:poly.include]], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
+		  }
 		}
 		# PLOT VOWEL MEANS
-		if (means=='shape') {
-			points(f2m, f1m, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
-		} else if (means=='text') {
-			text(f2m, f1m, names(f2m), col=vowelcolors[i], font=2, cex=means.cex)
+		if (diphthong) {
+		  if (means=='shape') {
+			  points(f2m$f2a, f1m$f1a, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
+			  points(f2m$f2b, f1m$f1b, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
+		  } else if (means=='text') {
+			  text(f2m$f2a, f1m$f1a, names(f2m), col=vowelcolors[i], font=2, cex=means.cex)
+			  text(f2m$f2b, f1m$f1b, names(f2m), col=vowelcolors[i], font=2, cex=means.cex)
+		  }
+		} else {
+		  if (means=='shape') {
+			  points(f2m, f1m, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
+		  } else if (means=='text') {
+			  text(f2m, f1m, names(f2m), col=vowelcolors[i], font=2, cex=means.cex)
+		  }
 		}
     # PLOT LEGEND
 		if (legend & (!single.plot | i==length(glist))) {
