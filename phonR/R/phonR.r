@@ -213,31 +213,16 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 		} else {
 			group <- rep('noGroupsDefined',length(f1))
 		}
-	} else { # is.null(data)
-	  if (is.null(dim(f1))) {
-	    diphthong <- FALSE
-    } else {
-      if (!identical(dim(f1),dim(f2))) error('F1 and F2 dimensions do not match.')
-      if (dim(f1)[2] > 2) error('F1 and F2 must be either vectors or 2-column matrices.')
-      colnames(f1) <- c('f1a','f1b')
-      colnames(f2) <- c('f2a','f2b')
-#      if (!is.null(f3)) colnames(f3) <- c('f3a','f3b')
-#      if (!is.null(f0)) colnames(f0) <- c('f0a','f0b')
-      diphthong <- TRUE
-    } 
-	  if (!is.null(grouping.factor)) group <- factor(grouping.factor)
-	  else group <- rep('noGroupsDefined',nrow(f1))
-	}
-	if (diphthong) {
-	  df <- data.frame(cbind(f1[,1],f2[,1],f3[,1],f0[,1]))
-	  dg <- data.frame(cbind(f1[,2],f2[,2],f3[,2],f0[,2]))
-	  df$vowel <- dg$vowel <- vowel
-	  df$group <- dg$group <- group
 	} else {
-	  df <- data.frame(cbind(f1,f2,f3,f0))
-	  df$vowel <- vowel
-	  df$group <- group
+	  if (!is.null(grouping.factor)) {
+  	    group <- factor(grouping.factor)
+	  } else {
+	    group <- rep('noGroupsDefined',length(f1))
+	  }
 	}
+	df <- data.frame(cbind(f1,f2,f3,f0))
+	df$vowel <- vowel
+	df$group <- group
 	rm(vowel,group)
 	# ADJUST poly.order TO INCLUDE VOWELS PRESENT IN THE DATA THAT ARE NOT IN THE DEFAULT SET
 	v <- as.character(unique(df$vowel))
@@ -257,24 +242,12 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 	  poly.include <- length(poly.order)
   }
 	# SORT THE DATA BY VOWEL, SO THAT POLYGON HAS A CHANCE OF DRAWING IN PROPER ORDER.  SECONDARY ORDERING BY GROUP FOR CONVENIENCE
-	if (diphthong) {
-	  df$vowel <- factor(df$vowel, levels=poly.order)
-	  dg$vowel <- factor(paste(df$vowel,rep('offset',length(df$vowel)),sep='_'), levels=paste(poly.order,rep('offset',length(poly.order)),sep='_'))
-	  df <- df[order(df$vowel,df$group),]
-	  dg <- dg[order(dg$vowel,dg$group),]
-	  # SAVE FOR LATER, SINCE THE MAIN f1 AND f2 COLUMNS MAY GET NORMALIZED
-	  df$f1hz <- df$f1
-	  df$f2hz <- df$f2
-	  dg$f1hz <- dg$f1
-	  dg$f2hz <- dg$f2
-	} else {
-	  df$vowel <- factor(df$vowel, levels=poly.order)
-	  df$vowel <- factor(df$vowel) # second call drops unused levels (shouldn't be any, but safety first!)
-	  df <- df[order(df$vowel,df$group),]
-	  # SAVE FOR LATER, SINCE THE MAIN f1 AND f2 COLUMNS MAY GET NORMALIZED
-	  df$f1hz <- df$f1
-	  df$f2hz <- df$f2
-	}
+	df$vowel <- factor(df$vowel, levels=poly.order)
+	df$vowel <- factor(df$vowel) # second call drops unused levels (shouldn't be any, but safety first!)
+	df <- df[order(df$vowel,df$group),]
+	# SAVE FOR LATER, SINCE THE MAIN f1 AND f2 COLUMNS MAY GET NORMALIZED
+	df$f1hz <- df$f1
+	df$f2hz <- df$f2
 	# EXTRACT LISTS OF VOWEL & GROUP VALUES
 	glist <- unique(df$group)
 	vlist <- unique(df$vowel)
@@ -301,16 +274,12 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 	# NORMALIZE THE DATA
 	if (norm.method == 'nearey2') {
 		df[,1:2] <- normalizeVowels(f1=df$f1,f2=df$f2,f3=df$f3,f0=df$f0,method=norm.method)[,2:3]
-		if (diphthong) dg[,1:2] <- normalizeVowels(f1=dg$f1,f2=dg$f2,f3=dg$f3,f0=dg$f0,method=norm.method)[,2:3]
 	} else if (norm.method %in% c('z','ztransform','zscore','lobanov')) {
 		df[,1:2] <- normalizeVowels(f1=df$f1,f2=df$f2,method=norm.method,grouping.factor=df$group)
-		if (diphthong) dg[,1:2] <- normalizeVowels(f1=dg$f1,f2=dg$f2,method=norm.method,grouping.factor=dg$group)
 	} else if (norm.method %in% c('s','scentroid','wattfabricius')) {
 		df[,1:2] <- normalizeVowels(f1=df$f1,f2=df$f2,method=norm.method,grouping.factor=df$group,vowel=df$vowel)
-		if (diphthong) df[,1:2] <- normalizeVowels(f1=dg$f1,f2=dg$f2,method=norm.method,grouping.factor=dg$group,vowel=dg$vowel)
 	} else if (norm.method != 'none') {
 		df[,1:2] <- normalizeVowels(f1=df$f1,f2=df$f2,method=norm.method)
-		if (diphthong) dg[,1:2] <- normalizeVowels(f1=dg$f1,f2=dg$f2,method=norm.method)
 	}
 	# DETERMINE AXIS UNITS
 	if (norm.method %in% c('log','logmean','nearey1','nearey2')) {
@@ -330,54 +299,26 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 	}
 	# CALCULATE ABSOLUTE EXTREMA & TABLES OF EXTREMA BY SUBJECT
 	if (match.unit & norm.method != 'none') { # use normalized values for everything
-	  if (diphthong) {
-	    x <- c(df$f2,dg$f2)
-	    y <- c(df$f1,dg$f1)
-	    g <- c(df$group,dg$group)
-	    w <- c(df$vowel,dg$vowel)
-		  xmin.table <- tapply(x,g,min)
-		  xmax.table <- tapply(x,g,max)
-		  ymin.table <- tapply(y,g,min)
-		  ymax.table <- tapply(y,g,max)
-	  } else {
-		  x <- df$f2
-		  y <- df$f1
-		  xmin.table <- tapply(df$f2,df$group,min)
-		  xmax.table <- tapply(df$f2,df$group,max)
-		  ymin.table <- tapply(df$f1,df$group,min)
-		  ymax.table <- tapply(df$f1,df$group,max)
-	  }
+		x <- df$f2
+		y <- df$f1
+		xmin.table <- tapply(df$f2,df$group,min)
+		xmax.table <- tapply(df$f2,df$group,max)
+		ymin.table <- tapply(df$f1,df$group,min)
+		ymax.table <- tapply(df$f1,df$group,max)
 	} else { # either don't match units or don't normalize, so use Hertz for everything
-	  if (diphthong) {
-		  x <- c(df$f2hz,dg$f2hz)
-		  y <- c(df$f1hz,dg$f1hz)
-	    g <- c(df$group,dg$group)
-	    w <- c(df$vowel,dg$vowel)
-		  xmin.table <- tapply(x,g,min)
-		  xmax.table <- tapply(x,g,max)
-		  ymin.table <- tapply(y,g,min)
-		  ymax.table <- tapply(y,g,max)
-	  } else {
-		  x <- df$f2hz
-		  y <- df$f1hz
-		  xmin.table <- tapply(df$f2hz,df$group,min)
-		  xmax.table <- tapply(df$f2hz,df$group,max)
-		  ymin.table <- tapply(df$f1hz,df$group,min)
-		  ymax.table <- tapply(df$f1hz,df$group,max)
-	  }
+		x <- df$f2hz
+		y <- df$f1hz
+		xmin.table <- tapply(df$f2hz,df$group,min)
+		xmax.table <- tapply(df$f2hz,df$group,max)
+		ymin.table <- tapply(df$f1hz,df$group,min)
+		ymax.table <- tapply(df$f1hz,df$group,max)
 	}
 	if (means != 'none') {
-	  if (diphthong) {
-		  f2means <- tapply(x,list(w,g),mean) #rownames=vowels, colnames=groups
-		  f1means <- tapply(y,list(w,g),mean)
-	  } else {
-		  f2means <- tapply(x,list(df$vowel,df$group),mean) #rownames=vowels, colnames=groups
-		  f1means <- tapply(y,list(df$vowel,df$group),mean)
-	  }
+		f2means <- tapply(x,list(df$vowel,df$group),mean) #rownames=vowels, colnames=groups
+		f1means <- tapply(y,list(df$vowel,df$group),mean)
 	}
 	if (ellipses) {
-	  if (diphthong) subsets <- by(cbind(x,y), list(w,g), identity)
-	  else subsets <- by(cbind(x,y), list(df$vowel,df$group), identity)
+		subsets <- by(cbind(x,y), list(df$vowel,df$group), identity)
 		centers <- lapply(subsets[!unlist(lapply(subsets, is.null))], colMeans)
 		covars <- lapply(subsets[!unlist(lapply(subsets, is.null))], cov)
     covars <- lapply(covars,function(x) replace(x,is.na(x),0))
@@ -591,26 +532,10 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 	for (i in 1:length(glist)) {
 		# GET CURRENT GROUP'S DATA
 		curGroup <- glist[i]
-#		curData <- subset(df, group==curGroup)
-#		curData$vowel <- factor(curData$vowel) # drop unused levels
-#		f2m <- tapply(curData$f2, curData$vowel, mean)
-#		f1m <- tapply(curData$f1, curData$vowel, mean)
-		if (diphthong) {
-		  curData <- dg[dg$group %in% curGroup,]
-		  curData$vowel <- factor(curData$vowel) # drop unused levels
-		  f2m <- cbind(tapply(curData$f2a, curData$vowel, mean), tapply(curData$f2b, curData$vowel, mean))
-		  f1m <- cbind(tapply(curData$f1a, curData$vowel, mean), tapply(curData$f1b, curData$vowel, mean))
-		} else {
-		  curData <- df[df$group %in% curGroup,]
-		  curData$vowel <- factor(curData$vowel) # drop unused levels
-		  f2m <- tapply(curData$f2, curData$vowel, mean)
-		  f1m <- tapply(curData$f1, curData$vowel, mean)
-		}	# # # # # # # # # # # # # # # # # # #
-	# # # # # # # # # # # # # # # # # # #
-	# PROGRESS TOWARD DIPHTHONG SUPPORT #
-	# # # # # # # # # # # # # # # # # # #
-	# # # # # # # # # # # # # # # # # # #
-
+		curData <- subset(df, group==curGroup)
+		curData$vowel <- factor(curData$vowel) # drop unused levels
+		f2m <- tapply(curData$f2, curData$vowel, mean)
+		f1m <- tapply(curData$f1, curData$vowel, mean)
 		# IF PLOTTING EACH GROUP ON A SEPARATE GRAPH, INITIALIZE OUTPUT DEVICE ANEW FOR EACH GROUP
 		if (!single.plot & output!='screen') {
 		  # PDF
@@ -726,22 +651,7 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 		} # if (!single.plot | i==1)
 
 		# PLOT VOWEL POINTS
-		if (diphthong) {
-      # TODO: add a way to have segments but no points
-      # TODO: add a way to draw arrowheads
-      # TODO: add option for points at only onset or only offset
-		  if (points=='shape') {
-		    segments(curData$f2a, curData$f1a, curData$f2b, curData$f1b, col=pointcolors[i])
-  			points(curData$f2a, curData$f1a, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
-  			points(curData$f2b, curData$f1b, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
-		  } else if (points=='text') {
-		    segments(curData$f2a, curData$f1a, curData$f2b, curData$f1b, col=pointcolors[i])
-  			text(curData$f2a, curData$f1a, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
-  			text(curData$f2b, curData$f1b, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
-#		  } else {
-#		    segments(curData$f2a, curData$f1a, curData$f2b, curData$f1b, col=pointcolors[i])
-		  }
-		} else if (points=='shape') { # !diphthong
+		if (points=='shape') {
 			points(curData$f2, curData$f1, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
 		} else if (points=='text') {
 			text(curData$f2, curData$f1, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
@@ -750,54 +660,25 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 		if (ellipses) {
 			# CALCULATE COVARIANCE MATRICES
 			covar <- list()
-      # TODO: the next line might fail for diphthongs
 			curVowels <- names(f2m) # unique(curData$vowel)
-			if (diphthong) {
-			  covar2 <- list()
-			  for (j in 1:length(curVowels)) {
-			    curVowelData <- curData[curData$vowel %in% curVowels[j],]
-			    covar[[j]] <- cov(cbind(curVowelData$f2a, curVowelData$f1a))
-			    covar2[[j]] <- cov(cbind(curVowelData$f2b, curVowelData$f1b))
-				  if (!is.na(covar[[j]][1])) {
-					  ellipse(c(f2m$f2a[j], f1m$f1a[j]), covar[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.alpha)
-					  ellipse(c(f2m$f2b[j], f1m$f1b[j]), covar2[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.alpha)
-				  }
-			  }
-			} else { # !diphthong
-			  for (j in 1:length(curVowels)) {
-				  curVowelData <- curData[curData$vowel %in% curVowels[j],] #	curVowelData <- subset(curData, vowel==curVowels[j])
-				  covar[[j]] <- cov(cbind(curVowelData$f2, curVowelData$f1))
-				  # PLOT ELLIPSES
-				  if (!is.na(covar[[j]][1])) {
-					  ellipse(c(f2m[j], f1m[j]), covar[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.alpha)
-				  }
-			  }
+			for (j in 1:length(curVowels)) {
+				curVowelData <- subset(curData, vowel==curVowels[j])
+				covar[[j]] <- cov(cbind(curVowelData$f2, curVowelData$f1))
+				# PLOT ELLIPSES
+				if (!is.na(covar[[j]][1])) {
+					ellipse(c(f2m[j], f1m[j]), covar[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.alpha)
+				}
 			}
 		}
 		# DRAW POLYGON BETWEEN MEANS
 		if (polygon) {
-		  if (diphthong) {
-		    points(f2m$f2a[poly.order[1:poly.include]], f1m$f1a[poly.order[1:poly.include]], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
-		    points(f2m$f2b[poly.order[1:poly.include]], f1m$f1b[poly.order[1:poly.include]], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
-		  } else {
-			  points(f2m[poly.order[1:poly.include]], f1m[poly.order[1:poly.include]], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
-		  }
+			points(f2m[poly.order[1:poly.include]], f1m[poly.order[1:poly.include]], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
 		}
 		# PLOT VOWEL MEANS
-		if (diphthong) {
-		  if (means=='shape') {
-			  points(f2m$f2a, f1m$f1a, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
-			  points(f2m$f2b, f1m$f1b, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
-		  } else if (means=='text') {
-			  text(f2m$f2a, f1m$f1a, names(f2m), col=vowelcolors[i], font=2, cex=means.cex)
-			  text(f2m$f2b, f1m$f1b, names(f2m), col=vowelcolors[i], font=2, cex=means.cex)
-		  }
-		} else {
-		  if (means=='shape') {
-			  points(f2m, f1m, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
-		  } else if (means=='text') {
-			  text(f2m, f1m, names(f2m), col=vowelcolors[i], font=2, cex=means.cex)
-		  }
+		if (means=='shape') {
+			points(f2m, f1m, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
+		} else if (means=='text') {
+			text(f2m, f1m, names(f2m), col=vowelcolors[i], font=2, cex=means.cex)
 		}
     # PLOT LEGEND
 		if (legend & (!single.plot | i==length(glist))) {
