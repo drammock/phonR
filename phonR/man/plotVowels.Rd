@@ -10,15 +10,17 @@
 	ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, 
 	poly.include=NULL, single.plot=TRUE, titles='auto', axis.titles='auto', 
 	axis.cex=0.8, garnish.col='#666666FF', grayscale=FALSE, 
-	vary.colors=!grayscale, vary.shapes=grayscale, vary.lines=grayscale, 
-	legend=single.plot, output='screen', family='', pointsize=12, 
-	units='in', width=6.5, height=6.5, res=72, asp=NULL)
+	vary.shapes=grayscale, vary.lines=grayscale, legend=single.plot, 
+	output='screen', family='', pointsize=12, units='in', width=6.5, 
+	height=6.5, res=72, asp=NULL, point.arrows=NULL, mean.arrows=NULL, 
+	arrowhead.length=NULL, arrowhead.angle=NULL, point.arrow.width=NULL, 
+	mean.arrow.width=NULL)
 }
 \arguments{
-    \item{data}{Optional data frame containing the values to be plotted.  If \code{data} is specified, the values of \code{f0}, \code{f1}, \code{f2}, \code{f3}, \code{vowel}, and \code{grouping.factor} should be enclosed in quotes and should reference column names in \code{data}.}
+    \item{data}{Optional data frame containing the values to be plotted.  If \code{data} is specified, the values of \code{f0}, \code{f1}, \code{f2}, \code{f3}, \code{vowel}, and \code{grouping.factor} should be enclosed in quotes and should reference column names in \code{data}.  Currently it is not possible to plot diphthongs when using the \code{data} argument.}
     \item{vowel}{Vector (or column name in \code{data}) of vowel symbols. If \code{data} is specified and \code{vowel} is NULL, it looks for a column in \code{data} called \dQuote{vowel}. If \code{data} and \code{vowel} are both NULL, it looks for an object named vowel.}
-    \item{f1}{Vector (or column name in \code{data}) of F1 values. If \code{data} is specified and \code{f1} is NULL, it looks for a column in \code{data} called \dQuote{f1}. If \code{data} and \code{f1} are both NULL, it looks for an object named f1.}
-    \item{f2}{Vector (or column name in \code{data}) of F2 values. If \code{data} is specified and \code{f2} is NULL, it looks for a column in \code{data} called \dQuote{f2}. If \code{data} and \code{f2} are both NULL, it looks for an object named f2.}
+    \item{f1}{Vector (or column name in \code{data}) of F1 values. If \code{data} is specified and \code{f1} is NULL, it looks for a column in \code{data} called \dQuote{f1}. If \code{data} and \code{f1} are both NULL, it looks for an object named f1. For diphthong plotting, \code{f1} should be a matrix of values, with the first column being the onset or nucleus value, and the second column being the offset or offglide value.}
+    \item{f2}{Vector (or column name in \code{data}) of F2 values. If \code{data} is specified and \code{f2} is NULL, it looks for a column in \code{data} called \dQuote{f2}. If \code{data} and \code{f2} are both NULL, it looks for an object named f2. For diphthong plotting, \code{f1} should be a matrix of values, with the first column being the onset or nucleus value, and the second column being the offset or offglide value.}
     \item{f3}{Vector (or column name in \code{data}) of F3 values (required for normalization method \dQuote{nearey2}).}
     \item{f0}{Vector (or column name in \code{data}) of f0 values (required for normalization method \dQuote{nearey2}).}
     \item{grouping.factor}{Vector (or column from \code{data}) of grouping factor values. Allows for plotting data by color/shape/linestyle (if \code{single.plot} is TRUE), or separating to individual plots (if \code{single.plot} is FALSE).}
@@ -42,8 +44,7 @@
     \item{axis.titles}{If \dQuote{auto}, will auto-generate axis labels based on \code{norm.method}.  Also accepts a two-element vector of strings (useful for cases where the F1 and F2 values passed to the function have already been normalized).  Order of elements is F2 (horizontal) label before F1 (vertical) label.}
 	\item{axis.cex}{Size of the axis numbers relative to \code{pointsize}.}
     \item{garnish.col}{Color for the axis lines, ticks, numbers, and labels.}
-    \item{grayscale}{If TRUE, plot without color.  Note that if \code{grayscale} is FALSE, graphs may still come out colorless if \code{uniform.style} is TRUE and there is only one group on the graph, because the first color plotted defaults to black.}
-    \item{vary.colors}{If TRUE, vary token and mean colors by group.  Defaults to the opposite value as \code{grayscale}.  If both \code{grayscale} and \code{vary.colors} are TRUE, colors are shades of gray varying in equal luminance steps.}
+    \item{grayscale}{If TRUE, plot without color.}
     \item{vary.shapes}{If TRUE, vary token and mean shapes by group (when either \code{points} or \code{means} has the value \dQuote{shape}).  Defaults to same value as \code{grayscale}.  Ignored if \code{uniform.style} is TRUE.}
     \item{vary.lines}{If TRUE, vary line style by group (when \code{ellipses} or \code{polygon} are TRUE).  Defaults to same value as \code{grayscale}.  Ignored if \code{uniform.style} is TRUE.}
     \item{legend}{If TRUE, prints a legend in the lower left corner of the graph. Also accepts the standard keyword values for the base graphics \code{legend()} command (\dQuote{top}, \dQuote{topright}, \dQuote{right}, \dQuote{bottomright}, \dQuote{bottom}, \dQuote{bottomleft}, \dQuote{left}, \dQuote{topleft}, \dQuote{center}).}
@@ -55,6 +56,12 @@
     \item{height}{Height of the plot.  Ignored when \code{output} is \dQuote{screen}.}
     \item{res}{Resolution of output in dots-per-inch. Ignored for screen or vector output formats (pdf, svg), defaults to 72dpi for raster formats.}
     \item{asp}{Aspect ratio for plot area. Default is NULL, which changes the aspect ratio to maximize use of the available plot area; if specified, must be a positive numeric value.}
+    \item{point.arrows}{If TRUE (and if plotting diphthongs), arrows will be drawn from points defined by the first columns of \code{f2} and \code{f1} to the points defined by the second columns in \code{f2} and \code{f1}.}
+    \item{mean.arrows}{If TRUE (and if plotting diphthongs), arrows will be drawn from the means defined by the first columns of \code{f2} and \code{f1} to the means defined by the second columns in \code{f2} and \code{f1}.}
+    \item{arrowhead.length}{Length (in inches) of the arrowhead lines.}
+    \item{arrowhead.angle}{Angle (in degrees) of the arrowhead lines.}
+    \item{point.arrow.width}{Line width of the arrows drawn for individual vowel tokens (when plotting diphthongs).}
+    \item{mean.arrow.width}{Line width of the arrows drawn for vowel means (when plotting diphthongs).}
 }
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
 \references{
@@ -69,6 +76,12 @@ McCloy, D. R. 2012 \dQuote{Normalizing and plotting vowels with the phonR packag
 	plotVowels(data=indo, grouping.factor='subj', single.plot=FALSE, 
 	           match.axes='relative', points='none', means.cex=1.5,
 			   poly.order=c('i','e','a','o','u'))
+	# simulate some diphthongs
+	indo$f1b <- indo$f1+sample(-30:30, length(indo$f1), replace=TRUE)
+	indo$f2b <- indo$f2+sample(-30:30, length(indo$f1), replace=TRUE)
+	plotVowels(vowel=indo$vowel, f1=cbind(indo$f1,indo$f1b), 
+	           f2=cbind(indo$f2,indo$f2b), grouping.factor=indo$subj, 
+	           ellipses=FALSE, polygon=FALSE)
 }
 \keyword{device}
 \keyword{hplot}
