@@ -107,7 +107,7 @@ normalizeVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NU
 }
 
 # VOWEL PLOTTING FUNCTION
-plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL, grouping.factor=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, poly.include=NULL, single.plot=TRUE, titles='auto', axis.titles='auto', axis.cex=0.8, garnish.col='#666666FF', grayscale=FALSE, colors=NULL, shapes=NULL, lines=NULL, vary.colors=!grayscale, vary.shapes=grayscale, vary.lines=grayscale, legend=single.plot, output='screen', family='', pointsize=12, units='in', width=6.5, height=6.5, res=72, asp=NULL) {
+plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL, grouping.factor=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, poly.include=NULL, single.plot=TRUE, titles='auto', axis.titles='auto', axis.cex=0.8, garnish.col='#666666FF', grayscale=FALSE, colors=NULL, shapes=NULL, lines=NULL, vary.colors=!grayscale, vary.shapes=grayscale, vary.lines=grayscale, legend=single.plot, output='screen', family='', pointsize=12, units='in', width=6.5, height=6.5, res=72, asp=NULL, point.arrows=NULL, mean.arrows=NULL, arrowhead.length=NULL, arrowhead.angle=NULL, point.arrow.width=NULL, mean.arrow.width=NULL) {
 # shapes.by=NULL, colors.by=NULL, lines.by=NULL
 # poly.method=c('hull','mean','voronoi')
 	# MAKE CASE-INSENSITIVE
@@ -126,6 +126,10 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 		if (is.null(f1)) f1 <- f1
 		if (is.null(f2)) f2 <- f2
 	}
+	if (is.null(arrowhead.angle)) arrowhead.angle <- 30
+	if (is.null(arrowhead.length)) arrowhead.length <- 0.05
+	if (is.null(point.arrow.width)) point.arrow.width <- 1
+	if (is.null(mean.arrow.width)) mean.arrow.width <- 1.5
 	# OUTPUT TYPES
 	if (output=='jpeg') output <- 'jpg'
 	if (output=='tiff') output <- 'tif'
@@ -725,18 +729,26 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 		# PLOT VOWEL POINTS
 		if (diphthong) {
       # TODO: add a way to have segments but no points
-      # TODO: add a way to draw arrowheads
       # TODO: add option for points at only onset or only offset
+		  if (point.arrows) {
+		    arrows(curData$f2a, curData$f1a, curData$f2b, curData$f1b, col=pointcolors[i], length=arrowhead.length, angle=arrowhead.angle, lwd=point.arrow.width)
+		  }
 		  if (points=='shape') {
-		    segments(curData$f2a, curData$f1a, curData$f2b, curData$f1b, col=pointcolors[i])
-  			points(curData$f2a, curData$f1a, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
-  			points(curData$f2b, curData$f1b, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
+		    if (point.arrows) { # don't plot where the arrowhead will be
+    			points(curData$f2a, curData$f1a, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
+		    } else {
+  		    segments(curData$f2a, curData$f1a, curData$f2b, curData$f1b, col=pointcolors[i])
+    			points(curData$f2a, curData$f1a, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
+          points(curData$f2b, curData$f1b, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
+		    }
 		  } else if (points=='text') {
-		    segments(curData$f2a, curData$f1a, curData$f2b, curData$f1b, col=pointcolors[i])
-  			text(curData$f2a, curData$f1a, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
-  			text(curData$f2b, curData$f1b, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
-#		  } else {
-#		    segments(curData$f2a, curData$f1a, curData$f2b, curData$f1b, col=pointcolors[i])
+		    if (point.arrows) { # don't plot where the arrowhead will be
+    			text(curData$f2a, curData$f1a, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
+		    } else {
+  		    segments(curData$f2a, curData$f1a, curData$f2b, curData$f1b, col=pointcolors[i])
+    			text(curData$f2a, curData$f1a, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
+    			text(curData$f2b, curData$f1b, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
+		    }
 		  }
 		} else if (points=='shape') { # !diphthong
 			points(curData$f2, curData$f1, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
@@ -783,14 +795,25 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 		}
 		# PLOT VOWEL MEANS
 		if (diphthong) {
-		  if (means=='shape') {
-			  points(f2m$f2a, f1m$f1a, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
-			  points(f2m$f2b, f1m$f1b, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
-		  } else if (means=='text') {
-			  text(f2m$f2a, f1m$f1a, rownames(f2m), col=vowelcolors[i], font=2, cex=means.cex)
-			  text(f2m$f2b, f1m$f1b, rownames(f2m), col=vowelcolors[i], font=2, cex=means.cex)
+		  if (mean.arrows) {
+		    arrows(f2m$f2a, f1m$f1a, f2m$f2b, f1m$f1b, cex=means.cex, col=vowelcolors[i], length=arrowhead.length, angle=arrowhead.angle, lwd=mean.arrow.width)
 		  }
-		} else {
+		  if (means=='shape') {
+		    if (mean.arrows) { # don't plot where the arrowhead will be
+			    points(f2m$f2a, f1m$f1a, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
+		    } else {
+			    points(f2m$f2a, f1m$f1a, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
+			    points(f2m$f2b, f1m$f1b, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
+		    }
+		  } else if (means=='text') {
+		    if (mean.arrows) { # don't plot where the arrowhead will be
+			    text(f2m$f2a, f1m$f1a, rownames(f2m), col=vowelcolors[i], font=2, cex=means.cex)
+		    } else {
+			    text(f2m$f2a, f1m$f1a, rownames(f2m), col=vowelcolors[i], font=2, cex=means.cex)
+			    text(f2m$f2b, f1m$f1b, rownames(f2m), col=vowelcolors[i], font=2, cex=means.cex)
+		    }
+		  }
+		} else { # !diphthong
 		  if (means=='shape') {
 			  points(f2m, f1m, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
 		  } else if (means=='text') {
