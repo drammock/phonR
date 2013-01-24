@@ -8,14 +8,13 @@
 	match.axes='absolute', points='text', means='text', points.alpha=0.5, 
 	means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, 
 	ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, 
-	poly.include=NULL, single.plot=TRUE, titles='auto', axis.titles='auto', 
-	axis.cex=0.8, garnish.col='#666666FF', grayscale=FALSE, 
-	colors=NULL, shapes=NULL, lines=NULL, vary.colors=!grayscale, 
-	vary.shapes=grayscale, vary.lines=grayscale, legend=single.plot, 
-	output='screen', family='', pointsize=12, units='in', width=6.5, 
-	height=6.5, res=72, asp=NULL, point.arrows=NULL, mean.arrows=NULL, 
-	arrowhead.length=NULL, arrowhead.angle=NULL, point.arrow.width=NULL, 
-	mean.arrow.width=NULL)
+	single.plot=TRUE, titles='auto', axis.titles='auto', axis.cex=0.8, 
+	garnish.col='#666666FF', grayscale=FALSE, colors=NULL, shapes=NULL, 
+	lines=NULL, vary.colors=!grayscale, vary.shapes=grayscale, 
+	vary.lines=grayscale, legend=single.plot, output='screen', family='',
+	pointsize=12, units='in', width=6.5, height=6.5, res=72, asp=NULL,
+	point.arrows=NULL, mean.arrows=NULL, arrowhead.length=NULL, 
+	arrowhead.angle=NULL, point.arrow.width=NULL, mean.arrow.width=NULL)
 }
 \arguments{
     \item{data}{Optional data frame containing the values to be plotted.  If \code{data} is specified, the values of \code{f0}, \code{f1}, \code{f2}, \code{f3}, \code{vowel}, and \code{grouping.factor} should be enclosed in quotes and should reference column names in \code{data}.  Currently it is not possible to plot diphthongs when using the \code{data} argument.}
@@ -38,8 +37,7 @@
     \item{ellipses}{If TRUE, plot an ellipse around each vowel mean tracing an equidensity contour of the bivariate normal distribution.}
     \item{ellipse.alpha}{Size of the ellipse [0,1] expressed as an alpha-level (i.e., 0.05 gives a 95\% confidence ellipse).  Defaults to alpha level of 0.3173 (an ellipse encompassing 68.27\% of the data points, equivalent to plus-or-minus 1 standard deviation).  Note that because this is an alpha level, HIGHER numbers give SMALLER ellipses.}
     \item{polygon}{If TRUE, draw a series of line segments connecting the vowel means, in the order given by \code{poly.order}.}
-    \item{poly.order}{Vector of strings determining the order in which connecting lines are drawn for the vowel polygon. Should match the levels of the factor \code{vowel}. If there are values of \code{vowel} not included in \code{poly.order}, the function will do its best to recognize them and put them in a sensible order but polygon drawing results may be ugly.}
-    \item{poly.include}{Indicates how many of the vowels in \code{poly.order} should be connected into a polygon.  To exclude vowels from the polygon drawing, put them at the end of \code{poly.order} and provide a value for \code{poly.include} shorter than the length of \code{poly.order}.}
+    \item{poly.order}{Vector of strings determining the order in which connecting lines are drawn for the vowel polygon. Values should match the levels of the factor \code{vowel}.  If there are values of \code{vowel} not included in \code{poly.order}, they will not be connected to the polygon line.}
     \item{single.plot}{If TRUE, plot each value of the grouping factor on the same graph.  If FALSE and \code{output} is \dQuote{screen}, result is an on-screen lattice plot.  If FALSE and \code{output} is \dQuote{pdf} or \dQuote{jpg}, result is a collection of separate PDF or JPG files (one per level of \code{grouping.factor}).}
     \item{titles}{If \dQuote{auto}, will auto-generate titles based on \code{grouping.factor}.  If \dQuote{none}, titles are omitted.  Also accepts a single string (all titles will be the same), or a vector of strings that matches the number of levels in \code{grouping.factor}.}
     \item{axis.titles}{If \dQuote{auto}, will auto-generate axis labels based on \code{norm.method}.  Also accepts a two-element vector of strings (useful for cases where the F1 and F2 values passed to the function have already been normalized).  Order of elements is F2 (horizontal) label before F1 (vertical) label.}

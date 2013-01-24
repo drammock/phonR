@@ -6,7 +6,7 @@
 # DEVELOPMENT OF THIS PACKAGE WAS FUNDED IN PART BY THE NATIONAL INSTITUTES OF HEALTH, GRANT NUMBER R01DC006014 TO PAMELA SOUZA
 #
 # CHANGELOG:
-# v0.4: bugfixes: poly.order and poly.include now work with arbitrary labels; bug in s-centroid calculation fixed.  Enhancements: added user-override arguments for color, shape and linestyle; added support for diphthong plotting.
+# v0.4: bugfixes: poly.order now works with arbitrary labels; bug in s-centroid calculation fixed.  Enhancements: added user-override arguments for color, shape and linestyle; added support for diphthong plotting, argument poly.include eliminated (inferred from elements present in poly.order).
 # v0.3 bugfixes: font specification on windows now works for direct-to-file output. Enhancements: graphics handling overhauled to use base graphics instead of Cairo(). Several new output formats added. Raster resolution and font size now specifiable. Improved error handling.
 # v0.2 bugfixes: points.alpha and means.alpha now work for grayscale plots. Plots with polygons or ellipses but no shapes now get proper legend type (lines, not boxes). Graphical parameters now captured and restored when plotting to onscreen device. Vowels with no variance (e.g., single tokens) no longer crash ellipse function. Vowels not in default poly.order() no longer go unplotted when points='text'. Enhancements: support for custom axis titles (to accommodate pre-normalized values), point and mean sizes, and fonts. Custom line types added (11 total now).
 # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -107,7 +107,7 @@ normalizeVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NU
 }
 
 # VOWEL PLOTTING FUNCTION
-plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL, grouping.factor=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, poly.include=NULL, single.plot=TRUE, titles='auto', axis.titles='auto', axis.cex=0.8, garnish.col='#666666FF', grayscale=FALSE, colors=NULL, shapes=NULL, lines=NULL, vary.colors=!grayscale, vary.shapes=grayscale, vary.lines=grayscale, legend=single.plot, output='screen', family='', pointsize=12, units='in', width=6.5, height=6.5, res=72, asp=NULL, point.arrows=NULL, mean.arrows=NULL, arrowhead.length=0.05, arrowhead.angle=30, point.arrow.width=1, mean.arrow.width=1.5) {
+plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL, grouping.factor=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, single.plot=TRUE, titles='auto', axis.titles='auto', axis.cex=0.8, garnish.col='#666666FF', grayscale=FALSE, colors=NULL, shapes=NULL, lines=NULL, vary.colors=!grayscale, vary.shapes=grayscale, vary.lines=grayscale, legend=single.plot, output='screen', family='', pointsize=12, units='in', width=6.5, height=6.5, res=72, asp=NULL, point.arrows=NULL, mean.arrows=NULL, arrowhead.length=0.05, arrowhead.angle=30, point.arrow.width=1, mean.arrow.width=1.5) {
 # shapes.by=NULL, colors.by=NULL, lines.by=NULL
 # poly.method=c('hull','mean','voronoi')
 	# MAKE CASE-INSENSITIVE
@@ -239,23 +239,25 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 	  df$group <- group
 	}
 	rm(vowel,group)
-	# ADJUST poly.order TO INCLUDE VOWELS PRESENT IN THE DATA THAT ARE NOT IN THE DEFAULT SET
-	v <- as.character(unique(df$vowel))
-  default.order <- c('i','\u026A','e','\u025B','\u00E6','a','\u0251','\u0252','\u0254','o','\u028A','u','\u028C','\u0259') # i ɪ e ɛ æ a ɑ ɒ ɔ o ʊ u ʌ ə	
-  if (is.null(poly.order)) {
-    poly.order <- c(default.order, unique(v[!(v %in% default.order)])) # default vowels in order + any others in the data
-    if (polygon) warning('No vowel order specified for polygon drawing. Polygon(s) may not draw correctly.')
-  } else if (length(v[!(v %in% poly.order)]) > 0) {
-    poly.order <- c(poly.order, unique(v[!(v %in% poly.order)]))
-		if (polygon) warning('Mismatch between values present in \'vowel\' vector and \'poly.order\'. Polygon(s) may not draw correctly.')
-  }
-  poly.order <- poly.order[poly.order %in% v] # remove from poly.order any vowels not present in data
-	# FIXUP NUMBER OF VOWELS TO CONNECT TO POLYGON
-  if (is.null(poly.include)) {
-	  poly.include <- length(poly.order)
-  } else if (poly.include>length(poly.order)) {
-	  poly.include <- length(poly.order)
-  }
+	# NEW VERSION OF poly.order ELIMINATING poly.include (see also line 696)
+	if (is.null(poly.order)) {
+		if (polygon=='mean') {
+			warning('No vowel order specified for polygon drawing, so no polygon will be drawn.')
+			polygon <- NULL
+		}
+	} else { # !is.null(poly.order)
+		if (polygon=='mean') {
+			if(length(poly.order) != length(unique(poly.order))) warning('Duplicate entries in \'poly.order\' detected; they will be ignored.')
+			poly.order <- unique(as.character(poly.order)) # as.character in case someone passes in a pre-factored list of vowels
+			v <- unique(as.character(df$vowel))
+			if (length(setdiff(poly.order,v))>0) {
+				warning('There are vowels in \'poly.order\' that are not in \'vowel\'; they will be ignored.')
+				poly.order <- intersect(poly.order,v)
+			}
+		} else { # polygon != 'mean'
+			warning('Argument \'poly.order\' ignored unless \'polygon\' is \'mean\'.')
+		}
+	}
 	# SORT THE DATA BY VOWEL, SO THAT POLYGON HAS A CHANCE OF DRAWING IN PROPER ORDER.  SECONDARY ORDERING BY GROUP FOR CONVENIENCE
 	if (diphthong) {
 	  df$vowel <- factor(df$vowel, levels=poly.order)
@@ -783,10 +785,10 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 		# DRAW POLYGON BETWEEN MEANS
 		if (polygon) {
 		  if (diphthong) {
-		    points(f2m$f2a[poly.order[1:poly.include]], f1m$f1a[poly.order[1:poly.include]], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
-		    points(f2m$f2b[poly.order[1:poly.include]], f1m$f1b[poly.order[1:poly.include]], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
+  			points(f2m$f2a[poly.order], f1m$f1a[poly.order], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
+  			points(f2m$f2b[poly.order], f1m$f1b[poly.order], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
 		  } else {
-			  points(f2m[poly.order[1:poly.include]], f1m[poly.order[1:poly.include]], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
+  			points(f2m[poly.order], f1m[poly.order], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
 		  }
 		}
 		# PLOT VOWEL MEANS
