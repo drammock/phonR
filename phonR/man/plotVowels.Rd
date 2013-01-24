@@ -13,14 +13,14 @@
 	lines=NULL, vary.colors=!grayscale, vary.shapes=grayscale, 
 	vary.lines=grayscale, legend=single.plot, output='screen', family='',
 	pointsize=12, units='in', width=6.5, height=6.5, res=72, asp=NULL,
-	point.arrows=NULL, mean.arrows=NULL, arrowhead.length=0.05, 
+	point.arrows=TRUE, mean.arrows=TRUE, arrowhead.length=0.05, 
 	arrowhead.angle=30, point.arrow.width=1, mean.arrow.width=1.5)
 }
 \arguments{
     \item{data}{Optional data frame containing the values to be plotted.  If \code{data} is specified, the values of \code{f0}, \code{f1}, \code{f2}, \code{f3}, \code{vowel}, and \code{grouping.factor} should be enclosed in quotes and should reference column names in \code{data}.  Currently it is not possible to plot diphthongs when using the \code{data} argument.}
     \item{vowel}{Vector (or column name in \code{data}) of vowel symbols. If \code{data} is specified and \code{vowel} is NULL, it looks for a column in \code{data} called \dQuote{vowel}. If \code{data} and \code{vowel} are both NULL, it looks for an object named vowel.}
-    \item{f1}{Vector (or column name in \code{data}) of F1 values. If \code{data} is specified and \code{f1} is NULL, it looks for a column in \code{data} called \dQuote{f1}. If \code{data} and \code{f1} are both NULL, it looks for an object named f1. For diphthong plotting, \code{f1} should be a matrix of values, with the first column being the onset or nucleus value, and the second column being the offset or offglide value.}
-    \item{f2}{Vector (or column name in \code{data}) of F2 values. If \code{data} is specified and \code{f2} is NULL, it looks for a column in \code{data} called \dQuote{f2}. If \code{data} and \code{f2} are both NULL, it looks for an object named f2. For diphthong plotting, \code{f1} should be a matrix of values, with the first column being the onset or nucleus value, and the second column being the offset or offglide value.}
+    \item{f1}{Vector (or column name in \code{data}) of F1 values. If \code{data} is specified and \code{f1} is NULL, it looks for a column in \code{data} called \dQuote{f1}. If \code{data} and \code{f1} are both NULL, it looks for an object named f1. For diphthong plotting, \code{f1} should be an n-by-2 matrix of values, with the first column being the onset or nucleus value, and the second column being the offset or offglide value.}
+    \item{f2}{Vector (or column name in \code{data}) of F2 values. If \code{data} is specified and \code{f2} is NULL, it looks for a column in \code{data} called \dQuote{f2}. If \code{data} and \code{f2} are both NULL, it looks for an object named f2. For diphthong plotting, \code{f2} should be an n-by-2 matrix of values, with the first column being the onset or nucleus value, and the second column being the offset or offglide value.}
     \item{f3}{Vector (or column name in \code{data}) of F3 values (required for normalization method \dQuote{nearey2}).}
     \item{f0}{Vector (or column name in \code{data}) of f0 values (required for normalization method \dQuote{nearey2}).}
     \item{grouping.factor}{Vector (or column from \code{data}) of grouping factor values. Allows for plotting data by color/shape/linestyle (if \code{single.plot} is TRUE), or separating to individual plots (if \code{single.plot} is FALSE).}
@@ -75,13 +75,13 @@ McCloy, D. R. 2012 \dQuote{Normalizing and plotting vowels with the phonR packag
 	data(indoVowelData)
 	plotVowels(vowel=indo$vowel, f1=indo$f1, f2=indo$f2, grouping.factor=
 	           indo$gender, norm.method='bark', match.unit=FALSE, 
-			   poly.order=c('i','e','a','o','u'))
+			   poly.order=c('i','e','a','o','u'), grayscale=TRUE)
 	plotVowels(data=indo, grouping.factor='subj', single.plot=FALSE, 
 	           match.axes='relative', points='none', means.cex=1.5,
 			   poly.order=c('i','e','a','o','u'))
 	# simulate some diphthongs
-	indo$f1b <- indo$f1+sample(-30:30, length(indo$f1), replace=TRUE)
-	indo$f2b <- indo$f2+sample(-30:30, length(indo$f1), replace=TRUE)
+	indo$f1b <- indo$f1+sample(c(-30:-5,5:30), length(indo$f1), replace=TRUE)
+	indo$f2b <- indo$f2+sample(c(-30:-5,5:30), length(indo$f1), replace=TRUE)
 	plotVowels(vowel=indo$vowel, f1=cbind(indo$f1,indo$f1b), 
 	           f2=cbind(indo$f2,indo$f2b), grouping.factor=indo$subj, 
 	           ellipses=FALSE, polygon=FALSE)

@@ -48,7 +48,7 @@ normalizeVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NU
   } else if (m %in% c('s','scentroid','wattfabricius','s-centroid','watt-fabricius')) {
     subsets <- by(f, list(vowel,grouping.factor), identity) # 2D list (group x vowel) of lists (f1,f2)
     means.list <- matrix(lapply(subsets, colMeans), ncol=ncol(subsets), dimnames=dimnames(subsets))
-    minima <- apply(means.list, 2, function(i) apply(do.call(rbind,i), 2, min))
+    minima <- apply(means.list, 2, function(i) apply(do.call(rbind,i), 2, min)) # TODO: bug here when using diphthongs
     maxima <- apply(means.list, 2, function(i) apply(do.call(rbind,i), 2, max))
     min.id <- apply(means.list, 2, function(i) apply(do.call(rbind,i), 2, which.min))
     max.id <- apply(means.list, 2, function(i) apply(do.call(rbind,i), 2, which.max))
@@ -107,7 +107,7 @@ normalizeVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NU
 }
 
 # VOWEL PLOTTING FUNCTION
-plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL, grouping.factor=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, single.plot=TRUE, titles='auto', axis.titles='auto', axis.cex=0.8, garnish.col='#666666FF', grayscale=FALSE, colors=NULL, shapes=NULL, lines=NULL, vary.colors=!grayscale, vary.shapes=grayscale, vary.lines=grayscale, legend=single.plot, output='screen', family='', pointsize=12, units='in', width=6.5, height=6.5, res=72, asp=NULL, point.arrows=NULL, mean.arrows=NULL, arrowhead.length=0.05, arrowhead.angle=30, point.arrow.width=1, mean.arrow.width=1.5) {
+plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL, grouping.factor=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, single.plot=TRUE, titles='auto', axis.titles='auto', axis.cex=0.8, garnish.col='#666666FF', grayscale=FALSE, colors=NULL, shapes=NULL, lines=NULL, vary.colors=!grayscale, vary.shapes=grayscale, vary.lines=grayscale, legend=single.plot, output='screen', family='', pointsize=12, units='in', width=6.5, height=6.5, res=72, asp=NULL, point.arrows=TRUE, mean.arrows=TRUE, arrowhead.length=0.05, arrowhead.angle=30, point.arrow.width=1, mean.arrow.width=1.5) {
 # shapes.by=NULL, colors.by=NULL, lines.by=NULL
 # poly.method=c('hull','mean','voronoi')
 	# MAKE CASE-INSENSITIVE
@@ -202,6 +202,7 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 	group <- NULL
 	# GET THE DATA
 	if (!is.null(data)) {
+	  # TODO: if f1 is a vector of column names (for diphthong plotting), handle accordingly
 		f1 <- data[,match(eval(f1),colnames(data))]
 		f2 <- data[,match(eval(f2),colnames(data))]
 		vowel <- data[,match(eval(vowel),colnames(data))]
@@ -213,6 +214,7 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 		} else {
 			group <- rep('noGroupsDefined',length(f1))
 		}
+    diphthong <- FALSE # this is a temporary cheater step
 	} else { # is.null(data)
 	  if (is.null(dim(f1))) {
 	    diphthong <- FALSE
@@ -241,11 +243,12 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 	rm(vowel,group)
 	# POLYGON ORDER HANDLING
 	if (is.null(poly.order)) {
+	# TODO: implement alternative polygon method (chull, voronoi, mean)
 #		if (polygon=='mean') {
 #			warning('No vowel order specified for polygon drawing, so no polygon will be drawn.')
 		if (polygon) {
 			warning('No vowel order specified for polygon drawing, so no polygon will be drawn.')
-			polygon <- NULL
+			polygon <- FALSE
 		}
 	} else { # !is.null(poly.order)
 #		if (polygon=='mean') {
@@ -262,25 +265,21 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 			warning('Argument \'poly.order\' ignored unless \'polygon\' is TRUE.')
 		}
 	}
-	# SORT THE DATA BY VOWEL, SO THAT POLYGON HAS A CHANCE OF DRAWING IN PROPER ORDER.  SECONDARY ORDERING BY GROUP FOR CONVENIENCE
+	# SORT THE DATA BY VOWEL, SO THAT POLYGON DRAWS IN PROPER ORDER.  SECONDARY ORDERING BY GROUP FOR CONVENIENCE
 	if (diphthong) {
-	  df$vowel <- factor(df$vowel, levels=poly.order)
-	  dg$vowel <- factor(paste(dg$vowel,rep('offset',length(dg$vowel)),sep='_'), levels=paste(poly.order,rep('offset',length(poly.order)),sep='_'))
-	  df <- df[order(df$vowel,df$group),]
+	  if (!is.null(poly.order)) {
+	    factorLevels <- c(poly.order,setdiff(v,poly.order))
+  	  df$vowel <- factor(df$vowel, levels=factorLevels)
+  	  factorLevels <- paste(factorLevels,rep('offset',length(factorLevels)),sep='_')
+  	  dg$vowel <- factor(paste(dg$vowel,rep('offset',length(dg$vowel)),sep='_'), levels=paste(poly.order,rep('offset',length(poly.order)),sep='_'))
+	  }
 	  dg <- dg[order(dg$vowel,dg$group),]
-	  # SAVE FOR LATER, SINCE THE MAIN f1 AND f2 COLUMNS MAY GET NORMALIZED
-	  df$f1hz <- df$f1
-	  df$f2hz <- df$f2
 	  dg$f1hz <- dg$f1
 	  dg$f2hz <- dg$f2
-	} else {
-	  df$vowel <- factor(df$vowel, levels=poly.order)
-	  df$vowel <- factor(df$vowel) # second call drops unused levels (shouldn't be any, but safety first!)
-	  df <- df[order(df$vowel,df$group),]
-	  # SAVE FOR LATER, SINCE THE MAIN f1 AND f2 COLUMNS MAY GET NORMALIZED
-	  df$f1hz <- df$f1
-	  df$f2hz <- df$f2
 	}
+  df <- df[order(df$vowel,df$group),]
+  df$f1hz <- df$f1
+  df$f2hz <- df$f2
 	# EXTRACT LISTS OF VOWEL & GROUP VALUES
 	glist <- unique(df$group)
 	vlist <- unique(df$vowel)
@@ -730,8 +729,6 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 
 		# PLOT VOWEL POINTS
 		if (diphthong) {
-      # TODO: add a way to have segments but no points
-      # TODO: add option for points at only onset or only offset
 		  if (point.arrows) {
 		    arrows(curData$f2a, curData$f1a, curData$f2b, curData$f1b, col=pointcolors[i], length=arrowhead.length, angle=arrowhead.angle, lwd=point.arrow.width)
 		  }
