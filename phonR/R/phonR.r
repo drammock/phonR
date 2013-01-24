@@ -239,14 +239,17 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 	  df$group <- group
 	}
 	rm(vowel,group)
-	# NEW VERSION OF poly.order ELIMINATING poly.include (see also line 696)
+	# POLYGON ORDER HANDLING
 	if (is.null(poly.order)) {
-		if (polygon=='mean') {
+#		if (polygon=='mean') {
+#			warning('No vowel order specified for polygon drawing, so no polygon will be drawn.')
+		if (polygon) {
 			warning('No vowel order specified for polygon drawing, so no polygon will be drawn.')
 			polygon <- NULL
 		}
 	} else { # !is.null(poly.order)
-		if (polygon=='mean') {
+#		if (polygon=='mean') {
+		if (polygon) {
 			if(length(poly.order) != length(unique(poly.order))) warning('Duplicate entries in \'poly.order\' detected; they will be ignored.')
 			poly.order <- unique(as.character(poly.order)) # as.character in case someone passes in a pre-factored list of vowels
 			v <- unique(as.character(df$vowel))
@@ -255,7 +258,8 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 				poly.order <- intersect(poly.order,v)
 			}
 		} else { # polygon != 'mean'
-			warning('Argument \'poly.order\' ignored unless \'polygon\' is \'mean\'.')
+#			warning('Argument \'poly.order\' ignored unless \'polygon\' is \'mean\'.')
+			warning('Argument \'poly.order\' ignored unless \'polygon\' is TRUE.')
 		}
 	}
 	# SORT THE DATA BY VOWEL, SO THAT POLYGON HAS A CHANCE OF DRAWING IN PROPER ORDER.  SECONDARY ORDERING BY GROUP FOR CONVENIENCE

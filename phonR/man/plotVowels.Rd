@@ -13,8 +13,8 @@
 	lines=NULL, vary.colors=!grayscale, vary.shapes=grayscale, 
 	vary.lines=grayscale, legend=single.plot, output='screen', family='',
 	pointsize=12, units='in', width=6.5, height=6.5, res=72, asp=NULL,
-	point.arrows=NULL, mean.arrows=NULL, arrowhead.length=NULL, 
-	arrowhead.angle=NULL, point.arrow.width=NULL, mean.arrow.width=NULL)
+	point.arrows=NULL, mean.arrows=NULL, arrowhead.length=0.05, 
+	arrowhead.angle=30, point.arrow.width=1, mean.arrow.width=1.5)
 }
 \arguments{
     \item{data}{Optional data frame containing the values to be plotted.  If \code{data} is specified, the values of \code{f0}, \code{f1}, \code{f2}, \code{f3}, \code{vowel}, and \code{grouping.factor} should be enclosed in quotes and should reference column names in \code{data}.  Currently it is not possible to plot diphthongs when using the \code{data} argument.}
