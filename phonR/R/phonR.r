@@ -219,8 +219,8 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 	  if (is.null(dim(f1))) {
 	    diphthong <- FALSE
     } else {
-      if (!identical(dim(f1),dim(f2))) error('F1 and F2 dimensions do not match.')
-      if (dim(f1)[2] > 2) error('F1 and F2 must be either vectors or 2-column matrices.')
+      if (!identical(dim(f1),dim(f2))) stop('F1 and F2 dimensions do not match.')
+      if (dim(f1)[2] > 2) stop('F1 and F2 must be either vectors or 2-column matrices.')
       colnames(f1) <- c('f1a','f1b')
       colnames(f2) <- c('f2a','f2b')
 #      if (!is.null(f3)) colnames(f3) <- c('f3a','f3b')
