@@ -6,7 +6,7 @@
 # DEVELOPMENT OF THIS PACKAGE WAS FUNDED IN PART BY THE NATIONAL INSTITUTES OF HEALTH, GRANT NUMBER R01DC006014 TO PAMELA SOUZA
 #
 # CHANGELOG:
-# v0.4: bugfixes: poly.order and poly.include now work with arbitrary labels; bug in s-centroid calculation fixed.  Enhancements: added user-override arguments for color, shape and linestyle.  
+# v0.4: bugfixes: poly.order and poly.include now work with arbitrary labels; bug in s-centroid calculation fixed.  Enhancements: added user-override arguments for color, shape and linestyle; added support for diphthong plotting.
 # v0.3 bugfixes: font specification on windows now works for direct-to-file output. Enhancements: graphics handling overhauled to use base graphics instead of Cairo(). Several new output formats added. Raster resolution and font size now specifiable. Improved error handling.
 # v0.2 bugfixes: points.alpha and means.alpha now work for grayscale plots. Plots with polygons or ellipses but no shapes now get proper legend type (lines, not boxes). Graphical parameters now captured and restored when plotting to onscreen device. Vowels with no variance (e.g., single tokens) no longer crash ellipse function. Vowels not in default poly.order() no longer go unplotted when points='text'. Enhancements: support for custom axis titles (to accommodate pre-normalized values), point and mean sizes, and fonts. Custom line types added (11 total now).
 # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -107,7 +107,7 @@ normalizeVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NU
 }
 
 # VOWEL PLOTTING FUNCTION
-plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL, grouping.factor=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, poly.include=NULL, single.plot=TRUE, titles='auto', axis.titles='auto', axis.cex=0.8, garnish.col='#666666FF', grayscale=FALSE, colors=NULL, shapes=NULL, lines=NULL, vary.colors=!grayscale=FALSE, vary.shapes=grayscale, vary.lines=grayscale, legend=single.plot, output='screen', family='', pointsize=12, units='in', width=6.5, height=6.5, res=72, asp=NULL, point.arrows=NULL, mean.arrows=NULL, arrowhead.length=NULL, arrowhead.angle=NULL, point.arrow.width=NULL, mean.arrow.width=NULL) {
+plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL, grouping.factor=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, poly.include=NULL, single.plot=TRUE, titles='auto', axis.titles='auto', axis.cex=0.8, garnish.col='#666666FF', grayscale=FALSE, colors=NULL, shapes=NULL, lines=NULL, vary.colors=!grayscale, vary.shapes=grayscale, vary.lines=grayscale, legend=single.plot, output='screen', family='', pointsize=12, units='in', width=6.5, height=6.5, res=72, asp=NULL, point.arrows=NULL, mean.arrows=NULL, arrowhead.length=0.05, arrowhead.angle=30, point.arrow.width=1, mean.arrow.width=1.5) {
 # shapes.by=NULL, colors.by=NULL, lines.by=NULL
 # poly.method=c('hull','mean','voronoi')
 	# MAKE CASE-INSENSITIVE
@@ -126,10 +126,6 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 		if (is.null(f1)) f1 <- f1
 		if (is.null(f2)) f2 <- f2
 	}
-	if (is.null(arrowhead.angle)) arrowhead.angle <- 30
-	if (is.null(arrowhead.length)) arrowhead.length <- 0.05
-	if (is.null(point.arrow.width)) point.arrow.width <- 1
-	if (is.null(mean.arrow.width)) mean.arrow.width <- 1.5
 	# OUTPUT TYPES
 	if (output=='jpeg') output <- 'jpg'
 	if (output=='tiff') output <- 'tif'

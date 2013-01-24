@@ -10,6 +10,7 @@
 	ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, 
 	poly.include=NULL, single.plot=TRUE, titles='auto', axis.titles='auto', 
 	axis.cex=0.8, garnish.col='#666666FF', grayscale=FALSE, 
+	colors=NULL, shapes=NULL, lines=NULL, vary.colors=!grayscale, 
 	vary.shapes=grayscale, vary.lines=grayscale, legend=single.plot, 
 	output='screen', family='', pointsize=12, units='in', width=6.5, 
 	height=6.5, res=72, asp=NULL, point.arrows=NULL, mean.arrows=NULL, 
@@ -44,9 +45,13 @@
     \item{axis.titles}{If \dQuote{auto}, will auto-generate axis labels based on \code{norm.method}.  Also accepts a two-element vector of strings (useful for cases where the F1 and F2 values passed to the function have already been normalized).  Order of elements is F2 (horizontal) label before F1 (vertical) label.}
 	\item{axis.cex}{Size of the axis numbers relative to \code{pointsize}.}
     \item{garnish.col}{Color for the axis lines, ticks, numbers, and labels.}
-    \item{grayscale}{If TRUE, plot without color.}
-    \item{vary.shapes}{If TRUE, vary token and mean shapes by group (when either \code{points} or \code{means} has the value \dQuote{shape}).  Defaults to same value as \code{grayscale}.  Ignored if \code{uniform.style} is TRUE.}
-    \item{vary.lines}{If TRUE, vary line style by group (when \code{ellipses} or \code{polygon} are TRUE).  Defaults to same value as \code{grayscale}.  Ignored if \code{uniform.style} is TRUE.}
+    \item{grayscale}{If TRUE, plot without color. Note that if \code{vary.colors==FALSE} and \code{colors} is unspecified, plots will be colorless even when \code{grayscale==FALSE} (because the default color in such cases is black).}
+    \item{colors}{Vector of color values to use when plotting; recycled as necessary. Overrides the \code{grayscale} argument.  If unspecified and \code{vary.colors==TRUE}, defaults to equally spaced gray values between 0 (black) and 80 (light gray) when \code{grayscale==TRUE}; otherwise defaults to equally spaced hues in \code{hcl} space, with chroma fixed at 100 and luminance fixed at 35.}
+	\item{shapes}{Vector of strings or \code{pch} codes to use when plotting vowel points (if \code{points=='shape'}); recycled as necessary. If \code{vary.shapes==FALSE}, defaults to filled circles. If \code{vary.shapes==TRUE}, defaults to \code{c(16,1,17,2,15,0,18,5,3,4,6)}, i.e., filled circle, open circle, filled triangle, open triangle, filled square, open square, filled diamond, open diamond, plus, X, inverted triangle.}
+	\item{lines}{Vector of linetype codes (or strings that define custom linetypes) to use when plotting ellipses and polygons; recycled as necessary. If \code{vary.lines==FALSE}, defaults to solid lines. If \code{vary.lines==TRUE}, defaults to \code{c('44', 'F4', '4313', 'F3131313', '23F3', '232923', '23258385', '282823B3', '13', '82', 'solid')}.}
+	\item{vary.colors}{If TRUE, vary token and mean colors by group. Ignored if \code{colors} is specified in the function call.}    
+    \item{vary.shapes}{If TRUE, vary token and mean shapes by group (when either \code{points} or \code{means} has the value \dQuote{shape}).  Defaults to same value as \code{grayscale}.  Ignored if \code{shapes} is specified in the function call.}
+    \item{vary.lines}{If TRUE, vary line style by group (when \code{ellipses} or \code{polygon} are TRUE).  Defaults to same value as \code{grayscale}.  Ignored if \code{lines} is specified in the function call.}
     \item{legend}{If TRUE, prints a legend in the lower left corner of the graph. Also accepts the standard keyword values for the base graphics \code{legend()} command (\dQuote{top}, \dQuote{topright}, \dQuote{right}, \dQuote{bottomright}, \dQuote{bottom}, \dQuote{bottomleft}, \dQuote{left}, \dQuote{topleft}, \dQuote{center}).}
     \item{output}{Possible values are \dQuote{screen}, \dQuote{pdf}, \dQuote{svg}, \dQuote{jpg}, \dQuote{tif}, \dQuote{png}, \dQuote{bmp}.}
     \item{family}{Character string indicating the name of the font family to use for all text in the plot. If \code{points='text'} or \code{means='text'} and \code{vowels} includes non-ASCII unicode IPA symbols, be sure to specify a font that has glyphs at those codepoints. Note that font specification may fail if plotting to screen and then saving as PDF or Postscript from the onscreen plot window menu. To ensure PDF font fidelity, run plotVowels() with \code{output='pdf'} instead.}
@@ -58,10 +63,10 @@
     \item{asp}{Aspect ratio for plot area. Default is NULL, which changes the aspect ratio to maximize use of the available plot area; if specified, must be a positive numeric value.}
     \item{point.arrows}{If TRUE (and if plotting diphthongs), arrows will be drawn from points defined by the first columns of \code{f2} and \code{f1} to the points defined by the second columns in \code{f2} and \code{f1}.}
     \item{mean.arrows}{If TRUE (and if plotting diphthongs), arrows will be drawn from the means defined by the first columns of \code{f2} and \code{f1} to the means defined by the second columns in \code{f2} and \code{f1}.}
-    \item{arrowhead.length}{Length (in inches) of the arrowhead lines.}
-    \item{arrowhead.angle}{Angle (in degrees) of the arrowhead lines.}
-    \item{point.arrow.width}{Line width of the arrows drawn for individual vowel tokens (when plotting diphthongs).}
-    \item{mean.arrow.width}{Line width of the arrows drawn for vowel means (when plotting diphthongs).}
+    \item{arrowhead.length}{Length (in inches) of the arrowhead lines.  Defaults to 0.05in.}
+    \item{arrowhead.angle}{Angle (in degrees) of the arrowhead lines. Defaults to 30 degrees.}
+    \item{point.arrow.width}{Line width of the arrows drawn for individual vowel tokens (when plotting diphthongs). Defaults to 1 point.}
+    \item{mean.arrow.width}{Line width of the arrows drawn for vowel means (when plotting diphthongs). Defaults to 1.5 points.}
 }
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
 \references{
