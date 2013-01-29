@@ -6,7 +6,7 @@
 # DEVELOPMENT OF THIS PACKAGE WAS FUNDED IN PART BY THE NATIONAL INSTITUTES OF HEALTH, GRANT NUMBER R01DC006014 TO PAMELA SOUZA
 #
 # CHANGELOG:
-# v0.4: bugfixes: poly.order and poly.include now work with arbitrary labels; bug in s-centroid calculation fixed.  Enhancements: added user-override arguments for color, shape and linestyle.  
+# v0.4: bugfixes: poly.order now works with arbitrary labels; bug in s-centroid calculation fixed.  Enhancements: added user-override arguments for color, shape and linestyle; added support for diphthong plotting, argument poly.include eliminated (inferred from elements present in poly.order).
 # v0.3 bugfixes: font specification on windows now works for direct-to-file output. Enhancements: graphics handling overhauled to use base graphics instead of Cairo(). Several new output formats added. Raster resolution and font size now specifiable. Improved error handling.
 # v0.2 bugfixes: points.alpha and means.alpha now work for grayscale plots. Plots with polygons or ellipses but no shapes now get proper legend type (lines, not boxes). Graphical parameters now captured and restored when plotting to onscreen device. Vowels with no variance (e.g., single tokens) no longer crash ellipse function. Vowels not in default poly.order() no longer go unplotted when points='text'. Enhancements: support for custom axis titles (to accommodate pre-normalized values), point and mean sizes, and fonts. Custom line types added (11 total now).
 # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -48,7 +48,7 @@ normalizeVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NU
   } else if (m %in% c('s','scentroid','wattfabricius','s-centroid','watt-fabricius')) {
     subsets <- by(f, list(vowel,grouping.factor), identity) # 2D list (group x vowel) of lists (f1,f2)
     means.list <- matrix(lapply(subsets, colMeans), ncol=ncol(subsets), dimnames=dimnames(subsets))
-    minima <- apply(means.list, 2, function(i) apply(do.call(rbind,i), 2, min))
+    minima <- apply(means.list, 2, function(i) apply(do.call(rbind,i), 2, min)) # TODO: bug here when using diphthongs
     maxima <- apply(means.list, 2, function(i) apply(do.call(rbind,i), 2, max))
     min.id <- apply(means.list, 2, function(i) apply(do.call(rbind,i), 2, which.min))
     max.id <- apply(means.list, 2, function(i) apply(do.call(rbind,i), 2, which.max))
@@ -107,7 +107,7 @@ normalizeVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NU
 }
 
 # VOWEL PLOTTING FUNCTION
-plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL, grouping.factor=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, poly.include=NULL, single.plot=TRUE, titles='auto', axis.titles='auto', axis.cex=0.8, garnish.col='#666666FF', grayscale=FALSE, colors=NULL, shapes=NULL, lines=NULL, vary.colors=!grayscale, vary.shapes=grayscale, vary.lines=grayscale, legend=single.plot, output='screen', family='', pointsize=12, units='in', width=6.5, height=6.5, res=72, asp=NULL) {
+plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL, grouping.factor=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, single.plot=TRUE, titles='auto', axis.titles='auto', axis.cex=0.8, garnish.col='#666666FF', grayscale=FALSE, colors=NULL, shapes=NULL, lines=NULL, vary.colors=!grayscale, vary.shapes=grayscale, vary.lines=grayscale, legend=single.plot, output='screen', family='', pointsize=12, units='in', width=6.5, height=6.5, res=72, asp=NULL, point.arrows=TRUE, mean.arrows=TRUE, arrowhead.length=0.05, arrowhead.angle=30, point.arrow.width=1, mean.arrow.width=1.5) {
 # shapes.by=NULL, colors.by=NULL, lines.by=NULL
 # poly.method=c('hull','mean','voronoi')
 	# MAKE CASE-INSENSITIVE
@@ -202,6 +202,7 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 	group <- NULL
 	# GET THE DATA
 	if (!is.null(data)) {
+	  # TODO: if f1 is a vector of column names (for diphthong plotting), handle accordingly
 		f1 <- data[,match(eval(f1),colnames(data))]
 		f2 <- data[,match(eval(f2),colnames(data))]
 		vowel <- data[,match(eval(vowel),colnames(data))]
@@ -213,6 +214,27 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 		} else {
 			group <- rep('noGroupsDefined',length(f1))
 		}
+    diphthong <- FALSE # this is a temporary cheater step
+	} else { # is.null(data)
+	  if (is.null(dim(f1))) {
+	    diphthong <- FALSE
+    } else {
+      if (!identical(dim(f1),dim(f2))) stop('F1 and F2 dimensions do not match.')
+      if (dim(f1)[2] > 2) stop('F1 and F2 must be either vectors or 2-column matrices.')
+      colnames(f1) <- c('f1a','f1b')
+      colnames(f2) <- c('f2a','f2b')
+#      if (!is.null(f3)) colnames(f3) <- c('f3a','f3b')
+#      if (!is.null(f0)) colnames(f0) <- c('f0a','f0b')
+      diphthong <- TRUE
+    } 
+	  if (!is.null(grouping.factor)) group <- factor(grouping.factor)
+	  else group <- rep('noGroupsDefined',nrow(f1))
+	}
+	if (diphthong) {
+	  df <- data.frame(cbind(f1=f1[,1],f2=f2[,1],f3=f3[,1],f0=f0[,1]))
+	  dg <- data.frame(cbind(f1=f1[,2],f2=f2[,2],f3=f3[,2],f0=f0[,2]))
+	  df$vowel <- dg$vowel <- vowel
+	  df$group <- dg$group <- group
 	} else {
 	  if (!is.null(grouping.factor)) {
   	    group <- factor(grouping.factor)
@@ -224,30 +246,45 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 	df$vowel <- vowel
 	df$group <- group
 	rm(vowel,group)
-	# ADJUST poly.order TO INCLUDE VOWELS PRESENT IN THE DATA THAT ARE NOT IN THE DEFAULT SET
-	v <- as.character(unique(df$vowel))
-  default.order <- c('i','\u026A','e','\u025B','\u00E6','a','\u0251','\u0252','\u0254','o','\u028A','u','\u028C','\u0259') # i ɪ e ɛ æ a ɑ ɒ ɔ o ʊ u ʌ ə	
-  if (is.null(poly.order)) {
-    poly.order <- c(default.order, unique(v[!(v %in% default.order)])) # default vowels in order + any others in the data
-    if (polygon) warning('No vowel order specified for polygon drawing. Polygon(s) may not draw correctly.')
-  } else if (length(v[!(v %in% poly.order)]) > 0) {
-    poly.order <- c(poly.order, unique(v[!(v %in% poly.order)]))
-		if (polygon) warning('Mismatch between values present in \'vowel\' vector and \'poly.order\'. Polygon(s) may not draw correctly.')
-  }
-  poly.order <- poly.order[poly.order %in% v] # remove from poly.order any vowels not present in data
-	# FIXUP NUMBER OF VOWELS TO CONNECT TO POLYGON
-  if (is.null(poly.include)) {
-	  poly.include <- length(poly.order)
-  } else if (poly.include>length(poly.order)) {
-	  poly.include <- length(poly.order)
-  }
-	# SORT THE DATA BY VOWEL, SO THAT POLYGON HAS A CHANCE OF DRAWING IN PROPER ORDER.  SECONDARY ORDERING BY GROUP FOR CONVENIENCE
-	df$vowel <- factor(df$vowel, levels=poly.order)
-	df$vowel <- factor(df$vowel) # second call drops unused levels (shouldn't be any, but safety first!)
-	df <- df[order(df$vowel,df$group),]
-	# SAVE FOR LATER, SINCE THE MAIN f1 AND f2 COLUMNS MAY GET NORMALIZED
-	df$f1hz <- df$f1
-	df$f2hz <- df$f2
+	# POLYGON ORDER HANDLING
+	if (is.null(poly.order)) {
+	# TODO: implement alternative polygon method (chull, voronoi, mean)
+#		if (polygon=='mean') {
+#			warning('No vowel order specified for polygon drawing, so no polygon will be drawn.')
+		if (polygon) {
+			warning('No vowel order specified for polygon drawing, so no polygon will be drawn.')
+			polygon <- FALSE
+		}
+	} else { # !is.null(poly.order)
+#		if (polygon=='mean') {
+		if (polygon) {
+			if(length(poly.order) != length(unique(poly.order))) warning('Duplicate entries in \'poly.order\' detected; they will be ignored.')
+			poly.order <- unique(as.character(poly.order)) # as.character in case someone passes in a pre-factored list of vowels
+			v <- unique(as.character(df$vowel))
+			if (length(setdiff(poly.order,v))>0) {
+				warning('There are vowels in \'poly.order\' that are not in \'vowel\'; they will be ignored.')
+				poly.order <- intersect(poly.order,v)
+			}
+		} else { # polygon != 'mean'
+#			warning('Argument \'poly.order\' ignored unless \'polygon\' is \'mean\'.')
+			warning('Argument \'poly.order\' ignored unless \'polygon\' is TRUE.')
+		}
+	}
+	# SORT THE DATA BY VOWEL, SO THAT POLYGON DRAWS IN PROPER ORDER.  SECONDARY ORDERING BY GROUP FOR CONVENIENCE
+	if (diphthong) {
+	  if (!is.null(poly.order)) {
+	    factorLevels <- c(poly.order,setdiff(v,poly.order))
+  	  df$vowel <- factor(df$vowel, levels=factorLevels)
+  	  factorLevels <- paste(factorLevels,rep('offset',length(factorLevels)),sep='_')
+  	  dg$vowel <- factor(paste(dg$vowel,rep('offset',length(dg$vowel)),sep='_'), levels=paste(poly.order,rep('offset',length(poly.order)),sep='_'))
+	  }
+	  dg <- dg[order(dg$vowel,dg$group),]
+	  dg$f1hz <- dg$f1
+	  dg$f2hz <- dg$f2
+	}
+  df <- df[order(df$vowel,df$group),]
+  df$f1hz <- df$f1
+  df$f2hz <- df$f2
 	# EXTRACT LISTS OF VOWEL & GROUP VALUES
 	glist <- unique(df$group)
 	vlist <- unique(df$vowel)
@@ -532,10 +569,19 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 	for (i in 1:length(glist)) {
 		# GET CURRENT GROUP'S DATA
 		curGroup <- glist[i]
-		curData <- subset(df, group==curGroup)
-		curData$vowel <- factor(curData$vowel) # drop unused levels
-		f2m <- tapply(curData$f2, curData$vowel, mean)
-		f1m <- tapply(curData$f1, curData$vowel, mean)
+		if (diphthong) {
+		  curDataA <- df[df$group %in% curGroup,]
+		  curDataB <- dg[dg$group %in% curGroup,]
+		  curData <- data.frame(f1a=curDataA$f1, f1b=curDataB$f1, f2a=curDataA$f2, f2b=curDataB$f2, vowel=curDataA$vowel, group=curDataA$group)
+		  curData$vowel <- factor(curData$vowel) # drop unused levels
+		  f2m <- data.frame(f2a=tapply(curData$f2a, curData$vowel, mean), f2b=tapply(curData$f2b, curData$vowel, mean))
+		  f1m <- data.frame(f1a=tapply(curData$f1a, curData$vowel, mean), f1b=tapply(curData$f1b, curData$vowel, mean))
+		} else {
+		  curData <- df[df$group %in% curGroup,]
+		  curData$vowel <- factor(curData$vowel) # drop unused levels
+		  f2m <- tapply(curData$f2, curData$vowel, mean)
+		  f1m <- tapply(curData$f1, curData$vowel, mean)
+		}
 		# IF PLOTTING EACH GROUP ON A SEPARATE GRAPH, INITIALIZE OUTPUT DEVICE ANEW FOR EACH GROUP
 		if (!single.plot & output!='screen') {
 		  # PDF
@@ -651,34 +697,96 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 		} # if (!single.plot | i==1)
 
 		# PLOT VOWEL POINTS
-		if (points=='shape') {
+		if (diphthong) {
+		  if (point.arrows) {
+		    arrows(curData$f2a, curData$f1a, curData$f2b, curData$f1b, col=pointcolors[i], length=arrowhead.length, angle=arrowhead.angle, lwd=point.arrow.width)
+		  }
+		  if (points=='shape') {
+		    if (point.arrows) { # don't plot where the arrowhead will be
+    			points(curData$f2a, curData$f1a, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
+		    } else {
+  		    segments(curData$f2a, curData$f1a, curData$f2b, curData$f1b, col=pointcolors[i])
+    			points(curData$f2a, curData$f1a, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
+          points(curData$f2b, curData$f1b, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
+		    }
+		  } else if (points=='text') {
+		    if (point.arrows) { # don't plot where the arrowhead will be
+    			text(curData$f2a, curData$f1a, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
+		    } else {
+  		    segments(curData$f2a, curData$f1a, curData$f2b, curData$f1b, col=pointcolors[i])
+    			text(curData$f2a, curData$f1a, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
+    			text(curData$f2b, curData$f1b, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
+		    }
+		  }
+		} else if (points=='shape') { # !diphthong
 			points(curData$f2, curData$f1, type='p', pch=symbols[i], cex=points.cex, col=pointcolors[i])
 		} else if (points=='text') {
 			text(curData$f2, curData$f1, curData$vowel, col=pointcolors[i], font=1, cex=points.cex)
 		}
 		# PLOT ELLIPSES AROUND VOWEL MEANS
+		# TODO: add a way to plot only nucleus ellipse, not offglide
 		if (ellipses) {
 			# CALCULATE COVARIANCE MATRICES
 			covar <- list()
-			curVowels <- names(f2m) # unique(curData$vowel)
-			for (j in 1:length(curVowels)) {
-				curVowelData <- subset(curData, vowel==curVowels[j])
-				covar[[j]] <- cov(cbind(curVowelData$f2, curVowelData$f1))
-				# PLOT ELLIPSES
-				if (!is.na(covar[[j]][1])) {
-					ellipse(c(f2m[j], f1m[j]), covar[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.alpha)
-				}
+			if (diphthong) {
+  			curVowels <- rownames(f2m)
+			  covar2 <- list()
+			  for (j in 1:length(curVowels)) {
+			    curVowelData <- curData[curData$vowel %in% curVowels[j],]
+			    covar[[j]] <- cov(cbind(curVowelData$f2a, curVowelData$f1a))
+			    covar2[[j]] <- cov(cbind(curVowelData$f2b, curVowelData$f1b))
+				  if (!is.na(covar[[j]][1])) {
+					  ellipse(c(f2m$f2a[j], f1m$f1a[j]), covar[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.alpha)
+					  ellipse(c(f2m$f2b[j], f1m$f1b[j]), covar2[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.alpha)
+				  }
+			  }
+			} else { # !diphthong
+  			curVowels <- names(f2m) # unique(curData$vowel)
+			  for (j in 1:length(curVowels)) {
+				  curVowelData <- curData[curData$vowel %in% curVowels[j],] #	curVowelData <- subset(curData, vowel==curVowels[j])
+				  covar[[j]] <- cov(cbind(curVowelData$f2, curVowelData$f1))
+				  # PLOT ELLIPSES
+				  if (!is.na(covar[[j]][1])) {
+					  ellipse(c(f2m[j], f1m[j]), covar[[j]], type='l', col=vowelcolors[i], lty=linetypes[i], alpha=ellipse.alpha)
+				  }
+			  }
 			}
 		}
 		# DRAW POLYGON BETWEEN MEANS
 		if (polygon) {
-			points(f2m[poly.order[1:poly.include]], f1m[poly.order[1:poly.include]], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
+		  if (diphthong) {
+  			points(f2m$f2a[poly.order], f1m$f1a[poly.order], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
+  			points(f2m$f2b[poly.order], f1m$f1b[poly.order], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
+		  } else {
+  			points(f2m[poly.order], f1m[poly.order], type='c', cex=(means.cex+0.25), col=vowelcolors[i], lty=linetypes[i])
+		  }
 		}
 		# PLOT VOWEL MEANS
-		if (means=='shape') {
-			points(f2m, f1m, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
-		} else if (means=='text') {
-			text(f2m, f1m, names(f2m), col=vowelcolors[i], font=2, cex=means.cex)
+		if (diphthong) {
+		  if (mean.arrows) {
+		    arrows(f2m$f2a, f1m$f1a, f2m$f2b, f1m$f1b, cex=means.cex, col=vowelcolors[i], length=arrowhead.length, angle=arrowhead.angle, lwd=mean.arrow.width)
+		  }
+		  if (means=='shape') {
+		    if (mean.arrows) { # don't plot where the arrowhead will be
+			    points(f2m$f2a, f1m$f1a, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
+		    } else {
+			    points(f2m$f2a, f1m$f1a, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
+			    points(f2m$f2b, f1m$f1b, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
+		    }
+		  } else if (means=='text') {
+		    if (mean.arrows) { # don't plot where the arrowhead will be
+			    text(f2m$f2a, f1m$f1a, rownames(f2m), col=vowelcolors[i], font=2, cex=means.cex)
+		    } else {
+			    text(f2m$f2a, f1m$f1a, rownames(f2m), col=vowelcolors[i], font=2, cex=means.cex)
+			    text(f2m$f2b, f1m$f1b, rownames(f2m), col=vowelcolors[i], font=2, cex=means.cex)
+		    }
+		  }
+		} else { # !diphthong
+		  if (means=='shape') {
+			  points(f2m, f1m, type='p', pch=symbols[i], cex=means.cex, col=vowelcolors[i])
+		  } else if (means=='text') {
+			  text(f2m, f1m, names(f2m), col=vowelcolors[i], font=2, cex=means.cex)
+		  }
 		}
     # PLOT LEGEND
 		if (legend & (!single.plot | i==length(glist))) {
