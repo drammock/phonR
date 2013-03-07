@@ -5,12 +5,12 @@
 \usage{
 	plotVowels(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL, 
 	grouping.factor=NULL, norm.method='none', match.unit=TRUE, 
-	match.axes='absolute', points='text', means='text', points.alpha=0.5, 
-	means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, 
-	ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, 
-	single.plot=TRUE, titles='auto', axis.titles='auto', axis.cex=0.8, 
-	garnish.col='#666666FF', grayscale=FALSE, colors=NULL, shapes=NULL, 
-	lines=NULL, vary.colors=!grayscale, vary.shapes=grayscale, 
+	match.axes='absolute', points='text', means='text', points.label='auto',
+	points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, 
+	ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, 
+	poly.order=NULL, single.plot=TRUE, titles='auto', axis.titles='auto', 
+	axis.cex=0.8, garnish.col='#666666FF', grayscale=FALSE, colors=NULL, 
+	shapes=NULL, lines=NULL, vary.colors=!grayscale, vary.shapes=grayscale, 
 	vary.lines=grayscale, legend=single.plot, output='screen', family='',
 	pointsize=12, units='in', width=6.5, height=6.5, res=72, asp=NULL,
 	point.arrows=TRUE, mean.arrows=TRUE, arrowhead.length=0.05, 
@@ -29,6 +29,7 @@
     \item{match.axes}{If \dQuote{absolute}, all plots have same bounds. If \dQuote{relative}, all plots span the same range, but may have different endpoints. If \dQuote{none}, extrema are calculated separately for each plot.  Ignored (coerced to \dQuote{absolute}) if \code{single.plot} is TRUE.}
     \item{points}{If \dQuote{text}, plots vowel tokens with the character string given in \code{vowel}. If \dQuote{shape}, plots vowel tokens as geometric shapes.  If \dQuote{none}, omits plotting the vowel tokens.}
     \item{means}{If \dQuote{text}, plots vowel means with the character string given in \code{vowel}. If \dQuote{shape}, plots vowel means as geometric shapes.  If \dQuote{none}, omits plotting the vowel means.}
+    \item{points.label}{Optional specification of alternate labels to use for vowel tokens.  Default value of \dQuote{auto} will label vowel tokens using the data in \code{vowel}.  Ignored unless \code{points="text"}.}
     \item{points.alpha}{Opacity of individual vowel points (permissible values between 0 and 1 inclusive.)}
     \item{means.alpha}{Opacity of vowel means (permissible values between 0 and 1 inclusive.)}
     \item{points.cex}{Size of individual vowel points relative to \code{pointsize}.}
