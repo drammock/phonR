@@ -1,11 +1,12 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# phonR version 0.4-2
+# phonR version 0.5-1
 # Functions for phoneticians and phonologists using R
 # Daniel McCloy, drmccloy@uw.edu
 # LICENSED UNDER THE GNU GENERAL PUBLIC LICENSE v3.0: http://www.gnu.org/licenses/gpl.html
 # DEVELOPMENT OF THIS PACKAGE WAS FUNDED IN PART BY THE NATIONAL INSTITUTES OF HEALTH, GRANT NUMBER R01DC006014 TO PAMELA SOUZA
 #
 # CHANGELOG:
+# v0.5: major refactor of the entire codebase.
 # v0.4: bugfixes: poly.order now works with arbitrary labels; bug in s-centroid calculation fixed.  Enhancements: added user-override arguments for color, shape and linestyle; added support for diphthong plotting, argument poly.include eliminated (inferred from elements present in poly.order), new argument points.label allows override of points label when points='text'.
 # v0.3 bugfixes: font specification on windows now works for direct-to-file output. Enhancements: graphics handling overhauled to use base graphics instead of Cairo(). Several new output formats added. Raster resolution and font size now specifiable. Improved error handling.
 # v0.2 bugfixes: points.alpha and means.alpha now work for grayscale plots. Plots with polygons or ellipses but no shapes now get proper legend type (lines, not boxes). Graphical parameters now captured and restored when plotting to onscreen device. Vowels with no variance (e.g., single tokens) no longer crash ellipse function. Vowels not in default poly.order() no longer go unplotted when points='text'. Enhancements: support for custom axis titles (to accommodate pre-normalized values), point and mean sizes, and fonts. Custom line types added (11 total now).
@@ -15,6 +16,36 @@
 # --or-- R CMD install phonR_X.X-X.tar.gz (from command line, replace Xs with version number)
 # Then library(phonR)
 # Then call functions as needed
+
+# NORMALIZATION FUNCTIONS
+norm.lobanov <- function() {}
+
+norm.errors <- function(code) {
+  switch(code,
+    missingVal = 'Missing values: at least one of the arguments (f0, f1, f2, or f3) must be supplied.',
+    missingNea = 'Missing values: normalization method \'nearey2\' requires non-null values for all arguments (f0, f1, f2, and f3).',
+    badMethod  = 'Method must be one of: bark, mel, log, erb, z|zscore|z-score|lobanov, logmean|nearey1, nearey2, s|scentroid|s-centroid|wattfabricius|watt-fabricius.',
+    intrinsic  = 'Normalization method \'',method,'\' is a vowel-intrinsic formula. Argument \'',arg,'\' is ignored.', # could be grouping.factor or vowel
+    wfIgnore   = 'f0 and F3 values ignored for s-centroid normalization method. Only F1 and F2 values returned.',
+    aMismatch  = 'The vowel with the highest mean F1 value (usually /a/) does not match across all speakers/groups. You\'ll have to calculate s-centroid by hand.',
+    iMismatch  = 'The vowel with the lowest mean F1 value (usually /i/) does not match across all speakers/groups. You\'ll have to calculate s-centroid by hand.',
+    'Unknown error. Please report at https://github.com/drammock/phonR/issues'
+  )
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # NORMALIZATION FUNCTION
 normalizeVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NULL, grouping.factor=NULL) {
