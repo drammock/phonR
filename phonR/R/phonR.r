@@ -189,7 +189,7 @@ plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL
 		warning('Argument \'match.unit\' coerced to TRUE with norm.method \'s-centroid\': plotting Hz on axes is uninformative for linear transforms.')
 		match.unit <- TRUE
 	}
-	if (!(points.label %in% c('auto')) & !(points %in% c('text'))) {
+	if (!(points.label[1] %in% c('auto')) & !(points %in% c('text'))) {
 	  warning('Argument \'points.label\' ignored unless points=\'text\'.')
 	}
 	# FONT HANDLING FOR WINDOWS (RELATED BLOCK AT END OF SCRIPT)
