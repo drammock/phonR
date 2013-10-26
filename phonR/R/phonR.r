@@ -1,12 +1,12 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# phonR version 0.5-1
+# phonR version 1.0-0
 # Functions for phoneticians and phonologists using R
 # Daniel McCloy, drmccloy@uw.edu
 # LICENSED UNDER THE GNU GENERAL PUBLIC LICENSE v3.0: http://www.gnu.org/licenses/gpl.html
 # DEVELOPMENT OF THIS PACKAGE WAS FUNDED IN PART BY THE NATIONAL INSTITUTES OF HEALTH, GRANT NUMBER R01DC006014 TO PAMELA SOUZA
 #
 # CHANGELOG:
-# v0.5: major refactor of the entire codebase.
+# v1.0: major refactor of the entire codebase.
 # v0.4: bugfixes: poly.order now works with arbitrary labels; bug in s-centroid calculation fixed.  Enhancements: added user-override arguments for color, shape and linestyle; added support for diphthong plotting, argument poly.include eliminated (inferred from elements present in poly.order), new argument points.label allows override of points label when points='text'.
 # v0.3 bugfixes: font specification on windows now works for direct-to-file output. Enhancements: graphics handling overhauled to use base graphics instead of Cairo(). Several new output formats added. Raster resolution and font size now specifiable. Improved error handling.
 # v0.2 bugfixes: points.alpha and means.alpha now work for grayscale plots. Plots with polygons or ellipses but no shapes now get proper legend type (lines, not boxes). Graphical parameters now captured and restored when plotting to onscreen device. Vowels with no variance (e.g., single tokens) no longer crash ellipse function. Vowels not in default poly.order() no longer go unplotted when points='text'. Enhancements: support for custom axis titles (to accommodate pre-normalized values), point and mean sizes, and fonts. Custom line types added (11 total now).
@@ -17,20 +17,166 @@
 # Then library(phonR)
 # Then call functions as needed
 
-# NORMALIZATION FUNCTIONS
-norm.lobanov <- function() {}
+# ERROR MESSAGES
+norm.error <- function(code) {
+	err <- switch(code,
+		missing.val = 'Missing values: at least one of the arguments (f0, f1, f2, or f3) must be supplied.',
+		missing.nea = 'Missing values: normalization method \'nearey2\' requires non-null values for all arguments (f0, f1, f2, and f3).',
+		bad.method  = 'Method must be one of: bark, mel, log, erb, z|zscore|z-score|lobanov, logmean|nearey1, nearey2, s|scentroid|s-centroid|wattfabricius|watt-fabricius.',
+		intrinsic   = 'Normalization method \'',method,'\' is a vowel-intrinsic formula. Argument \'',arg,'\' is ignored.', # could be grouping.factor or vowel
+		wf.number   = 'Wrong dimensions: s-centroid normalization requires an Nx2 matrix or data frame of F1 and F2 values.',
+		a.mismatch  = 'The vowel with the highest mean F1 value (usually /a/) does not match across all speakers/groups. You\'ll have to calculate s-centroid manually.',
+		i.mismatch  = 'The vowel with the lowest mean F1 value (usually /i/) does not match across all speakers/groups. You\'ll have to calculate s-centroid manually.',
+		unknown     = 'Unknown error. Please report at https://github.com/drammock/phonR/issues'
+	)
+	return(err)
+}
 
-norm.errors <- function(code) {
-  switch(code,
-    missingVal = 'Missing values: at least one of the arguments (f0, f1, f2, or f3) must be supplied.',
-    missingNea = 'Missing values: normalization method \'nearey2\' requires non-null values for all arguments (f0, f1, f2, and f3).',
-    badMethod  = 'Method must be one of: bark, mel, log, erb, z|zscore|z-score|lobanov, logmean|nearey1, nearey2, s|scentroid|s-centroid|wattfabricius|watt-fabricius.',
-    intrinsic  = 'Normalization method \'',method,'\' is a vowel-intrinsic formula. Argument \'',arg,'\' is ignored.', # could be grouping.factor or vowel
-    wfIgnore   = 'f0 and F3 values ignored for s-centroid normalization method. Only F1 and F2 values returned.',
-    aMismatch  = 'The vowel with the highest mean F1 value (usually /a/) does not match across all speakers/groups. You\'ll have to calculate s-centroid by hand.',
-    iMismatch  = 'The vowel with the lowest mean F1 value (usually /i/) does not match across all speakers/groups. You\'ll have to calculate s-centroid by hand.',
-    'Unknown error. Please report at https://github.com/drammock/phonR/issues'
-  )
+# OMNIBUS NORMALIZATION FUNCTION
+norm.vowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NULL, grouping.factor=NULL) {
+	methods <- c('bark','mel','log','erb','z','zscore','z-score','ztransform','z-transform','lobanov','logmean','nearey1','nearey2','scentroid','s-centroid','s','wattfabricius','watt-fabricius')
+	m <- tolower(method)
+	if(!(m %in% methods)) {
+		warning(norm.error('bad.method'))
+	}
+	if (m %in% 'bark') {
+		f <- as.matrix(cbind(f0=f0, f1=f1, f2=f2, f3=f3))
+		return(norm.bark(f))
+	}
+	else if (m %in% 'mel') {
+		f <- as.matrix(cbind(f0=f0, f1=f1, f2=f2, f3=f3))
+		return(norm.mel(f))
+	}
+	else if (m %in% 'log') {
+		f <- as.matrix(cbind(f0=f0, f1=f1, f2=f2, f3=f3))
+		return(norm.log(f))
+	}
+	else if (m %in% 'erb') {
+		f <- as.matrix(cbind(f0=f0, f1=f1, f2=f2, f3=f3))
+		return(norm.erb(f))
+	}
+	# TODO: add lobanov, nearey1 & 2, scentroid
+}
+
+# INDIVIDUAL NORMALIZATION FUNCTIONS
+norm.bark <- function(f) {
+	f <- as.matrix(f)
+	return(26.81*f/(1960+f)-0.53)
+}
+
+norm.log <- function(f) {
+	f <- as.matrix(f)
+	return(log10(f))
+}
+
+norm.mel <- function(f) {
+	f <- as.matrix(f)
+	return(2595*log10(1+f/700))
+}
+
+norm.erb <- function(f) {
+	f <- as.matrix(f)
+	return(21.4*log10(1+0.00437*f))
+}
+
+norm.lobanov <- function(f, grouping.factor=NULL) {
+	f <- as.matrix(f)
+	if (is.null(grouping.factor)) {
+		return(as.matrix(as.data.frame(scale(f))))
+	} else {
+		groups <- split(f, grouping.factor)
+		scaled <- lapply(groups, function(x) as.data.frame(scale(x)))
+		return(as.matrix(unsplit(scaled, grouping.factor)))
+	}
+}
+
+norm.logmean <- function(f, grouping.factor=NULL) {
+	f <- as.matrix(f)
+	if (is.null(grouping.factor)) {
+		return(log(f) - rep(apply(log(f), 2, mean), each=nrow(f)))
+	} else {
+		groups <- split(f, grouping.factor)
+		logmeans <- lapply(groups, function(x) log(x) - rep(apply(log(x), 2, mean), each=nrow(x)))
+		return(as.matrix(unsplit(logmeans, grouping.factor)))
+	}	
+}
+
+norm.nearey <- function() {
+	f <- as.matrix(f)
+	if (ncol(f) != 4) {
+		warning(norm.error('missing.nea'))
+		stop()
+	}
+	if (is.null(grouping.factor)) {
+		return(log(f) - sum(apply(log(f), 2, mean)))
+	} else {
+		groups <- split(f, grouping.factor)
+		logmeans <- lapply(groups, function(x) log(x) - sum(apply(log(x), 2, mean)))
+		return(as.matrix(unsplit(logmeans, grouping.factor)))
+	}
+}
+
+norm.wattfabricius <- function(f, vowel, grouping.factor=NULL) {
+	f <- as.matrix(f)
+	if (ncol(f) != 2) {
+		warning(norm.error('wf.number'))
+	}
+	# TODO: DEAL WITH ABSENCE OF GROUPING.FACTOR HERE
+	subsets <- by(f, list(vowel, grouping.factor), identity)  # 2D list (group x vowel) of lists (f1,f2)
+	means <- matrix(lapply(subsets, colMeans), ncol=ncol(subsets), dimnames=dimnames(subsets))
+	minima <- apply(means, 2, function(i) apply(do.call(rbind,i), 2, min)) # TODO: bug here when using diphthongs
+	maxima <- apply(means, 2, function(i) apply(do.call(rbind,i), 2, max)) 
+	min.id <- apply(means, 2, function(i) apply(do.call(rbind,i), 2, which.min))
+	max.id <- apply(means, 2, function(i) apply(do.call(rbind,i), 2, which.max))
+	if (length(unique(min.id['f1',]))>1) {
+		warning(norm.error('i.mismatch'))
+		data.frame(minF1=round(minima['f1',]), vowel=dimnames(means)[[1]][min.id['f1',]])  # TODO: add grouping.factor to output
+		stop()
+	}
+	if (length(unique(max.id['f1',]))>1) {
+		warning(norm.error('a.mismatch'))
+		data.frame(maxF1=round(maxima['f1',]), vowel=dimnames(means)[[1]][max.id['f1',]])
+		stop()
+	}
+	lowvowf2 <- do.call(rbind, means.list[unique(max.id['f1',]),])[,'f2']
+	centroids <- rbind(f1=(2*minima['f1',] + maxima['f1',])/3, f2=(minima['f2',] + maxima['f2',] + lowvowf2)/3)
+	rnames <- rep(rownames(subsets),times=ncol(subsets))
+	cnames <- rep(colnames(subsets),each=nrow(subsets))
+	return(f/t(centroids[,grouping.factor]))
+}
+
+
+
+# TODO: integrate these four
+vowelMeansPolygonArea <- function(f1, f2, vowel, talker) {
+	df <- data.frame(f1=f1, f2=f2, v=vowel, t=talker)
+	bytalker <- as.table(by(df, df$t, function(x) areapl(cbind(tapply(x$f2, x$v, mean), tapply(x$f1, x$v, mean)))))
+	area <- bytalker[df$t]
+	return(area)
+}
+
+convexHull <- function(f1, f2, talker) {
+	df <- data.frame(f1=f1, f2=f2, t=talker)
+	bytalkerpts <- by(df, df$t, function(x) x[chull(x$f2, x$f1),c('f2','f1')])
+	bytalkerarea <- sapply(bytalkerpts, function(i) areapl(as.matrix(data.frame(x=i$f2, y=i$f1))))
+	area <- bytalkerarea[df$t]
+	return(area)
+}
+
+forceByVowelToken <- function(f1, f2, vowel, talker) {
+	# calculate the sum of the inverse squared differences from each vowel token to all other tokens that are (1) from the same talker, and (2) tokens of a different vowel phoneme
+	df <- data.frame(f1=f1, f2=f2, v=vowel, t=talker)
+	force <- sapply(seq_len(nrow(df)), function(x) {sum(1/sqrt((df[x,]$f2 - df$f2[df$t %in% df[x,]$t & !(df$v %in% df[x,]$v)])^2 + (df[x,]$f1 - df$f1[df$t %in% df[x,]$t & !(df$v %in% df[x,]$v)])^2))})
+	return(force)
+}
+
+forceByVowelMean <- function(f1, f2, vowel, talker) {
+	# calculate the sum of the inverse squared differences from each vowel mean to all other vowel means that are from the same talker
+	df <- data.frame(f1=f1, f2=f2, v=vowel, t=talker)
+	f1m <- as.table(by(f1, list(talker, vowel), mean))
+	f2m <- as.table(by(f2, list(talker, vowel), mean))
+	force <- sapply(seq_len(nrow(df)), function(x) {sum(1/sqrt((f2m[df$t[x],df$v[x]] - f2m[df$t[x],!(colnames(f2m) %in% df$v[x])])^2 + (f1m[df$t[x],df$v[x]] - f1m[df$t[x],!(colnames(f1m) %in% df$v[x])])^2))})	
+	return(force)
 }
 
 
@@ -40,102 +186,6 @@ norm.errors <- function(code) {
 
 
 
-
-
-
-
-
-
-
-# NORMALIZATION FUNCTION
-normalizeVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NULL, grouping.factor=NULL) {
-  m <- tolower(method)
-  f <- cbind(f0=as.vector(f0),f1=as.vector(f1),f2=as.vector(f2),f3=as.vector(f3))
-  if (is.null(f)) {
-    warning('Missing values: at least one of the arguments (f0, f1, f2, or f3) must be supplied.')
-  }
-  if (!(m %in% c('bark','mel','log','erb','z','zscore','z-score','ztransform','z-transform','lobanov','logmean','nearey1','nearey2','scentroid','s-centroid','s','wattfabricius','watt-fabricius'))) {
-    warning('Method must be one of: bark, mel, log, erb, z|zscore|z-score|ztransform|z-transform|lobanov, logmean|nearey1, nearey2, s|scentroid|s-centroid|wattfabricius|watt-fabricius.')
-  }
-  if (!is.null(grouping.factor) & !(m %in% c('z','zscore','ztransform','lobanov','logmean','nearey1','nearey2','s','scentroid','wattfabricius'))) {
-    warning('Normalization method \'',method,'\' is a vowel-intrinsic formula. Argument \'grouping.factor\' is ignored.')
-  }
-  if (!is.null(vowel) & !(m %in% c('s','scentroid','wattfabricius'))) {
-    warning('Normalization method \'',method,'\' is a vowel-intrinsic formula. Argument \'vowel\' is ignored.')
-  }
-  if ((!is.null(f3) | !is.null(f0)) & !(m %in% c('s','scentroid','wattfabricius'))) {
-    warning('f0 and F3 values ignored for s-centroid normalization method. Only F1 and F2 values returned.')
-    f <- cbind(as.vector(f1),as.vector(f2))
-  }
-  if (is.null(grouping.factor)) { grouping.factor <- 'noGroups' }
-  if (m=='bark') {
-    fn <- 26.81*f/(1960+f)-0.53
-  } else if (m=='log') {
-    fn <- log10(f)
-  } else if (m=='mel') {
-    fn <- 2595*log10(1+f/700)
-  } else if (m=='erb') {
-    fn <- 21.4*log10(0.00437*f+1)
-  } else if (m %in% c('s','scentroid','wattfabricius','s-centroid','watt-fabricius')) {
-    subsets <- by(f, list(vowel,grouping.factor), identity) # 2D list (group x vowel) of lists (f1,f2)
-    means.list <- matrix(lapply(subsets, colMeans), ncol=ncol(subsets), dimnames=dimnames(subsets))
-    minima <- apply(means.list, 2, function(i) apply(do.call(rbind,i), 2, min)) # TODO: bug here when using diphthongs
-    maxima <- apply(means.list, 2, function(i) apply(do.call(rbind,i), 2, max))
-    min.id <- apply(means.list, 2, function(i) apply(do.call(rbind,i), 2, which.min))
-    max.id <- apply(means.list, 2, function(i) apply(do.call(rbind,i), 2, which.max))
-    if (length(unique(min.id['f1',]))>1) {
-      warning('The vowel with the lowest mean F1 value (usually /i/) does not match across all speakers/groups. You\'ll have to calculate s-centroid by hand.')
-      data.frame(minF1=round(minima['f1',]), vowel=dimnames(means.list)[[1]][min.id['f1',]])
-      stop()
-    }
-    if (length(unique(max.id['f1',]))>1) {
-      warning('The vowel with the highest mean F1 value (usually /a/) does not match across all speakers/groups. You\'ll have to calculate s-centroid by hand.')
-      data.frame(maxF1=round(maxima['f1',]), vowel=dimnames(means.list)[[1]][max.id['f1',]])
-      stop()
-    }
-    lowvowf2 <- do.call(rbind, means.list[unique(max.id['f1',]),])[,'f2']
-    centroids <- rbind(f1=(2*minima['f1',]+maxima['f1',])/3, f2=(minima['f2',]+maxima['f2',]+lowvowf2)/3)
-    rnames <- rep(rownames(subsets),times=ncol(subsets))
-    cnames <- rep(colnames(subsets),each=nrow(subsets))
-    fn <- f/t(centroids[,grouping.factor])
-  } else if (grouping.factor[1]=='noGroups') {
-    if (m %in% c('lobanov','ztransform','z-transform','zscore','z-score','z')) {
-      fn <- scale(f)
-    } else if (m %in% c('nearey1','logmean')) {
-      fn <- log(f) - rep(apply(log(f),2,mean),each=nrow(f))
-    } else if (m=='nearey2') {
-      if (ncol(f) == 4) {
-        fn <- log(f) - sum(apply(log(f),2,mean))
-      } else {
-        warning('Missing values: normalization method \'nearey2\' requires non-null values for all arguments (f0, f1, f2, and f3).')
-        stop()
-      }
-    }
-  } else {
-    subsets <- lapply(by(f, grouping.factor, identity),as.matrix) # list of matrices
-    if (m %in% c('lobanov','ztransform','z-transform','zscore','z-score','z')) {
-      means.list <- lapply(subsets, colMeans)
-      stdev.list <- lapply(subsets, function(x){apply(x,2,sd)})
-      means.matrix <- t(apply(as.matrix(grouping.factor),1,function(x){means.list[[x]]}))
-      stdev.matrix <- t(apply(as.matrix(grouping.factor),1,function(x){stdev.list[[x]]}))
-      fn <- (f - means.matrix) / stdev.matrix
-    } else if (m %in% c('nearey1','logmean')) {
-      logmeans.list <- lapply(subsets, function(x){apply(log(x),2,mean)})
-      logmeans.matrix <- t(apply(as.matrix(grouping.factor),1,function(x){logmeans.list[[x]]}))
-      fn <- log(f) - logmeans.matrix
-    } else if (m=='nearey2') {
-      logmeans.list <- lapply(subsets, function(x){apply(log(x),2,mean)})
-      logmeans.matrix <- t(apply(as.matrix(grouping.factor),1,function(x){logmeans.list[[x]]}))
-      if (ncol(f) == 4) {
-        fn <- log(f) - matrix(rep(apply(logmeans.matrix,1,sum),4),ncol=4)
-      } else {
-        warning('Missing values: normalization method \'nearey2\' requires non-null values for all arguments (f0, f1, f2, and f3).')
-        stop()
-      }
-    }
-  }
-  return(fn)
-}
 
 # VOWEL PLOTTING FUNCTION
 plotVowels <- function(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL, grouping.factor=NULL, norm.method='none', match.unit=TRUE, match.axes='absolute', points='text', means='text', points.label='auto', points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, poly.order=NULL, single.plot=TRUE, titles='auto', axis.titles='auto', axis.cex=0.8, garnish.col='#666666FF', grayscale=FALSE, colors=NULL, shapes=NULL, lines=NULL, vary.colors=!grayscale, vary.shapes=grayscale, vary.lines=grayscale, legend=single.plot, output='screen', family='', pointsize=12, units='in', width=6.5, height=6.5, res=72, asp=NULL, point.arrows=TRUE, mean.arrows=TRUE, arrowhead.length=0.05, arrowhead.angle=30, point.arrow.width=1, mean.arrow.width=1.5) {
