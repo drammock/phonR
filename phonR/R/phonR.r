@@ -179,7 +179,17 @@ forceByVowelMean <- function(f1, f2, vowel, talker) {
 	return(force)
 }
 
-
+plot.vowels <- function(f1=NULL, f2=NULL, vowel=NULL, grouping.factor=NULL, single.plot=TRUE, match.axes='absolute', ellipses=TRUE, ellipse.conf=0.3173, polygons=TRUE, poly.order=NULL, tokens=TRUE, means=TRUE, labels=NULL, tokens.cex=0.6, means.cex=1.2, tokens.color=NULL, means.color=NULL, titles=NULL, axis.labels=NULL, axis.cex=0.8, axis.color='#666666FF') {
+	# grouping.factor
+	# tokens
+	# means
+	# labels: alternative labels to use when plotting.  If NULL, defaults to the value of vowel
+	# tokens.color
+	# means.color
+	# ellipse.conf
+	# poly.order:  defaults to the order of unique(vowel)
+	# 
+}
 
 
 
