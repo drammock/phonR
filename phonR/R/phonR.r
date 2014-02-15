@@ -38,7 +38,7 @@
 # Then library(phonR)
 # Then call functions as needed
 
-plotvowels <- function(f1, f2, vowel=NULL, group=NULL,
+plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	polygon=NA, poly.fill=FALSE, 
 	hull.line=NULL, hull.fill=NULL, 
 	ellipse.line=NULL, ellipse.fill=NULL, ellipse.conf=0.3173, 
@@ -51,7 +51,6 @@ plotvowels <- function(f1, f2, vowel=NULL, group=NULL,
 	# XXX TODO 
 	# add heatmap function
 	# support for diphthongs
-	# re-integrate normalization functions
 	# XXX TODO 
 	# # # # # # # # # #
 	# OUTPUT PARSING  #
@@ -245,7 +244,7 @@ plotvowels <- function(f1, f2, vowel=NULL, group=NULL,
 			args$family <- 'sans'
 			if (output=='screen') warning('Font specification may fail',
 				' if saving as PDF from onscreen plot window menu. To ',
-				'ensure PDF font fidelity, run plotvowels() with ',
+				'ensure PDF font fidelity, run plot.vowels() with ',
 				'output="pdf".')
 	}
 	if(pretty) {
@@ -350,3 +349,234 @@ ellipse <- function(mu, sigma, alpha=0.05, npoints=250, draw=TRUE, ...) {
 	}
 	invisible(pts)
 }
+
+
+repulsive.force <- function(f2, f1, vowel) {
+	dmat <- as.matrix(dist(cbind(f2,f1)))
+	force <- sapply(seq_along(vowel), 
+			 function(i) sum(1/dmat[i, !(vowel %in% vowel[i])]^2))
+}
+
+
+# OMNIBUS NORMALIZATION FUNCTION (convenience function)
+norm.vowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, 
+					   vowel=NULL, group=NULL) {
+	m <- tolower(method)
+	methods <- c('bark','mel','log','erb','z','zscore','lobanov',
+				 'logmean','nearey1','nearey2','scentroid','s-centroid',
+				 's','wattfabricius','watt-fabricius')
+	if(!(m %in% methods)) {
+		warning('Method must be one of: bark, mel, log, erb, ',
+				'z|zscore|lobanov, logmean|nearey1, nearey2, ',
+				's|scentroid|s-centroid|wattfabricius|watt-fabricius.')
+	}
+	f <- as.matrix(cbind(f0=f0, f1=f1, f2=f2, f3=f3))
+	if (m %in% 'bark') return(norm.bark(f))
+	else if (m %in% 'mel') return(norm.mel(f))
+	else if (m %in% 'log') return(norm.log(f))
+	else if (m %in% 'erb') return(norm.erb(f))
+	else if (m %in% c('z','zscore','lobanov')) return(norm.lobanov(f, group))
+	else if (m %in% c('logmean','nearey1')) return(norm.logmean(f, group))
+	else if (m %in% c('nearey','nearey2')) return(norm.nearey(f, group))
+	else {
+		f <- as.matrix(cbind(f1=f1, f2=f2))
+		return(norm.wattfabricius(f, vowel, group))
+}	}
+
+
+# INDIVIDUAL NORMALIZATION FUNCTIONS
+norm.bark <- function(f) {
+	f <- as.matrix(f)
+	26.81*f/(1960+f)-0.53
+}
+
+
+norm.log <- function(f) {
+	f <- as.matrix(f)
+	log10(f)
+}
+
+
+norm.mel <- function(f) {
+	f <- as.matrix(f)
+	2595*log10(1+f/700)
+}
+
+
+norm.erb <- function(f) {
+	f <- as.matrix(f)
+	21.4*log10(1+0.00437*f)
+}
+
+
+norm.lobanov <- function(f, group=NULL) {
+	f <- as.matrix(f)
+	if (is.null(group)) {
+		return(as.matrix(as.data.frame(scale(f))))
+	} else {
+		groups <- split(f, group)
+		scaled <- lapply(groups, function(x) as.data.frame(scale(x)))
+		return(as.matrix(unsplit(scaled, group)))
+}	}
+
+
+norm.logmean <- function(f, group=NULL) {
+	f <- as.matrix(f)
+	if (is.null(group)) {
+		return(log(f) - rep(colMeans(log(f)), each=nrow(f)))
+	} else {
+		groups <- split(f, group)
+		logmeans <- lapply(groups, 
+					function(x) log(x) - rep(apply(log(x), 2, mean), 
+					each=nrow(x)))
+		return(as.matrix(unsplit(logmeans, group)))
+}	}
+
+
+norm.nearey <- function() {
+	f <- as.matrix(f)
+	if (ncol(f) != 4) {
+		stop('Missing values: normalization method \'nearey2\' ',
+			 'requires non-null values for all arguments (f0, f1, f2, ',
+			 'and f3).')
+	}
+	if (is.null(group)) {
+		return(log(f) - sum(colMeans(log(f))))
+	} else {
+		groups <- split(f, group)
+		logmeans <- lapply(groups, function(x) log(x) - sum(colMeans(log(x))))
+		return(as.matrix(unsplit(logmeans, group)))
+}	}
+
+
+norm.wattfabricius <- function(f, vowel, group=NULL) {
+	f <- as.matrix(f)
+	if (ncol(f) != 2) {
+		warning('Wrong dimensions: s-centroid normalization requires ',
+				'an Nx2 matrix or data frame of F1 and F2 values.')
+	}
+	if(is.null(group)) group <- rep('g', nrow(f))
+	subsets <- by(f, list(vowel, group), identity)  # 2D list (group x vowel) of lists (f1,f2)
+	means <- matrix(lapply(subsets, colMeans), ncol=ncol(subsets), dimnames=dimnames(subsets))
+	minima <- apply(means, 2, function(i) apply(do.call(rbind,i), 2, min)) # TODO: bug here when using diphthongs
+	maxima <- apply(means, 2, function(i) apply(do.call(rbind,i), 2, max)) 
+	min.id <- apply(means, 2, function(i) apply(do.call(rbind,i), 2, which.min))
+	max.id <- apply(means, 2, function(i) apply(do.call(rbind,i), 2, which.max))
+	if (length(unique(min.id['f1',]))>1) {
+		warning('The vowel with the lowest mean F1 value (usually /i/)',
+				' does not match across all speakers/groups. You\'ll ',
+				'have to calculate s-centroid manually.')
+		data.frame(minF1=minima['f1',], 
+				   vowel=dimnames(means)[[1]][min.id['f1',]],
+				   group=dimnames(means)[[2]])
+		stop()
+	} else if (length(unique(max.id['f1',]))>1) {
+		warning('The vowel with the highest mean F1 value (usually /a/)',
+				' does not match across all speakers/groups. You\'ll ',
+				'have to calculate s-centroid manually.')
+		data.frame(maxF1=round(maxima['f1',]), 
+				   vowel=dimnames(means)[[1]][max.id['f1',]],
+				   group=dimnames(means)[[2]])
+		stop()
+	}
+	lowvowf2 <- do.call(rbind, means.list[unique(max.id['f1',]),])[,'f2']
+	centroids <- rbind(f1=(2*minima['f1',] + maxima['f1',])/3, f2=(minima['f2',] + maxima['f2',] + lowvowf2)/3)
+	rnames <- rep(rownames(subsets),times=ncol(subsets))
+	cnames <- rep(colnames(subsets),each=nrow(subsets))
+	f/t(centroids[,group])
+}
+
+
+# pineda's triangle filling algorithm
+fill.triangle <- function(x, y, vertices) {
+	x0 <- vertices[1,1]
+	x1 <- vertices[2,1]
+	x2 <- vertices[3,1]
+	y0 <- vertices[1,2]
+	y1 <- vertices[2,2]
+	y2 <- vertices[3,2]
+	z0 <- vertices[1,3]
+	z1 <- vertices[2,3]
+	z2 <- vertices[3,3]
+	e0xy <- (x-x0)*(y1-y0)-(y-y0)*(x1-x0)
+	e1xy <- (x-x1)*(y2-y1)-(y-y1)*(x2-x1)
+	e2xy <- (x-x2)*(y0-y2)-(y-y2)*(x0-x2)
+	e0x2 <- (x2-x0)*(y1-y0)-(y2-y0)*(x1-x0)
+	e1x0 <- (x0-x1)*(y2-y1)-(y0-y1)*(x2-x1)
+	e2x1 <- (x1-x2)*(y0-y2)-(y1-y2)*(x0-x2)
+	f0 <- e0xy / e0x2
+	f1 <- e1xy / e1x0
+	f2 <- e2xy / e2x1
+	z <- f0*z2 + f1*z0 + f2*z1
+}
+
+
+force.heatmap <- function(f2, f1, z, vowel=NULL, resolution=25, 
+						  colormap=NULL, add=TRUE, method='default', ...) {
+	require(splancs)  # provides inpip()
+	require(deldir)   # provides deldir() and triMat() 
+	# default to grayscale
+	if(is.null(colormap)) colormap <- color.scale(x=0:100, cs1=0, cs2=0, 
+									  cs3=c(25,100), alpha=1, color.spec='hcl')
+	# create grid encompassing vowel space
+	vertices <- as.matrix(cbind(x=f2, y=f1, v=vowel))
+	bounding.rect <- apply(vertices, 2, range)
+	xgrid <- seq(floor(bounding.rect[1,1]), ceiling(bounding.rect[2,1]), by=1/resolution)
+	ygrid <- seq(floor(bounding.rect[1,2]), ceiling(bounding.rect[2,2]), by=1/resolution)
+	grid <- expand.grid(x=xgrid, y=ygrid)
+	grid$z <- NA
+	# create delaunay triangulation of vowels 
+	triangs <- triMat(deldir(f2, f1, suppressMsge=TRUE))
+	triangs <- apply(triangs, 1, function(i) data.frame(x=f2[i], y=f1[i], z=z[i]))
+	# which grid points are inside the vowel space
+	grid.indices <- lapply(triangs, function(i) inpip(grid, i, bound=FALSE))
+	if (method %in% 'pineda') {
+		grid.values <- lapply(seq_along(triangs), 
+			function(i) fill.triangle(grid[grid.indices[[i]],1], 
+			grid[grid.indices[[i]],2], triangs[[i]]))
+		grid.indices <- do.call(c, grid.indices)
+		grid.values <- do.call(c, grid.values)
+		grid$z[grid.indices] <- grid.values
+		image(xgrid, ygrid, matrix(grid$z, nrow=length(xgrid)), 
+			  col=colmap, add=add)
+	} else {
+		if(is.null(vowel)) stop('Default method requires non-null values for "vowel".')
+		grid.force <- rep(NA, nrow(grid))
+		hull <- vertices[chull(vertices),]  # polygon of hull
+		subgrid <- grid[inpip(grid[,1:2], hull),]
+		# which vowel is closest to each grid point?
+		dist.matrix <- apply(subgrid, 1, function(i) apply(vertices, 1, function(j) sqrt(sum((j[1:2] - i[1:2])^2))))
+		subgrid.nearest.vowel <- vowel[apply(dist.matrix, 2, function(i) which(i == min(i)))]
+		subgrid.force <- sapply(seq_along(subgrid.nearest.vowel), function(i) sum(1/dist.matrix[!(vowel %in% subgrid.nearest.vowel[i]),i]^2))
+		grid.force[inpip(grid[,1:2], hull)] <- log10(subgrid.force)
+		image(xgrid, ygrid, matrix(grid.force, nrow=length(xgrid)), col=colmap, add=add, ...)
+}	}
+
+
+vowelHeatmapLegend <- function (x, y, smoothness=50, alpha=1, colormap=NULL, lend=2, lwd=6, ...) {
+	require(plotrix)
+	if(is.null(colormap)) {  # default to grayscale
+		colormap <- color.scale(x=0:100, cs1=0, cs2=0, cs3=c(0,100), alpha=1, color.spec='hcl')
+	}
+	xvals <- seq(x[1], x[2], length.out=smoothness)
+	yvals <- seq(y[1], y[2], length.out=smoothness)
+	invisible(color.scale.lines(xvals, yvals, col=colormap, lend=lend, lwd=lwd, ...))
+}
+
+
+# TODO: integrate these four
+vowelMeansPolygonArea <- function(f1, f2, vowel, talker) {
+	df <- data.frame(f1=f1, f2=f2, v=vowel, t=talker)
+	bytalker <- as.table(by(df, df$t, function(x) areapl(cbind(tapply(x$f2, x$v, mean), tapply(x$f1, x$v, mean)))))
+	area <- bytalker[df$t]
+	return(area)
+}
+
+convexHull <- function(f1, f2, talker) {
+	df <- data.frame(f1=f1, f2=f2, t=talker)
+	bytalkerpts <- by(df, df$t, function(x) x[chull(x$f2, x$f1),c('f2','f1')])
+	bytalkerarea <- sapply(bytalkerpts, function(i) areapl(as.matrix(data.frame(x=i$f2, y=i$f1))))
+	area <- bytalkerarea[df$t]
+	return(area)
+}
+
