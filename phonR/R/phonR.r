@@ -270,6 +270,40 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	} else {
 		do.call(plot, as.list(c(list(0, 0, type='n', ann=FALSE), args)))
 	}
+	
+	# # # # # # #
+	# PLOT HULL #
+	# # # # # # #
+#	convexHull <- function(f1, f2, group) {
+#		df <- data.frame(f1=f1, f2=f2, g=group)
+#		bygrouppts <- by(df, df$g, function(x) x[chull(x$f2, x$f1),c('f2','f1')])
+#		bygrouparea <- sapply(bygrouppts, function(i) areapl(as.matrix(data.frame(x=i$f2, y=i$f1))))
+#		area <- bygrouparea[df$g]
+#		return(area)
+#	}
+
+	if(!(is.null(hull.fill) && is.null(hull.line))) {
+		hh <- by(d, d$gf, identity)
+		hulls <- lapply(hh, function(i) with(i, i[chull(f2, f1),
+												  c('f2','f1','color')]))
+		#hull <- with(hh, chull(f2, f1))
+#		if(is.null(pch.tokens)) pch.tokens <- as.numeric(d$gf)
+#		with(d, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens))
+
+#		if(col.by.vowel) n$color <- par('fg')
+#		n <- split(n, n$gf)
+#		invisible(lapply(n, function(i) with(i[i$v %in% polygon,], 
+#				  points(f2, f1, col=color, type='c', 
+#				  cex=1.25*cex.means, lty=style))))
+		if(is.null(hull.line)) {
+			
+		} else if(is.null(hull.fill)) {
+			
+		} else {
+			
+		}
+	}
+
 	# # # # # # # # #
 	# PLOT HEATMAP  #
 	# # # # # # # # #
@@ -357,6 +391,15 @@ ellipse <- function(mu, sigma, alpha=0.05, npoints=250, draw=TRUE, ...) {
 		polygon(pts, ...)
 	}
 	invisible(pts)
+}
+
+
+convexHull <- function(f1, f2, group) {
+	df <- data.frame(f1=f1, f2=f2, g=group)
+	bygrouppts <- by(df, df$g, function(x) x[chull(x$f2, x$f1),c('f2','f1')])
+	bygrouparea <- sapply(bygrouppts, function(i) areapl(as.matrix(data.frame(x=i$f2, y=i$f1))))
+	area <- bygrouparea[df$g]
+	return(area)
 }
 
 
@@ -593,12 +636,3 @@ vowelMeansPolygonArea <- function(f1, f2, vowel, talker) {
 	area <- bytalker[df$t]
 	return(area)
 }
-
-convexHull <- function(f1, f2, talker) {
-	df <- data.frame(f1=f1, f2=f2, t=talker)
-	bytalkerpts <- by(df, df$t, function(x) x[chull(x$f2, x$f1),c('f2','f1')])
-	bytalkerarea <- sapply(bytalkerpts, function(i) areapl(as.matrix(data.frame(x=i$f2, y=i$f1))))
-	area <- bytalkerarea[df$t]
-	return(area)
-}
-
