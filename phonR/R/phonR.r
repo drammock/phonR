@@ -295,13 +295,15 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 #		invisible(lapply(n, function(i) with(i[i$v %in% polygon,], 
 #				  points(f2, f1, col=color, type='c', 
 #				  cex=1.25*cex.means, lty=style))))
-		if(is.null(hull.line)) {
-			
-		} else if(is.null(hull.fill)) {
-			
-		} else {
-			
-		}
+
+		if(is.null(hull.line)) lapply(hulls, function(i) with(i, # TODO: need separate fill color
+							   polygon(cbind(f2, f1), col=color, border=NA)))
+		else if(is.null(hull.fill)) lapply(hulls, function(i) with(i, 
+							   		polygon(cbind(f2, f1), col=NA, border=color, 
+							   		lty=m$style[i])))  # TODO: m$style is not right here 
+		else lapply(hulls, function(i) with(i, 
+			   		polygon(cbind(f2, f1), col=color, border=color, # TODO: need separate fill color 
+			   		lty=m$style[i])))  # TODO: m$style is not right here (see ellipse plotting)
 	}
 
 	# # # # # # # # #
