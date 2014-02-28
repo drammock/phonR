@@ -7,7 +7,13 @@
 # DEVELOPMENT OF THIS PACKAGE WAS FUNDED IN PART BY NIH-R01DC006014
 #
 # CHANGELOG:
-# v1.0: major refactor of the entire codebase.
+# v1.0: major refactor of the entire codebase. Enhancements: color and
+# style can now be specified either by vowel or by group. Plot dimension
+# override via standard "xlim" / "ylim" arguments. New drawing functions
+# for repulsive force heatmaps and convex hulls. Hulls, polygons, and 
+# ellipses can have color fills. Shortcut argument "pretty=TRUE" soothes
+# the senses. Smarter handling of additional graphical arguments passed
+# via "..." to the appropriate function(s).
 #
 # v0.4: bugfixes: poly.order now works with arbitrary labels; bug in
 # s-centroid calculation fixed.  Enhancements: added user-override
@@ -50,7 +56,6 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	output='screen', units=NULL, ...) 
 {
 	# XXX TODO 
-	# add hull
 	# support for diphthongs
 	# XXX TODO 
 	# # # # # # # # # #
@@ -185,13 +190,22 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 		ellipse.col <- NA
 	}
 	ellipse.col <- ellipse.col[col.by]
+	# hull fill colors
+	if(!(is.null(hull.line) && is.null(hull.fill))) {
+		if(pretty) hull.col <- hcl(hue, chr, lum, alpha=0.3)
+		else       hull.col <- rep('#00000099', num.col)
+	} else {
+		hull.col <- NA
+	}
+	hull.col <- hull.col[col.by]
+	
 
 	# # # # # # # # # # # # # #
 	# COLLECT IMPORTANT STUFF #
 	# # # # # # # # # # # # # #
 	d <- data.frame(f2=f2, f1=f1, v=vowel, gf=factor(gf), 
 		m=rep(plot.means, l), color=args$col, style=style.by, 
-		ellipse.col=ellipse.col)
+		ellipse.col=ellipse.col, hull.col=hull.col)
 	dd <- by(d, d[c('v','gf')], identity)	
 	# CALCULATE VOWEL COVARIANCES (the following line still may yield
 	# some NA cov. matrices, due to some vowels having only 1 token)
@@ -271,6 +285,16 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 		do.call(plot, as.list(c(list(0, 0, type='n', ann=FALSE), args)))
 	}
 	
+	# # # # # # # # #
+	# PLOT HEATMAP  #
+	# # # # # # # # #
+	if(force.heatmap) {
+		force <- with(d, repulsive.force(f2, f1, v))
+		with(d, force.heatmap(f2, f1, force, vowel=v, resolution=force.res, 
+							  colormap=force.colmap, method=force.method, add=TRUE))
+	}
+	
+	
 	# # # # # # #
 	# PLOT HULL #
 	# # # # # # #
@@ -283,9 +307,9 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 #	}
 
 	if(!(is.null(hull.fill) && is.null(hull.line))) {
-		hh <- by(d, d$gf, identity)
-		hulls <- lapply(hh, function(i) with(i, i[chull(f2, f1),
-												  c('f2','f1','color')]))
+		hh <- by(d, d$gf, function(i) i[!is.na(i$f2) & !is.na(i$f1),])
+		hulls <- lapply(hh, function(i) with(i, i[chull(f2, f1), 
+						c('f2', 'f1', 'color', 'hull.col', 'style')]))
 		#hull <- with(hh, chull(f2, f1))
 #		if(is.null(pch.tokens)) pch.tokens <- as.numeric(d$gf)
 #		with(d, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens))
@@ -296,24 +320,14 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 #				  points(f2, f1, col=color, type='c', 
 #				  cex=1.25*cex.means, lty=style))))
 
-		if(is.null(hull.line)) lapply(hulls, function(i) with(i, # TODO: need separate fill color
-							   polygon(cbind(f2, f1), col=color, border=NA)))
+		if(is.null(hull.line)) lapply(hulls, function(i) with(i, 
+			polygon(cbind(f2, f1), col=hull.col, border=NA)))
 		else if(is.null(hull.fill)) lapply(hulls, function(i) with(i, 
-							   		polygon(cbind(f2, f1), col=NA, border=color, 
-							   		lty=m$style[i])))  # TODO: m$style is not right here 
-		else lapply(hulls, function(i) with(i, 
-			   		polygon(cbind(f2, f1), col=color, border=color, # TODO: need separate fill color 
-			   		lty=m$style[i])))  # TODO: m$style is not right here (see ellipse plotting)
+			polygon(cbind(f2, f1), col=NA, border=color, lty=style))) 
+		else lapply(hulls, function(i) with(i, polygon(cbind(f2, f1), 
+			col=hull.col, border=color, lty=style)))
 	}
 
-	# # # # # # # # #
-	# PLOT HEATMAP  #
-	# # # # # # # # #
-	if(force.heatmap) {
-		force <- with(d, repulsive.force(f2, f1, v))
-		with(d, force.heatmap(f2, f1, force, vowel=v, resolution=force.res, 
-							  colormap=force.colmap, method=force.method, add=TRUE))
-	}
 	# # # # # # # # #
 	# PLOT ELLIPSES #
 	# # # # # # # # #
