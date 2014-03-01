@@ -49,15 +49,34 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	hull.line=NULL, hull.fill=NULL, force.heatmap=FALSE, 
 	force.colmap=NULL, force.res=50, force.method='default',
 	ellipse.line=NULL, ellipse.fill=NULL, ellipse.conf=0.3173, 
-	plot.tokens=TRUE, plot.means=FALSE, 
-	pch.tokens=NULL, pch.means=NULL, 
-	cex.tokens=NULL, cex.means=NULL, 
-	col.by=NA, style.by=NA, axis.labels=NULL, pretty=FALSE,  
+	plot.tokens=TRUE, pch.tokens=NULL, cex.tokens=NULL,
+	plot.means=FALSE, pch.means=NULL, cex.means=NULL,
+	col.by=NA, style.by=NA, axis.labels=NULL, pretty=FALSE, 
 	output='screen', units=NULL, ...) 
 {
+	# # # # # # # # # # # #
+	# DIPHTHONG HANDLING  #
+	# # # # # # # # # # # #
 	# XXX TODO 
 	# support for diphthongs
 	# XXX TODO 
+	if(is.vector(f1) && is.vector(f2)) {
+		polyphthong <- FALSE
+	} else if(length(dim(f1)) == 1 && length(dim(f2)) == 1) {
+		f1 <- as.vector(f1)
+		f2 <- as.vector(f2)
+		polyphthong <- FALSE
+	} else {
+		if(!all(dim(f1) == dim(f2))) <- stop('Unequal dimensions for "f1" and "f2".')
+		else if(length(dim(f1)) > 2) stop('Argument "f1" has more than two dimensions.')
+		else if(length(dim(f2)) > 2) stop('Argument "f2" has more than two dimensions.')		
+		else if(length(vowel) != dim(f1)[1]) stop('First axis of "f1" does not equal length of "vowel".')
+		polyphthong <- TRUE
+	}
+	if(!polyphthong) {
+		if(length(f2) != length(f1)) stop('Unequal dimensions for "f1" and "f2".')
+		else if(length(vowel) != length(f1)) stop('Unequal dimensions for "f1" and "vowel".')
+	}
 	# # # # # # # # # #
 	# OUTPUT PARSING  #
 	# # # # # # # # # #
