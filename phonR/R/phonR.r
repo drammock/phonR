@@ -52,7 +52,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	plot.tokens=TRUE, pch.tokens=NULL, cex.tokens=NULL,
 	plot.means=FALSE, pch.means=NULL, cex.means=NULL,
 	col.by=NA, style.by=NA, axis.labels=NULL, pretty=FALSE, 
-	output='screen', units=NULL, ...) 
+	output='screen', units=NULL, diphthong.line=FALSE, ...) 
 {
 	# # # # # # # # # # # #
 	# DIPHTHONG HANDLING  #
@@ -76,6 +76,11 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	if(!polyphthong) {
 		if(length(f2) != length(f1)) stop('Unequal dimensions for "f1" and "f2".')
 		else if(length(vowel) != length(f1)) stop('Unequal dimensions for "f1" and "vowel".')
+	} else {
+		f1d <- f1
+		f2d <- f2
+		f1 <- f1d[,1]
+		f2 <- f2d[,1]
 	}
 	# # # # # # # # # #
 	# OUTPUT PARSING  #
@@ -160,10 +165,10 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	# DEFAULTS  #
 	# # # # # # #
 	# color.by & style.by
-	if(is.na(col.by))     col.by <- rep(1, l)  # default to black
-	else                  col.by <- as.numeric(factor(col.by))
-	if(is.na(style.by)) style.by <- rep(1, l)  # default to solid
-	else                style.by <- as.numeric(factor(style.by))
+	if(is.na(col.by[1]))	col.by <- rep(1, l)  # default to black
+	else					col.by <- as.numeric(factor(col.by))
+	if(is.na(style.by[1]))	style.by <- rep(1, l)  # default to solid
+	else					style.by <- as.numeric(factor(style.by))
 	num.col <- length(unique(col.by))
 	num.sty <- length(unique(style.by))
 	# misc. plotting defaults
@@ -210,21 +215,38 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	}
 	ellipse.col <- ellipse.col[col.by]
 	# hull fill colors
-	if(!(is.null(hull.line) && is.null(hull.fill))) {
-		if(pretty) hull.col <- hcl(hue, chr, lum, alpha=0.3)
-		else       hull.col <- rep('#00000099', num.col)
+	if(!is.null(hull.fill) && !col.by.vowel) {
+		if(pretty) hull.col <- hcl(hue, chr, lum, alpha=0.3)[col.by]
+		else {
+			hull.col <- rep(palette(), length.out=max(args$col))[args$col]
+			hull.col <- t(sapply(hull.col, col2rgb, alpha=TRUE))
+			hull.col[,4] <- 153
+			hull.col <- rgb(hull.col[,1], hull.col[,2], hull.col[,3], 
+							hull.col[,4], maxColorValue=255)
+		}
 	} else {
-		hull.col <- NA
+		hull.col <- NA[col.by]
 	}
-	hull.col <- hull.col[col.by]
-	
+	# hull line colors
+	if(!is.null(hull.line)) {
+		if(col.by.vowel) hull.line.col <- rep(1, num.col)
+		else if(pretty)  hull.line.col <- hcl(hue, chr, lum, alpha=1)[col.by]
+		else             hull.line.col <- args$col
+	} else {
+		hull.line.col <- NA[col.by]
+	}
 
 	# # # # # # # # # # # # # #
 	# COLLECT IMPORTANT STUFF #
 	# # # # # # # # # # # # # #
 	d <- data.frame(f2=f2, f1=f1, v=vowel, gf=factor(gf), 
 		m=rep(plot.means, l), color=args$col, style=style.by, 
-		ellipse.col=ellipse.col, hull.col=hull.col)
+		ellipse.col=ellipse.col, hull.col=hull.col, 
+		hull.line.col=hull.line.col)
+	if(col.by.vowel) {
+		d$hull.col <- NA
+		d$hull.line.col <- 1		
+	} 
 	dd <- by(d, d[c('v','gf')], identity)	
 	# CALCULATE VOWEL COVARIANCES (the following line still may yield
 	# some NA cov. matrices, due to some vowels having only 1 token)
@@ -313,38 +335,20 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 							  colormap=force.colmap, method=force.method, add=TRUE))
 	}
 	
-	
 	# # # # # # #
 	# PLOT HULL #
 	# # # # # # #
-#	convexHull <- function(f1, f2, group) {
-#		df <- data.frame(f1=f1, f2=f2, g=group)
-#		bygrouppts <- by(df, df$g, function(x) x[chull(x$f2, x$f1),c('f2','f1')])
-#		bygrouparea <- sapply(bygrouppts, function(i) areapl(as.matrix(data.frame(x=i$f2, y=i$f1))))
-#		area <- bygrouparea[df$g]
-#		return(area)
-#	}
-
 	if(!(is.null(hull.fill) && is.null(hull.line))) {
 		hh <- by(d, d$gf, function(i) i[!is.na(i$f2) & !is.na(i$f1),])
 		hulls <- lapply(hh, function(i) with(i, i[chull(f2, f1), 
-						c('f2', 'f1', 'color', 'hull.col', 'style')]))
-		#hull <- with(hh, chull(f2, f1))
-#		if(is.null(pch.tokens)) pch.tokens <- as.numeric(d$gf)
-#		with(d, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens))
-
-#		if(col.by.vowel) n$color <- par('fg')
-#		n <- split(n, n$gf)
-#		invisible(lapply(n, function(i) with(i[i$v %in% polygon,], 
-#				  points(f2, f1, col=color, type='c', 
-#				  cex=1.25*cex.means, lty=style))))
-
+						c('f2', 'f1', 'color', 'hull.col', 
+						  'hull.line.col', 'style')]))
 		if(is.null(hull.line)) lapply(hulls, function(i) with(i, 
 			polygon(cbind(f2, f1), col=hull.col, border=NA)))
 		else if(is.null(hull.fill)) lapply(hulls, function(i) with(i, 
-			polygon(cbind(f2, f1), col=NA, border=color, lty=style))) 
+			polygon(cbind(f2, f1), col=NA, border=hull.line.col, lty=style))) 
 		else lapply(hulls, function(i) with(i, polygon(cbind(f2, f1), 
-			col=hull.col, border=color, lty=style)))
+			col=hull.col, border=hull.line.col, lty=style)))
 	}
 
 	# # # # # # # # #
@@ -361,6 +365,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 			 function(i) polygon(ellipse.points[[i]], 
 			 col=m$ellipse.col[i], border=m$color[i], lty=m$style[i]))
 	}
+
 	# # # # # # # # #
 	# PLOT POLYGONS #
 	# # # # # # # # #
