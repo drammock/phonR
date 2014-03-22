@@ -67,7 +67,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 		f2 <- as.vector(f2)
 		polyphthong <- FALSE
 	} else {
-		if(!all(dim(f1) == dim(f2))) <- stop('Unequal dimensions for "f1" and "f2".')
+		if(!all(dim(f1) == dim(f2))) stop('Unequal dimensions for "f1" and "f2".')
 		else if(length(dim(f1)) > 2) stop('Argument "f1" has more than two dimensions.')
 		else if(length(dim(f2)) > 2) stop('Argument "f2" has more than two dimensions.')		
 		else if(length(vowel) != dim(f1)[1]) stop('First axis of "f1" does not equal length of "vowel".')
