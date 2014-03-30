@@ -8,3 +8,5 @@ futureFunctionality
 *.bbl
 *.blg
 *.log
+*.gz
+*.Rhistory
