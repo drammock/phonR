@@ -127,6 +127,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	# HANDLE OTHER ARGS #
 	# # # # # # # # # # #
 	args <- list(...)
+	font.specified <- 'family' %in% names(args)
 	if(output == 'screen') {
 		# args only settable by direct par() call (not via plot(), etc)
 		# not strictly true for "family" but works better this way
@@ -158,6 +159,22 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	else if(output=='tif') do.call(tiff, file.args)
 	else if(output=='png') do.call(png, file.args)
 	else if(output=='bmp') do.call(bmp, file.args)
+
+	# FONT HANDLING FOR WINDOWS (RELATED BLOCK AT END OF SCRIPT)
+	is.win <- .Platform$OS.type == 'windows'
+	if (is.win && font.specified && output %in% output.raster) {
+			if(pretty) {
+				windowsFonts(phonr=windowsFont(pretty.par$family))
+				pretty.par$family <- 'phonr'
+			} else {
+				windowsFonts(phonr=windowsFont(par.args$family))
+				par.args$family <- 'phonr'
+			}
+			if (output=='screen') warning('Font specification may fail',
+				' if saving as PDF from onscreen plot window menu. To ',
+				'ensure PDF font fidelity, run plot.vowels() with ',
+				'output="pdf".')
+	}
 	# INITIAL CALL TO PAR() 
 	if(pretty) op <- par(pretty.par)
 	else       op <- par(par.args)
@@ -292,17 +309,6 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	if(!('xlim' %in% names(args))) args$xlim <- rev(plot.bounds[,1])
 	if(!('ylim' %in% names(args))) args$ylim <- rev(plot.bounds[,2])
 
-	# FONT HANDLING FOR WINDOWS (RELATED BLOCK AT END OF SCRIPT)
-	is.win <- .Platform$OS.type == 'windows'
-	if (is.win && 'family' %in% names(args) && output %in% output.raster) {
-			oldFont <- windowsFonts()$sans
-			windowsFonts(sans=windowsFont(args$family))
-			args$family <- 'sans'
-			if (output=='screen') warning('Font specification may fail',
-				' if saving as PDF from onscreen plot window menu. To ',
-				'ensure PDF font fidelity, run plot.vowels() with ',
-				'output="pdf".')
-	}
 	if(pretty) {
 		xticks <- prettyticks(args$xlim)
 		yticks <- prettyticks(args$ylim)
@@ -403,7 +409,9 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	# RESET GRAPHICAL PARAMETERS
 	#par(op)
 	# RESET FONT HANDLING FOR WINDOWS
-	if (is.win && output %in% output.raster) windowsFonts(sans=oldFont)
+	#if (is.win && 'family' %in% names(par.args) && output %in% output.raster) {
+	#	windowsFonts(sans=oldFont)
+	#}
 }
 
 
