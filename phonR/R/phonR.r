@@ -259,7 +259,8 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	d <- data.frame(f2=f2, f1=f1, v=vowel, gf=factor(gf), 
 		m=rep(plot.means, l), color=args$col, style=style.by, 
 		ellipse.col=ellipse.col, hull.col=hull.col, 
-		hull.line.col=hull.line.col)
+		hull.line.col=hull.line.col, pch.means=pch.means,
+		stringsAsFactors=FALSE)
 	if(col.by.vowel) {
 		d$hull.col <- NA
 		d$hull.line.col <- 1		
@@ -281,7 +282,8 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 		 data.frame(f2=mean(i$f2, na.rm=TRUE), 
 		 f1=mean(i$f1, na.rm=TRUE), v=unique(i$v), gf=unique(i$gf), 
 		 m=unique(i$m), color=unique(i$color), style=unique(i$style), 
-		 ellipse.col=unique(i$ellipse.col)))
+		 ellipse.col=unique(i$ellipse.col), pch.means=unique(i$pch.means),
+		 stringsAsFactors=FALSE))
 	m <- do.call(rbind, m)
 	m$gfn <- as.numeric(factor(m$gf))
 	m$mu <- mu
@@ -401,8 +403,12 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	}
 	# PLOT MEANS
 	if(plot.means) {
-		if(is.null(pch.means)) pch.means <- as.numeric(factor(colnames(m)))
-		with(m, points(f2, f1, col=color, pch=pch.means, cex=cex.means))
+		if(is.null(pch.means)) {
+			pch.means <- as.numeric(factor(colnames(m)))
+			with(m, points(f2, f1, col=color, pch=pch.means, cex=cex.means))
+		} else {
+			with(m, text(f2, f1, labels=pch.means, col=color, cex=cex.means))
+		}
 	}
 	# CLOSE FILE DEVICES
 	if(output != 'screen') dev.off()
@@ -443,9 +449,9 @@ ellipse <- function(mu, sigma, alpha=0.05, npoints=250, draw=TRUE, ...) {
 
 
 convexHull <- function(f1, f2, group) {
-	df <- data.frame(f1=f1, f2=f2, g=group)
+	df <- data.frame(f1=f1, f2=f2, g=group, stringsAsFactors=FALSE)
 	bygrouppts <- by(df, df$g, function(x) x[chull(x$f2, x$f1),c('f2','f1')])
-	bygrouparea <- sapply(bygrouppts, function(i) areapl(as.matrix(data.frame(x=i$f2, y=i$f1))))
+	bygrouparea <- sapply(bygrouppts, function(i) areapl(as.matrix(data.frame(x=i$f2, y=i$f1, stringsAsFactors=FALSE))))
 	area <- bygrouparea[df$g]
 	return(area)
 }
