@@ -193,15 +193,17 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	if(is.null(cex.tokens))    cex.tokens <- par('cex')
 	if(is.null(cex.means))      cex.means <- par('cex')
 	# plotting characters
-	if(!('pch' %in% names(args))) {
+	if(!'pch' %in% names(args)) {
 		# TODO: reconcile this with pch.tokens and pch.means
 		# filled / open {circ,tri,squ,diam}, plus, x, inverted open tri
 		if(pretty) args$pch <- rep(c(16,1,17,2,15,0,18,5,3,4,6), 
 							   length.out=l)[style.by]
 		else       args$pch <- style.by
 	}
-	if(is.null(pch.tokens)) pch.tokens <- args$pch
-	if(is.null(pch.means))   pch.means <- args$pch
+	if(is.null(pch.tokens)) pcht <- args$pch
+    else                    pcht <- pch.tokens
+	if(is.null(pch.means))  pchm <- args$pch
+    else                    pchm <- pch.means
 	# linetypes
 	if(!('lty' %in% names(args))) {
 		if(pretty) args$lty <- c('solid', '44', 'F4', '4313',
@@ -259,8 +261,8 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	d <- data.frame(f2=f2, f1=f1, v=vowel, gf=factor(gf), 
 		m=rep(plot.means, l), color=args$col, style=style.by, 
 		ellipse.col=ellipse.col, hull.col=hull.col, 
-		hull.line.col=hull.line.col, pch.means=pch.means,
-		stringsAsFactors=FALSE)
+		hull.line.col=hull.line.col, pch.means=pchm,
+        pch.tokens=pcht, stringsAsFactors=FALSE)
 	if(col.by.vowel) {
 		d$hull.col <- NA
 		d$hull.line.col <- 1		
@@ -377,7 +379,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	# # # # # # # # #
 	# PLOT POLYGONS #
 	# # # # # # # # #
-	if(is.character(polygon)) {
+    if(!is.na(polygon[1])) {
 		if(length(polygon) != length(unique(polygon))) warning(
 			'Duplicate entries in "polygon" detected; they will be ignored.')
 		polygon <- unique(as.character(polygon)) # as.character in case factor
@@ -398,8 +400,12 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 	}
 	# PLOT TOKENS
 	if(plot.tokens) {
-		if(is.null(pch.tokens)) pch.tokens <- as.numeric(d$gf)
-		with(d, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens))
+		if(is.null(pch.tokens)) {
+            pch.tokens <- as.numeric(d$pch.tokens)
+    		with(d, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens))
+		} else {
+            with(d, text(f2, f1, labels=pch.tokens, col=color, cex=cex.tokens))
+		}
 	}
 	# PLOT MEANS
 	if(plot.means) {
