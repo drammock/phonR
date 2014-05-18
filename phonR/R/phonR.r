@@ -45,12 +45,12 @@
 # Then call functions as needed
 
 plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
-    polygon=NA, poly.fill=FALSE, 
-    hull.line=NULL, hull.fill=NULL, force.heatmap=FALSE, 
-    force.colmap=NULL, force.res=50, force.method='default',
-    ellipse.line=NULL, ellipse.fill=NULL, ellipse.conf=0.3173, 
     plot.tokens=TRUE, pch.tokens=NULL, cex.tokens=NULL,
     plot.means=FALSE, pch.means=NULL, cex.means=NULL,
+    ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.3173, 
+    hull.line=FALSE, hull.fill=FALSE, hull.col=NULL,
+    poly.order=NA, poly.line=FALSE, poly.fill=FALSE, poly.col=NULL,
+    force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default',
     col.by=NA, style.by=NA, axis.labels=NULL, pretty=FALSE, 
     output='screen', units=NULL, diphthong.line=FALSE, ...) 
 {
@@ -226,40 +226,63 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         }
     }
     # ellipse fill colors
-    if(!(is.null(ellipse.line) && is.null(ellipse.fill))) {
+    if(ellipse.line || ellipse.fill) {
         if(pretty) ellipse.col <- hcl(hue, chr, lum, alpha=0.3)
         else       ellipse.col <- rep('#00000099', num.col)
     } else {
         ellipse.col <- NA
     }
     ellipse.col <- ellipse.col[col.by]
-    # hull fill colors
-    if(!is.null(hull.fill) && !col.by.vowel) {
-        if(pretty) hull.col <- hcl(hue, chr, lum, alpha=0.3)[col.by]
-        else {
-            hull.col <- rep(palette(), length.out=max(args$col))[args$col]
-            hull.col <- t(sapply(hull.col, col2rgb, alpha=TRUE))
-            hull.col[,4] <- 153
-            hull.col <- rgb(hull.col[,1], hull.col[,2], hull.col[,3], 
-                            hull.col[,4], maxColorValue=255)
+    # hull colors
+    if(is.null(hull.col)) {
+        if(hull.fill && !col.by.vowel) {
+            if(pretty) hull.col <- hcl(hue, chr, lum, alpha=0.3)[col.by]
+            else {
+                hull.col <- rep(palette(), length.out=max(args$col))[args$col]
+                hull.col <- t(sapply(hull.col, col2rgb, alpha=TRUE))
+                hull.col[,4] <- 153
+                hull.col <- rgb(hull.col[,1], hull.col[,2], hull.col[,3], 
+                                hull.col[,4], maxColorValue=255)
+            }
+        } else {
+            hull.col <- NA[col.by]
         }
-    } else {
-        hull.col <- NA[col.by]
+        if(hull.line) {
+            if(col.by.vowel) hull.line.col <- rep(1, num.col)
+            else if(pretty)  hull.line.col <- hcl(hue, chr, lum, alpha=1)[col.by]
+            else             hull.line.col <- args$col
+        } else {
+            hull.line.col <- NA[col.by]
+        }
     }
-    # hull line colors
-    if(!is.null(hull.line)) {
-        if(col.by.vowel) hull.line.col <- rep(1, num.col)
-        else if(pretty)  hull.line.col <- hcl(hue, chr, lum, alpha=1)[col.by]
-        else             hull.line.col <- args$col
-    } else {
-        hull.line.col <- NA[col.by]
+    # polygon colors
+    if(is.null(poly.col)) {
+        if(poly.fill && !col.by.vowel) {
+            if(pretty) poly.col <- hcl(hue, chr, lum, alpha=0.3)[col.by]
+            else {
+                poly.col <- rep(palette(), length.out=max(args$col))[args$col]
+                poly.col <- t(sapply(poly.col, col2rgb, alpha=TRUE))
+                poly.col[,4] <- 153
+                poly.col <- rgb(poly.col[,1], poly.col[,2], poly.col[,3], 
+                                poly.col[,4], maxColorValue=255)
+            }
+        } else {
+            poly.col <- NA[col.by]
+        }
+        if(poly.line) {
+            if(col.by.vowel) poly.line.col <- rep(1, num.col)
+            else if(pretty)  poly.line.col <- hcl(hue, chr, lum, alpha=1)[col.by]
+            else             poly.line.col <- args$col
+        } else {
+            poly.line.col <- NA[col.by]
+        }
     }
     # # # # # # # # # # # # # #
     # COLLECT IMPORTANT STUFF #
     # # # # # # # # # # # # # #
     d <- data.frame(f2=f2, f1=f1, v=vowel, gf=factor(gf), 
         m=rep(plot.means, l), color=args$col, style=style.by, 
-        ellipse.col=ellipse.col, hull.col=hull.col, 
+        ellipse.col=ellipse.col, poly.col=poly.col, hull.col=hull.col, 
         hull.line.col=hull.line.col, pch.means=pchm,
         pch.tokens=pcht, stringsAsFactors=FALSE)
     if(col.by.vowel) {
@@ -280,11 +303,13 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     mu <- do.call(rbind, mu)
     # COLLECT INTO DATAFRAME
     m <- lapply(dd, function(i) if(!(is.null(i))) 
-        data.frame(f2=mean(i$f2, na.rm=TRUE), 
-        f1=mean(i$f1, na.rm=TRUE), v=unique(i$v), gf=unique(i$gf), 
-        m=unique(i$m), color=unique(i$color), style=unique(i$style), 
-        ellipse.col=unique(i$ellipse.col), pch.means=unique(i$pch.means),
-        stringsAsFactors=FALSE))
+        data.frame(f2=mean(i$f2, na.rm=TRUE), f1=mean(i$f1, na.rm=TRUE),
+                   v=unique(i$v), gf=unique(i$gf), m=unique(i$m),
+                   color=unique(i$color), style=unique(i$style),
+                   poly.col=unique(i$poly.col),
+                   ellipse.col=unique(i$ellipse.col), 
+                   pch.means=unique(i$pch.means),
+                   stringsAsFactors=FALSE))
     m <- do.call(rbind, m)
     m$gfn <- as.numeric(factor(m$gf))
     m$mu <- mu
@@ -345,53 +370,64 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # #
     # PLOT HULL #
     # # # # # # #
-    if(!(is.null(hull.fill) && is.null(hull.line))) {
+    if(hull.fill || hull.line) {
         hh <- by(d, d$gf, function(i) i[!is.na(i$f2) & !is.na(i$f1),])
         hulls <- lapply(hh, function(i) with(i, i[chull(f2, f1), 
-                        c('f2', 'f1', 'color', 'hull.col', 
-                        'hull.line.col', 'style')]))
-        if(is.null(hull.line)) lapply(hulls, function(i) with(i, 
-            polygon(cbind(f2, f1), col=hull.col, border=NA)))
-        else if(is.null(hull.fill)) lapply(hulls, function(i) with(i, 
-            polygon(cbind(f2, f1), col=NA, border=hull.line.col, lty=style))) 
-        else lapply(hulls, function(i) with(i, polygon(cbind(f2, f1), 
-            col=hull.col, border=hull.line.col, lty=style)))
+                        c('f2', 'f1', 'color', 'hull.col', 'hull.line.col',
+                          'style')]))
+        if(!hull.line) lapply(hulls, function(i) with(i, polygon(cbind(f2, f1),
+                                                      col=hull.col, border=NA)))
+        else if(!hull.fill) lapply(hulls, function(i) with(i, polygon(cbind(f2, f1),
+                                                           border=hull.line.col,
+                                                           col=NA, lty=style))) 
+        else lapply(hulls, function(i) with(i, polygon(cbind(f2, f1), col=hull.col, 
+                                            border=hull.line.col, lty=style)))
     }
     # # # # # # # # #
     # PLOT ELLIPSES #
     # # # # # # # # #
-    if (!(is.null(ellipse.fill) && is.null(ellipse.line))) {
-        if (is.null(ellipse.line)) lapply(seq_along(ellipse.points), 
-                                function(i) polygon(ellipse.points[[i]], 
-                                col=m$ellipse.col[i], border=NA))
-        else if (is.null(ellipse.fill)) lapply(seq_along(ellipse.points), 
-                                        function(i) polygon(ellipse.points[[i]], 
-                                        col=NA, border=m$color[i], lty=m$style[i]))
+    if (ellipse.fill || ellipse.line) {
+        if (!ellipse.line) lapply(seq_along(ellipse.points), 
+                                  function(i) polygon(ellipse.points[[i]], 
+                                  col=m$ellipse.col[i], border=NA))
+        else if (!ellipse.fill) lapply(seq_along(ellipse.points), 
+                                       function(i) polygon(ellipse.points[[i]], 
+                                       col=NA, border=m$color[i], lty=m$style[i]))
         else lapply(seq_along(ellipse.points), 
-            function(i) polygon(ellipse.points[[i]], 
-            col=m$ellipse.col[i], border=m$color[i], lty=m$style[i]))
+                    function(i) polygon(ellipse.points[[i]], 
+                    col=m$ellipse.col[i], border=m$color[i], lty=m$style[i]))
     }
     # # # # # # # # #
     # PLOT POLYGONS #
     # # # # # # # # #
-    if(!is.na(polygon[1])) {
-        if(length(polygon) != length(unique(polygon))) warning(
+    if(!is.na(poly.order[1]) && (poly.fill || poly.line)) {
+        if(length(poly.order) != length(unique(poly.order))) warning(
             'Duplicate entries in "polygon" detected; they will be ignored.')
-        polygon <- unique(as.character(polygon)) # as.character in case factor
+        poly.order <- unique(as.character(poly.order)) # as.character in case factor
         v <- unique(as.character(m$v))
-        if (length(setdiff(polygon, v)) > 0) {
+        if (length(setdiff(poly.order, v)) > 0) {
             warning('There are vowels in "polygon" that are not in ',
                     '"vowel"; they will be ignored.')
-            polygon <- intersect(polygon, v)
+            poly.order <- intersect(poly.order, v)
         }
-        n <- m
-        if(col.by.vowel) n$color <- par('fg')
-        n$v <- factor(n$v, levels=polygon)
-        n <- n[order(n$v),]
-        n <- split(n, n$gf)
-        invisible(lapply(n, function(i) with(i[i$v %in% polygon,], 
-                  points(f2, f1, col=color, type='c', 
-                  cex=1.25*cex.means, lty=style))))
+        pp <- m
+        if(col.by.vowel) pp$color <- par('fg')
+        pp$v <- factor(pp$v, levels=poly.order)
+        pp <- pp[order(pp$v),]
+        pp <- split(pp, pp$gf)
+        if(poly.fill) {
+            bigenough <- sapply(pp, function(i) nrow(i) > 2)
+            lapply(pp[bigenough], function(i) with(i, polygon(cbind(f2, f1), col=poly.col, border=NA)))
+        }
+        if(poly.line) {
+            if(plot.means) type <- 'c'
+            else type <- 'l'
+            bigenough <- sapply(pp, function(i) nrow(i) > 1)
+            invisible(lapply(pp[bigenough], function(i) with(i[i$v %in% poly.order,],
+                                                             points(f2, f1, col=color,
+                                                                    type=type, lty=style,
+                                                                    cex=1.25*cex.means))))
+        }
     }
     # # # # # # # #
     # PLOT TOKENS #
