@@ -57,26 +57,24 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # # # #
     # DIPHTHONG HANDLING  #
     # # # # # # # # # # # #
-    # XXX TODO
-    # support for diphthongs
-    # XXX TODO
     if(is.vector(f1) && is.vector(f2)) {
-        polyphthong <- FALSE
+        diphthong <- FALSE
     } else if(length(dim(f1)) == 1 && length(dim(f2)) == 1) {
         f1 <- as.vector(f1)
         f2 <- as.vector(f2)
-        polyphthong <- FALSE
+        diphthong <- FALSE
     } else {
         if(!all(dim(f1) == dim(f2))) stop('Unequal dimensions for "f1" and "f2".')
         else if(length(dim(f1)) > 2) stop('Argument "f1" has more than two dimensions.')
         else if(length(dim(f2)) > 2) stop('Argument "f2" has more than two dimensions.')
         else if(length(vowel) != dim(f1)[1]) stop('First axis of "f1" does not equal length of "vowel".')
-        polyphthong <- TRUE
+        diphthong <- TRUE
     }
-    if(!polyphthong) {
+    if(!diphthong) {
         if(length(f2) != length(f1)) stop('Unequal dimensions for "f1" and "f2".')
         else if(length(vowel) != length(f1)) stop('Unequal dimensions for "f1" and "vowel".')
     } else {
+        timepts <- ncol(f2d)
         f1d <- f1
         f2d <- f2
         f1 <- f1d[,1]
@@ -128,28 +126,25 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # # #
     args <- list(...)
     font.specified <- 'family' %in% names(args)
+    # args only settable by direct par() call (not via plot(), etc)
+    # not strictly true for "family" or "las" but works better this way
+    par.only <- c("ask", "fig", "fin", "las", "lheight", "mai", "mar",
+                  "mex", "mfcol", "mfrow", "mfg", "new", "oma", "omd", "omi",
+                  "pin", "plt", "ps", "pty", "usr", "xlog", "ylog", "ylbias")
     if(output == 'screen') {
-        # args only settable by direct par() call (not via plot(), etc)
-        # not strictly true for "family" but works better this way
-        par.only <- c("ask", "fig", "fin", "lheight", "mai", "mar",
-            "mex", "mfcol", "mfrow", "mfg", "new", "oma", "omd", "omi",
-            "pin", "plt", "ps", "pty", "usr", "xlog", "ylog", "ylbias",
-            "family")
+        par.only <- append(par.only, "family")
     } else {
-        par.only <- c("ask", "fig", "fin", "lheight", "mai", "mar",
-            "mex", "mfcol", "mfrow", "mfg", "new", "oma", "omd", "omi",
-            "pin", "plt", "ps", "pty", "usr", "xlog", "ylog", "ylbias")
-        file.only <- c("filename", "width", "height", "units",
-            "pointsize", "res", "quality", "compression", "family")
+        file.only <- c("filename", "width", "height", "units", "pointsize", 
+                       "res", "quality", "compression", "family")
         file.args <- args[names(args) %in% file.only]
         args <- args[!(names(args) %in% file.only)]
     }
     par.args <- args[names(args) %in% par.only]
     args <- args[!(names(args) %in% par.only)]
     # LET USERS OVERRIDE "PRETTY" SETTINGS
-    pretty.par <- list(mar=c(1,1,4,4))
+    pretty.par <- list(mar=c(1,1,4,5), las=1)
     pretty.par[names(par.args)] <- par.args
-    pretty.args <- list(mgp=c(2,0.5,0), las=1, xaxs='i', yaxs='i',
+    pretty.args <- list(mgp=c(2,0.5,0), xaxs='i', yaxs='i',
                 ann=FALSE, fg=hcl(0,0,40), tcl=-0.25, xpd=NA)
     pretty.args[names(args)] <- args
     # OUTPUT DEVICES
@@ -280,11 +275,26 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # # # # # #
     # COLLECT IMPORTANT STUFF #
     # # # # # # # # # # # # # #
-    d <- data.frame(f2=f2, f1=f1, v=vowel, gf=factor(gf),
-        m=rep(plot.means, l), color=args$col, style=style.by,
-        ellipse.col=ellipse.col, poly.col=poly.col, hull.col=hull.col,
-        hull.line.col=hull.line.col, pch.means=pchm,
-        pch.tokens=pcht, stringsAsFactors=FALSE)
+    d <- data.frame(v=vowel, gf=factor(gf), m=rep(plot.means, l), 
+                    color=args$col, style=style.by, ellipse.col=ellipse.col, 
+                    poly.col=poly.col, hull.col=hull.col, 
+                    hull.line.col=hull.line.col, pch.means=pchm,
+                    pch.tokens=pcht, stringsAsFactors=FALSE)
+    if(diphthong) {
+        e <- d
+        d$f2 <- f2d[,1]
+        d$f1 <- f1d[,1]
+        d$t <- 1
+        for(i in 2:timepts) {
+            e$f2 <- f2d[,i]
+            e$f1 <- f1d[,i]
+            e$t <- i
+            d <- do.call(rbind, list(d, e))
+        }
+    } else {
+        d$f2 <- f2
+        d$f1 <- f1
+    }
     if(col.by.vowel) {
         d$hull.col <- NA
         d$hull.line.col <- 1
@@ -297,19 +307,22 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         list(cov(cbind(f2, f1)))))
     s <- do.call(rbind, s)
     # CALCULATE VOWEL MEANS
-    mu <- lapply(dd, function(i) if(!(is.null(i)))
-        with(i[!(is.na(i$f2)) && !(is.na(i$f1)),],
-        list(colMeans(cbind(f2, f1)))))
+    mu <- lapply(dd, function(i) { if(!(is.null(i))) {
+            with(i[!(is.na(i$f2)) && !(is.na(i$f1)),], list(colMeans(cbind(f2, f1))))
+        }})
     mu <- do.call(rbind, mu)
     # COLLECT INTO DATAFRAME
     m <- lapply(dd, function(i) if(!(is.null(i)))
-        data.frame(f2=mean(i$f2, na.rm=TRUE), f1=mean(i$f1, na.rm=TRUE),
-                v=unique(i$v), gf=unique(i$gf), m=unique(i$m),
-                color=unique(i$color), style=unique(i$style),
-                poly.col=unique(i$poly.col),
-                ellipse.col=unique(i$ellipse.col),
-                pch.means=unique(i$pch.means),
-                stringsAsFactors=FALSE))
+        data.frame(f2=mean(i$f2, na.rm=TRUE), f1=mean(i$f1, na.rm=TRUE), 
+                   v=unique(i$v), gf=unique(i$gf), m=unique(i$m), 
+                   #color=ifelse(length(unique(i$color)) > 1, par('fg'), unique(i$color)), 
+                   #style=ifelse(length(unique(i$style)) > 1, 1, unique(i$style)), 
+                   #poly.col=ifelse(length(unique(i$poly.col)) > 1, par('fg'), unique(i$poly.col)), 
+                   #ellipse.col=ifelse(length(unique(i$ellipse.col)) > 1, par('fg'), unique(i$ellipse.col)), 
+                   #pch.means=ifelse(length(unique(i$pch.means)) > 1, par('pch'), unique(i$pch.means)), 
+                   color=i$color[1], style=i$style[1], poly.col=i$poly.col[1],
+                   ellipse.col=i$ellipse.col[1], pch.means=i$pch.means[1],
+                   stringsAsFactors=FALSE))
     m <- do.call(rbind, m)
     m$gfn <- as.numeric(factor(m$gf))
     m$mu <- mu
@@ -354,8 +367,8 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
                                         par('usr')[4]), labels=FALSE,
                                         col=par('fg'), tcl=0)
         # AXIS LABELS
-        mtext(axis.labels[1], side=3, line=2, col=par('fg'))
-        mtext(axis.labels[2], side=4, line=2.5, col=par('fg'), las=3)
+        mtext(axis.labels[1], side=3, line=2, col=par('fg'), las=pretty.par$las)
+        mtext(axis.labels[2], side=4, line=3, col=par('fg'), las=pretty.par$las)
     } else {
         do.call(plot, as.list(c(list(0, 0, type='n', ann=FALSE), args)))
     }
@@ -423,21 +436,39 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
             if(plot.means) type <- 'c'
             else type <- 'l'
             bigenough <- sapply(pp, function(i) nrow(i) > 1)
-            invisible(lapply(pp[bigenough], function(i) with(i[i$v %in% poly.order,],
-                                                            points(f2, f1, col=color,
-                                                                    type=type, lty=style,
-                                                                    cex=1.25*cex.means))))
+            invisible(lapply(pp[bigenough], function(i) {
+                with(i[i$v %in% poly.order,], points(f2, f1, col=color,
+                                                     type=type, lty=style,
+                                                     cex=1.25*cex.means))
+                }))
         }
     }
     # # # # # # # #
     # PLOT TOKENS #
     # # # # # # # #
     if(plot.tokens) {
-        if(is.null(pch.tokens)) {
-            pch.tokens <- as.numeric(d$pch.tokens)
-            with(d, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens))
+        if(diphthong) {
+            d <- d[order(d$gf, d$v, d$t),]
+            #dsp <- split(d, d[c('gf', 'v')])
+            # TODO: figure out how to split by token across timepoints
+            if(is.null(pch.tokens)) {
+                pch.tokens <- as.numeric(d$pch.tokens)
+                #invisible(lapply(dsp, function(i) {
+                    with(d, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens, type="o"))
+                #}))
+            } else {
+                #invisible(lapply(dsp, function(i) {
+                    #with(i, points(f2, f1, col=color, type="c", cex=1.25*cex.tokens))
+                    with(d, text(f2, f1, labels=pch.tokens, col=color, cex=cex.tokens))
+                #}))
+            }
         } else {
-            with(d, text(f2, f1, labels=pch.tokens, col=color, cex=cex.tokens))
+            if(is.null(pch.tokens)) {
+                pch.tokens <- as.numeric(d$pch.tokens)
+                with(d, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens))
+            } else {
+                with(d, text(f2, f1, labels=pch.tokens, col=color, cex=cex.tokens))
+            }
         }
     }
     # # # # # # # #
@@ -475,6 +506,7 @@ prettyticks <- function(lim) {
 
 
 ellipse <- function(mu, sigma, alpha=0.05, npoints=250, draw=TRUE, ...) {
+    # adapted from the (now-defunct) mixtools package
     es <- eigen(sigma)
     e1 <- es$vec %*% diag(sqrt(es$val))
     r1 <- sqrt(qchisq(1-alpha, 2))

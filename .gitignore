@@ -10,3 +10,4 @@ futureFunctionality
 *.log
 *.gz
 *.Rhistory
+.Rproj.user
