@@ -52,7 +52,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     poly.order=NA, poly.line=FALSE, poly.fill=FALSE, poly.col=NULL,
     force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default',
     col.by=NA, style.by=NA, axis.labels=NULL, pretty=FALSE,
-    output='screen', units=NULL, diphthong.line=FALSE, ...)
+    diphthong.smooth=FALSE, output='screen', units=NULL, ...)
 {
     # # # # # # # # # # # #
     # DIPHTHONG HANDLING  #
@@ -75,6 +75,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         else if(length(vowel) != length(f1)) stop('Unequal dimensions for "f1" and "vowel".')
     } else {
         timepts <- ncol(f2d)
+        tokens <- nrow(f2d)
         f1d <- f1
         f2d <- f2
         f1 <- f1d[,1]
@@ -189,7 +190,6 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     if(is.null(cex.means))      cex.means <- par('cex')
     # plotting characters
     if(!'pch' %in% names(args)) {
-        # TODO: reconcile this with pch.tokens and pch.means
         # filled / open {circ,tri,squ,diam}, plus, x, inverted open tri
         if(pretty) args$pch <- rep(c(16,1,17,2,15,0,18,5,3,4,6),
                             length.out=l)[style.by]
@@ -279,7 +279,8 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
                     color=args$col, style=style.by, ellipse.col=ellipse.col, 
                     poly.col=poly.col, hull.col=hull.col, 
                     hull.line.col=hull.line.col, pch.means=pchm,
-                    pch.tokens=pcht, stringsAsFactors=FALSE)
+                    pch.tokens=pcht, tokenid=1:length(vowel),
+                    stringsAsFactors=FALSE)
     if(diphthong) {
         e <- d
         d$f2 <- f2d[,1]
@@ -448,19 +449,34 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # #
     if(plot.tokens) {
         if(diphthong) {
-            d <- d[order(d$gf, d$v, d$t),]
-            #dsp <- split(d, d[c('gf', 'v')])
-            # TODO: figure out how to split by token across timepoints
+            d <- d[order(d$tokenid, d$t),]
+            dsp <- split(d, d$tokenid)
             if(is.null(pch.tokens)) {
                 pch.tokens <- as.numeric(d$pch.tokens)
-                #invisible(lapply(dsp, function(i) {
-                    with(d, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens, type="o"))
-                #}))
+                #with(d, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens, type="o"))
+                if(diphthong.smooth && timepts > 3) {
+                    invisible(lapply(dsp, function(i) {
+                        pc <- prcomp(i[c("f2", "f1")], center=TRUE, scale.=FALSE)
+                        ss <- smooth.spline(pc$x)
+                        ssi <- as.matrix(as.data.frame(predict(ss))) %*% solve(pc$rotation) + pc$center
+                        ssi[1,] <- unlist(i[1, c("f2", "f1")])
+                        ssi[nrow(ssi),] <- unlist(i[nrow(i), c("f2", "f1")])
+                        lines(ssi, col=i$color)
+                    }))
+                } else {
+                    if(diphthong.smooth) {
+                        warning("Cannot smooth diphthong traces with fewer than 4 timepoints.",
+                                "Plotting connecting segments.")
+                    }
+                    invisible(lapply(dsp, function(i) {
+                        with(i, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens, type="o"))
+                    }))
+                }
             } else {
-                #invisible(lapply(dsp, function(i) {
-                    #with(i, points(f2, f1, col=color, type="c", cex=1.25*cex.tokens))
-                    with(d, text(f2, f1, labels=pch.tokens, col=color, cex=cex.tokens))
-                #}))
+                invisible(lapply(dsp, function(i) {
+                    with(i, points(f2, f1, col=color, type="c", cex=1.25*cex.tokens))
+                    #with(d, text(f2, f1, labels=pch.tokens, col=color, cex=cex.tokens))
+                }))
             }
         } else {
             if(is.null(pch.tokens)) {
