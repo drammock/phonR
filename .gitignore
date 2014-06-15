@@ -1,0 +1,13 @@
+# Directories
+phonR.Rcheck
+oldVersions
+futureFunctionality
+
+# Files
+*.aux
+*.bbl
+*.blg
+*.log
+*.gz
+*.Rhistory
+.Rproj.user
