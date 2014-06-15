@@ -52,7 +52,8 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     poly.order=NA, poly.line=FALSE, poly.fill=FALSE, poly.col=NULL,
     force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default',
     col.by=NA, style.by=NA, axis.labels=NULL, pretty=FALSE,
-    diphthong.smooth=FALSE, output='screen', units=NULL, ...)
+    diphthong.smooth=FALSE, diphthong.arrows=FALSE,
+    output='screen', units=NULL, ...)
 {
     # # # # # # # # # # # #
     # DIPHTHONG HANDLING  #
@@ -132,6 +133,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     par.only <- c("ask", "fig", "fin", "las", "lheight", "mai", "mar",
                   "mex", "mfcol", "mfrow", "mfg", "new", "oma", "omd", "omi",
                   "pin", "plt", "ps", "pty", "usr", "xlog", "ylog", "ylbias")
+    arrow.only <- c("length", "angle", "code")
     if(output == 'screen') {
         par.only <- append(par.only, "family")
     } else {
@@ -141,13 +143,18 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         args <- args[!(names(args) %in% file.only)]
     }
     par.args <- args[names(args) %in% par.only]
-    args <- args[!(names(args) %in% par.only)]
-    # LET USERS OVERRIDE "PRETTY" SETTINGS
+    arrow.args <- args[names(args) %in% arrow.only]
+    args <- args[!(names(args) %in% par.only) & !(names(args) %in% arrow.only)]
+    # DEFAULTS FOR "PRETTY"
     pretty.par <- list(mar=c(1,1,4,5), las=1)
-    pretty.par[names(par.args)] <- par.args
     pretty.args <- list(mgp=c(2,0.5,0), xaxs='i', yaxs='i',
                 ann=FALSE, fg=hcl(0,0,40), tcl=-0.25, xpd=NA)
+    pretty.arrow <- list(length=0.1, angle=20)
+    # LET USERS OVERRIDE "PRETTY" SETTINGS
+    pretty.par[names(par.args)] <- par.args
     pretty.args[names(args)] <- args
+    pretty.arrow[names(arrow.args)] <- arrow.args
+    if(pretty)  arrow.args <- pretty.arrow
     # OUTPUT DEVICES
     if(output=='pdf')  do.call(cairo_pdf, file.args)
     else if(output=='svg') do.call(svg, file.args)
@@ -456,12 +463,43 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
                 #with(d, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens, type="o"))
                 if(diphthong.smooth && timepts > 3) {
                     invisible(lapply(dsp, function(i) {
-                        pc <- prcomp(i[c("f2", "f1")], center=TRUE, scale.=FALSE)
-                        ss <- smooth.spline(pc$x)
-                        ssi <- as.matrix(as.data.frame(predict(ss))) %*% solve(pc$rotation) + pc$center
-                        ssi[1,] <- unlist(i[1, c("f2", "f1")])
-                        ssi[nrow(ssi),] <- unlist(i[nrow(i), c("f2", "f1")])
-                        lines(ssi, col=i$color)
+                        steep <- abs(lm(f1~f2)$coefficients['f2']) > 1
+                        if(steep)  pc <- prcomp(i[c("f1", "f2")], center=FALSE, scale.=FALSE)
+                        else       pc <- prcomp(i[c("f2", "f1")], center=FALSE, scale.=FALSE)
+                        tryCatch({
+                            ss <- smooth.spline(pc$x)
+                            ssi <- as.matrix(as.data.frame(predict(ss))) %*% solve(pc$rotation) #* pc$scale + pc$center
+                            if(steep)  ssi <- ssi[,2:1]
+                            #ssi[1,] <- unlist(i[1, c("f2", "f1")])
+                            #ssi[nrow(ssi),] <- unlist(i[nrow(i), c("f2", "f1")])
+                            if(diphthong.arrows) {
+                                end <- nrow(ssi)
+                                lines(ssi[1:end-1,], col=i$color)
+                                with(as.data.frame(ssi),
+                                     do.call(arrows, c(list(x0=f2[end-1], y0=f1[end-1],
+                                                            x1=f2[end], y1=f1[end],
+                                                            col=i$color), arrow.args)))
+                            } else {
+                                lines(ssi, col=i$color)
+                            }
+                        }, 
+                        error=function(e){
+                            message("warning: could not plot smoother for ",
+                                    "diphthong. Plotting connecting segments instead.")
+                            message(paste(e, ""))
+                            if(diphthong.arrows) {
+                                end <- nrow(i)
+                                with(i, points(f2[1:end-1], f1[1:end-1], col=color, 
+                                               pch=pch.tokens, cex=cex.tokens, type="o"))
+                                with(i, do.call(arrows, c(list(x0=f2[end-1], y0=f1[end-1],
+                                                               x1=f2[end], y1=f1[end],
+                                                               col=color), arrow.args)))
+                            } else {
+                                with(i, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens, type="o"))
+                            }
+                        }, 
+                        warning=function(w) message(w), finally={}
+                        )
                     }))
                 } else {
                     if(diphthong.smooth) {
@@ -469,7 +507,17 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
                                 "Plotting connecting segments.")
                     }
                     invisible(lapply(dsp, function(i) {
-                        with(i, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens, type="o"))
+                        if(diphthong.arrows) {
+                            end <- nrow(i)
+                            with(i, points(f2[1:end-1], f1[1:end-1], col=color, 
+                                           pch=pch.tokens, cex=cex.tokens, type="o"))
+                            with(i, do.call(arrows, c(list(x0=f2[end-1], y0=f1[end-1],
+                                                           x1=f2[end], y1=f1[end],
+                                                           col=color), arrow.args)))
+                        } else {
+                            with(i, points(f2, f1, col=color, pch=pch.tokens, 
+                                           cex=cex.tokens, type="o"))
+                        }
                     }))
                 }
             } else {
