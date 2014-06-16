@@ -53,7 +53,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default',
     col.by=NA, style.by=NA, axis.labels=NULL, pretty=FALSE,
     diphthong.smooth=FALSE, diphthong.arrows=FALSE,
-    output='screen', units=NULL, ...)
+    output='screen', units=NULL, color.palette=NULL, fill.opacity=0.3, ...)
 {
     # # # # # # # # # # # #
     # DIPHTHONG HANDLING  #
@@ -216,42 +216,56 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     }
     # colors
     if(!('col' %in% names(args))) {
-        if(pretty) {
-            # if no colors specified, use equally spaced HCL values
-            # [-1] avoids duplicate hues 0 and 360
-            hue <- seq(0,360,length.out=1+num.col)[-1]
-            chr <- seq(60,100,length.out=num.col)
-            lum <- seq(60,40,length.out=num.col)
-            args$col <- hcl(hue, chr, lum, alpha=1)[col.by]
-        } else {
-            args$col <- col.by
+        if(is.null(color.palette)) {
+            if(pretty) {
+                # if no colors specified, use equally spaced HCL values
+                # [-1] avoids duplicate hues 0 and 360
+                hue <- seq(0,360,length.out=1+num.col)[-1]
+                chr <- seq(60,100,length.out=num.col)
+                lum <- seq(60,40,length.out=num.col)
+                col.pal <- hcl(hue, chr, lum, alpha=1)
+                #args$col <- hcl(hue, chr, lum, alpha=1)[col.by]
+            } else {
+                col.pal <- palette()
+                #args$col <- col.by  # will use default palette
+            }
+        } else {  # !is.null(color.palette)
+            col.pal <- color.palette
         }
+        args$col <- col.pal[col.by]
+        # handle transparency
+        col.pal.trans <- t(col2rgb(col.pal, alpha=TRUE))
+        col.pal.trans[,4] <- 255 - round(255 * fill.opacity)
+        colnames(col.pal.trans) <- c("red", "green", "blue", "alpha")
+        col.pal.trans <- do.call(rgb, c(as.data.frame(col.pal.trans), maxColorValue=255))
     }
     # ellipse fill colors
     if(ellipse.line || ellipse.fill) {
-        if(pretty) ellipse.col <- hcl(hue, chr, lum, alpha=0.3)
-        else       ellipse.col <- rep('#00000099', num.col)
+        ellipse.col <- col.pal.trans[col.by]
+        #if(pretty) ellipse.col <- hcl(hue, chr, lum, alpha=0.3)
+        #else       ellipse.col <- rep('#00000099', num.col)
     } else {
-        ellipse.col <- NA
+        ellipse.col <- NA[col.by]
     }
-    ellipse.col <- ellipse.col[col.by]
+    #ellipse.col <- ellipse.col[col.by]
     # hull colors
     if(is.null(hull.col)) {
         if(hull.fill && !col.by.vowel) {
-            if(pretty) hull.col <- hcl(hue, chr, lum, alpha=0.3)[col.by]
-            else {
-                hull.col <- rep(palette(), length.out=max(args$col))[args$col]
-                hull.col <- t(sapply(hull.col, col2rgb, alpha=TRUE))
-                hull.col[,4] <- 153
-                hull.col <- rgb(hull.col[,1], hull.col[,2], hull.col[,3],
-                                hull.col[,4], maxColorValue=255)
-            }
+            hull.col <- col.pal.trans[col.by]
+            #if(pretty) hull.col <- hcl(hue, chr, lum, alpha=0.3)[col.by]
+            #else {
+            #    hull.col <- rep(col.pal, length.out=max(args$col))[args$col]
+            #    hull.col <- t(sapply(hull.col, col2rgb, alpha=TRUE))
+            #    hull.col[,4] <- 153
+            #    hull.col <- rgb(hull.col[,1], hull.col[,2], hull.col[,3],
+            #                    hull.col[,4], maxColorValue=255)
+            #}
         } else {
             hull.col <- NA[col.by]
         }
         if(hull.line) {
             if(col.by.vowel) hull.line.col <- rep(1, num.col)
-            else if(pretty)  hull.line.col <- hcl(hue, chr, lum, alpha=1)[col.by]
+            #else if(pretty)  hull.line.col <- hcl(hue, chr, lum, alpha=1)[col.by]
             else             hull.line.col <- args$col
         } else {
             hull.line.col <- NA[col.by]
@@ -260,20 +274,21 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     # polygon colors
     if(is.null(poly.col)) {
         if(poly.fill && !col.by.vowel) {
-            if(pretty) poly.col <- hcl(hue, chr, lum, alpha=0.3)[col.by]
-            else {
-                poly.col <- rep(palette(), length.out=max(args$col))[args$col]
-                poly.col <- t(sapply(poly.col, col2rgb, alpha=TRUE))
-                poly.col[,4] <- 153
-                poly.col <- rgb(poly.col[,1], poly.col[,2], poly.col[,3],
-                                poly.col[,4], maxColorValue=255)
-            }
+            poly.col <- col.pal.trans[col.by]
+            #if(pretty) poly.col <- hcl(hue, chr, lum, alpha=0.3)[col.by]
+            #else {
+            #    poly.col <- rep(col.pal, length.out=max(args$col))[args$col]
+            #    poly.col <- t(sapply(poly.col, col2rgb, alpha=TRUE))
+            #    poly.col[,4] <- 153
+            #    poly.col <- rgb(poly.col[,1], poly.col[,2], poly.col[,3],
+            #                    poly.col[,4], maxColorValue=255)
+            #}
         } else {
             poly.col <- NA[col.by]
         }
         if(poly.line) {
             if(col.by.vowel) poly.line.col <- rep(1, num.col)
-            else if(pretty)  poly.line.col <- hcl(hue, chr, lum, alpha=1)[col.by]
+            #else if(pretty)  poly.line.col <- hcl(hue, chr, lum, alpha=1)[col.by]
             else             poly.line.col <- args$col
         } else {
             poly.line.col <- NA[col.by]
