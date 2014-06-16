@@ -1,72 +1,65 @@
 \name{plotVowels}
 \alias{plotVowels}
-\title{Plot F1 and F2 values from separate vectors or from a data frame}
-\description{Generates high-quality plots of provided formant values using either the default onscreen device (X11, Quartz, or Win32) or direct-to-file using R base graphics functions (PDF, SVG, JPG, PNG, TIFF, or BMP). Can also normalize values on-the-fly before plotting, through a call to \code{normalizeVowels}.}
+\title{Plot F1 and F2 values}
+\description{Generates high-quality plots of provided formant values using either the default onscreen device (X11, Quartz, or Win32) or direct-to-file using R base graphics functions (PDF, SVG, JPG, PNG, TIFF, or BMP).}
 \usage{
-	plotVowels(data=NULL, vowel=NULL, f1=NULL, f2=NULL, f3=NULL, f0=NULL, 
-	grouping.factor=NULL, norm.method='none', match.unit=TRUE, 
-	match.axes='absolute', points='text', means='text', points.label='auto',
-	points.alpha=0.5, means.alpha=1, points.cex=0.6, means.cex=1.2, 
-	ignore.hidden=TRUE, ellipses=TRUE, ellipse.alpha=0.3173, polygon=TRUE, 
-	poly.order=NULL, single.plot=TRUE, titles='auto', axis.titles='auto', 
-	axis.cex=0.8, garnish.col='#666666FF', grayscale=FALSE, colors=NULL, 
-	shapes=NULL, lines=NULL, vary.colors=!grayscale, vary.shapes=grayscale, 
-	vary.lines=grayscale, legend=single.plot, output='screen', family='',
-	pointsize=12, units='in', width=6.5, height=6.5, res=72, asp=NULL,
-	point.arrows=TRUE, mean.arrows=TRUE, arrowhead.length=0.05, 
-	arrowhead.angle=30, point.arrow.width=1, mean.arrow.width=1.5)
+    plotVowels(f1, f2, vowel=NULL, group=NULL, plot.tokens=TRUE,
+    pch.tokens=NULL, cex.tokens=NULL, plot.means=FALSE, pch.means=NULL, 
+    cex.means=NULL, ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.3173,
+    hull.line=FALSE, hull.fill=FALSE, hull.col=NULL, poly.order=NA,
+    poly.line=FALSE, poly.fill=FALSE, poly.col=NULL, force.heatmap=FALSE,
+    force.colmap=NULL, force.res=50, force.method='default', col.by=NA, 
+    style.by=NA, axis.labels=NULL, pretty=FALSE, diphthong.smooth=FALSE, 
+    diphthong.arrows=FALSE, output='screen', units=NULL)
 }
 \arguments{
-    \item{data}{Optional data frame containing the values to be plotted.  If \code{data} is specified, the values of \code{f0}, \code{f1}, \code{f2}, \code{f3}, \code{vowel}, and \code{grouping.factor} should be enclosed in quotes and should reference column names in \code{data}.  Currently it is not possible to plot diphthongs when using the \code{data} argument.}
-    \item{vowel}{Vector (or column name in \code{data}) of vowel symbols. If \code{data} is specified and \code{vowel} is NULL, it looks for a column in \code{data} called \dQuote{vowel}. If \code{data} and \code{vowel} are both NULL, it looks for an object named vowel.}
-    \item{f1}{Vector (or column name in \code{data}) of F1 values. If \code{data} is specified and \code{f1} is NULL, it looks for a column in \code{data} called \dQuote{f1}. If \code{data} and \code{f1} are both NULL, it looks for an object named f1. For diphthong plotting, \code{f1} should be an n-by-2 matrix of values, with the first column being the onset or nucleus value, and the second column being the offset or offglide value.}
-    \item{f2}{Vector (or column name in \code{data}) of F2 values. If \code{data} is specified and \code{f2} is NULL, it looks for a column in \code{data} called \dQuote{f2}. If \code{data} and \code{f2} are both NULL, it looks for an object named f2. For diphthong plotting, \code{f2} should be an n-by-2 matrix of values, with the first column being the onset or nucleus value, and the second column being the offset or offglide value.}
-    \item{f3}{Vector (or column name in \code{data}) of F3 values (required for normalization method \dQuote{nearey2}).}
-    \item{f0}{Vector (or column name in \code{data}) of f0 values (required for normalization method \dQuote{nearey2}).}
-    \item{grouping.factor}{Vector (or column from \code{data}) of grouping factor values. Allows for plotting data by color/shape/linestyle (if \code{single.plot} is TRUE), or separating to individual plots (if \code{single.plot} is FALSE).}
-    \item{norm.method}{Normalization method to use to transform data before plotting.  Possible values are \dQuote{none}, \dQuote{bark}, \dQuote{mel}, \dQuote{erb}, \dQuote{log}, \dQuote{z}|\dQuote{zscore}|\dQuote{ztransform}|\dQuote{lobanov}, \dQuote{logmean}|\dQuote{nearey1}, \dQuote{nearey2}, \dQuote{s}|\dQuote{scentroid}|\dQuote{wattfabricius}.}
-    \item{match.unit}{If TRUE (and \code{norm.method} is not \dQuote{none}), axis tickmarks will be in the normalized unit. If FALSE (and \code{norm.method} is not \dQuote{none}), axis tickmark values will be in Hertz, with tickmark locations scaled according to the chosen normalization method.}
-    \item{match.axes}{If \dQuote{absolute}, all plots have same bounds. If \dQuote{relative}, all plots span the same range, but may have different endpoints. If \dQuote{none}, extrema are calculated separately for each plot.  Ignored (coerced to \dQuote{absolute}) if \code{single.plot} is TRUE.}
-    \item{points}{If \dQuote{text}, plots vowel tokens with the character string given in \code{vowel}. If \dQuote{shape}, plots vowel tokens as geometric shapes.  If \dQuote{none}, omits plotting the vowel tokens.}
-    \item{means}{If \dQuote{text}, plots vowel means with the character string given in \code{vowel}. If \dQuote{shape}, plots vowel means as geometric shapes.  If \dQuote{none}, omits plotting the vowel means.}
-    \item{points.label}{Optional specification of alternate labels to use for vowel tokens.  Default value of \dQuote{auto} will label vowel tokens using the data in \code{vowel}.  Ignored unless \code{points="text"}.}
-    \item{points.alpha}{Opacity of individual vowel points (permissible values between 0 and 1 inclusive.)}
-    \item{means.alpha}{Opacity of vowel means (permissible values between 0 and 1 inclusive.)}
-    \item{points.cex}{Size of individual vowel points relative to \code{pointsize}.}
-    \item{means.cex}{Size of vowel means relative to \code{pointsize}.}
-    \item{ignore.hidden}{If TRUE and if \code{points} is \dQuote{none}, plotting dimensions are calculated based only on means, (or ellipses, if present).}
-    \item{ellipses}{If TRUE, plot an ellipse around each vowel mean tracing an equidensity contour of the bivariate normal distribution.}
-    \item{ellipse.alpha}{Size of the ellipse [0,1] expressed as an alpha-level (i.e., 0.05 gives a 95\% confidence ellipse).  Defaults to alpha level of 0.3173 (an ellipse encompassing 68.27\% of the data points, equivalent to plus-or-minus 1 standard deviation).  Note that because this is an alpha level, HIGHER numbers give SMALLER ellipses.}
-    \item{polygon}{If TRUE, draw a series of line segments connecting the vowel means, in the order given by \code{poly.order}.}
-    \item{poly.order}{Vector of strings determining the order in which connecting lines are drawn for the vowel polygon. Values should match the levels of the factor \code{vowel}.  If there are values of \code{vowel} not included in \code{poly.order}, they will not be connected to the polygon line.}
-    \item{single.plot}{If TRUE, plot each value of the grouping factor on the same graph.  If FALSE and \code{output} is \dQuote{screen}, result is an on-screen lattice plot.  If FALSE and \code{output} is \dQuote{pdf} or \dQuote{jpg}, result is a collection of separate PDF or JPG files (one per level of \code{grouping.factor}).}
-    \item{titles}{If \dQuote{auto}, will auto-generate titles based on \code{grouping.factor}.  If \dQuote{none}, titles are omitted.  Also accepts a single string (all titles will be the same), or a vector of strings that matches the number of levels in \code{grouping.factor}.}
-    \item{axis.titles}{If \dQuote{auto}, will auto-generate axis labels based on \code{norm.method}.  Also accepts a two-element vector of strings (useful for cases where the F1 and F2 values passed to the function have already been normalized).  Order of elements is F2 (horizontal) label before F1 (vertical) label.}
-	\item{axis.cex}{Size of the axis numbers relative to \code{pointsize}.}
-    \item{garnish.col}{Color for the axis lines, ticks, numbers, and labels.}
-    \item{grayscale}{If TRUE, plot without color. Note that if \code{vary.colors==FALSE} and \code{colors} is unspecified, plots will be colorless even when \code{grayscale==FALSE} (because the default color in such cases is black).}
-    \item{colors}{Vector of color values to use when plotting; recycled as necessary. Overrides the \code{grayscale} argument.  If unspecified and \code{vary.colors==TRUE}, defaults to equally spaced gray values between 0 (black) and 80 (light gray) when \code{grayscale==TRUE}; otherwise defaults to equally spaced hues in \code{hcl} space, with chroma fixed at 100 and luminance fixed at 35.}
-	\item{shapes}{Vector of strings or \code{pch} codes to use when plotting vowel points (if \code{points=='shape'}); recycled as necessary. If \code{vary.shapes==FALSE}, defaults to filled circles. If \code{vary.shapes==TRUE}, defaults to \code{c(16,1,17,2,15,0,18,5,3,4,6)}, i.e., filled circle, open circle, filled triangle, open triangle, filled square, open square, filled diamond, open diamond, plus, X, inverted triangle.}
-	\item{lines}{Vector of linetype codes (or strings that define custom linetypes) to use when plotting ellipses and polygons; recycled as necessary. If \code{vary.lines==FALSE}, defaults to solid lines. If \code{vary.lines==TRUE}, defaults to \code{c('44', 'F4', '4313', 'F3131313', '23F3', '232923', '23258385', '282823B3', '13', '82', 'solid')}.}
-	\item{vary.colors}{If TRUE, vary token and mean colors by group. Ignored if \code{colors} is specified in the function call.}    
-    \item{vary.shapes}{If TRUE, vary token and mean shapes by group (when either \code{points} or \code{means} has the value \dQuote{shape}).  Defaults to same value as \code{grayscale}.  Ignored if \code{shapes} is specified in the function call.}
-    \item{vary.lines}{If TRUE, vary line style by group (when \code{ellipses} or \code{polygon} are TRUE).  Defaults to same value as \code{grayscale}.  Ignored if \code{lines} is specified in the function call.}
-    \item{legend}{If TRUE, prints a legend in the lower left corner of the graph. Also accepts the standard keyword values for the base graphics \code{legend()} command (\dQuote{top}, \dQuote{topright}, \dQuote{right}, \dQuote{bottomright}, \dQuote{bottom}, \dQuote{bottomleft}, \dQuote{left}, \dQuote{topleft}, \dQuote{center}).}
-    \item{output}{Possible values are \dQuote{screen}, \dQuote{pdf}, \dQuote{svg}, \dQuote{jpg}, \dQuote{tif}, \dQuote{png}, \dQuote{bmp}.}
-    \item{family}{Character string indicating the name of the font family to use for all text in the plot. If \code{points='text'} or \code{means='text'} and \code{vowels} includes non-ASCII unicode IPA symbols, be sure to specify a font that has glyphs at those codepoints. Note that font specification may fail if plotting to screen and then saving as PDF or Postscript from the onscreen plot window menu. To ensure PDF font fidelity, run plotVowels() with \code{output='pdf'} instead.}
-    \item{pointsize}{Base size of font used for plotting.}
+    \item{f1}{Vector or matrix of F1 values. To plot multiple timepoints for each vowel, \code{f1} should be a matrix with vowel tokens varying along the rows and timepoints varying across the columns.}
+    \item{f2}{Vector or matrix of F2 values. To plot multiple timepoints for each vowel, \code{f1} should be an N-by-M matrix with vowel tokens varying along the rows and timepoints varying across the columns.}
+    \item{vowel}{Vector of vowel symbols/labels.}
+    \item{group}{Vector or factor that determines the groups used in calculating vowel means, e.g., a factor indicating \dQuote{gender}, \dQuote{speaker}, \dQuote{sociolinguistic register}, etc.}
+    \item{plot.tokens}{Logical; should individual vowel tokens be plotted?}
+    \item{pch.tokens}{Vector of strings or integers; the symbol(s) to use when plotting vowel tokens.}
+    \item{cex.tokens}{Numeric; size of individual vowel points relative to \code{par("cex")}.}
+    \item{plot.means}{Logical; should individual vowel tokens be plotted?}
+    \item{pch.means}{Vector of strings or integers; the symbol(s) to use when plotting vowel means.}
+    \item{cex.means}{Size of vowel means relative to \code{par("cex")}.}
+    \item{ellipse.line}{Logical; should vowel density ellipses be drawn with an outer line?}
+    \item{ellipse.fill}{Logical; should vowel density ellipses be filled?}
+    \item{ellipse.conf}{Size of the ellipse (0,1] expressed as an alpha-level (i.e., 0.05 gives a 95\% confidence ellipse).  Defaults to alpha level of 0.3173 (an ellipse encompassing 68.27\% of the data points, equivalent to plus-or-minus 1 sample standard deviation). Note that because this is an alpha level, HIGHER numbers give SMALLER ellipses.}
+    \item{hull.line}{Logical; should the convex hull encompassing all tokens be drawn with an outer line?}
+    \item{hull.fill}{Logical; should the convex hull encompassing all tokens be filled?}
+    \item{hull.col}{Vector of colors to use when drawing the convex hulls. If \code{NULL}, defaults to the values in \code{palette()} at 40\% alpha, or if \code{pretty==TRUE}, to equally-spaced HCL values at 30\% alpha.}
+    \item{poly.order}{Vector of strings determining the order in which connecting lines are drawn for the vowel means polygon. Values should match the levels of \code{factor(vowel)}.  If there are values of \code{vowel} not included in \code{poly.order}, they will not be connected to the polygon line.}
+    \item{poly.line}{Logical; should the vowel means polygon be drawn with an outer line?}
+    \item{poly.fill}{Logical; should the vowel means polygon be filled?}
+    \item{poly.col}{Vector of colors to use when drawing the vowel means polygons. If \code{NULL}, defaults to the values in \code{color.palette} at the opacity set by \code{fill.opacity}.}
+    \item{force.heatmap}{Logical; should a repulsive force heatmap be drawn?}
+    \item{force.colmap}{Colormap to use when drawing the heatmap (see \code{\link{plotrix::color.scale()}}.}
+    \item{force.res}{Resolution to use when drawing the heatmap. Warning: high values of \code{force.res} can take a long time to calculate and plot. See \code{\link{force.heatmap}} for details.}
+    \item{force.method}{String; method to use when assigning colors to the heatmap. The value of \dQuote{default} assigns each grid point a vowel identity based on its nearest neighbor and assigns a color value based on the repulsive force that would exist for that vowel at that location (if it had been in the dataset). The only other accepted value is \dQuote{pineda}, which uses Juan Pineda's triangle filling algorithm; this is considered experimental and not supported.}
+    \item{col.by}{}
+    \item{style.by}{}
+    \item{axis.labels}{}
+    \item{pretty}{Logical; a switch that sets various graphical parameters: \code{mar}, \code{las}, \code{mgp}, \code{ann}, \code{xpd}, \code{fg}, and \code{tcl}, as well as arrow parameters \code{length} and \code{angle} and \code{plotVowels}-specific parameters such as \code{color.palette}. It is permissible to set \code{pretty=TRUE} and also pass any of these parameters to \code{plotVowels} to override the \code{pretty} defaults.}
+    \item{diphthong.smooth}{Logical; should a smoothing spline be drawn for each vowel instead of segments connecting individual timepoints?}
+    \item{diphthong.arrows}{Logical; should the last timepoint of each vowel be marked with an arrowhead?}
+    \item{output}{Graphical device to plot to. Supported values are \dQuote{screen}, \dQuote{pdf}, \dQuote{svg}, \dQuote{jpg}, \dQuote{tif}, \dQuote{png}, \dQuote{bmp}.}
     \item{units}{Unit of plot dimensions: \dQuote{in}, \dQuote{cm}, \dQuote{mm}, or \dQuote{px}.  Ignored when \code{output} is \dQuote{screen}.}
-    \item{width}{Width of the plot.  Ignored when \code{output} is \dQuote{screen}.}
-    \item{height}{Height of the plot.  Ignored when \code{output} is \dQuote{screen}.}
-    \item{res}{Resolution of output in dots-per-inch. Ignored for screen or vector output formats (pdf, svg), defaults to 72dpi for raster formats.}
-    \item{asp}{Aspect ratio for plot area. Default is NULL, which changes the aspect ratio to maximize use of the available plot area; if specified, must be a positive numeric value.}
-    \item{point.arrows}{If TRUE (and if plotting diphthongs), arrows will be drawn from points defined by the first columns of \code{f2} and \code{f1} to the points defined by the second columns in \code{f2} and \code{f1}.}
-    \item{mean.arrows}{If TRUE (and if plotting diphthongs), arrows will be drawn from the means defined by the first columns of \code{f2} and \code{f1} to the means defined by the second columns in \code{f2} and \code{f1}.}
-    \item{arrowhead.length}{Length (in inches) of the arrowhead lines.  Defaults to 0.05in.}
-    \item{arrowhead.angle}{Angle (in degrees) of the arrowhead lines. Defaults to 30 degrees.}
-    \item{point.arrow.width}{Line width of the arrows drawn for individual vowel tokens (when plotting diphthongs). Defaults to 1 point.}
-    \item{mean.arrow.width}{Line width of the arrows drawn for vowel means (when plotting diphthongs). Defaults to 1.5 points.}
-}
+    \item{color.palette}{Color palette to use for plotting. If \code{NULL}, defaults to \code{palette()} (unless \code{pretty==TRUE}, in which case defaults to equally spaced HCL hues).}
+    \item{fill.opacity}{Numeric in the range [0,1], indicating the opacity of color fills for ellipses, vowel means polygons, and convex hulls (if drawn).}
+    \item{...}{Other graphical parameters passed to methods; e.g., \code{width}, \code{height}, \code{asp}, \code{res}, etc.}
+    
+    
+    
+
+
+    \item{grayscale}{If TRUE, plot without color. Note that if \code{vary.colors==FALSE} and \code{colors} is unspecified, plots will be colorless even when \code{grayscale==FALSE} (because the default color in such cases is black).}
+
+    \item{legend}{If TRUE, prints a legend in the lower left corner of the graph. Also accepts the standard keyword values for the base graphics \code{legend()} command (\dQuote{top}, \dQuote{topright}, \dQuote{right}, \dQuote{bottomright}, \dQuote{bottom}, \dQuote{bottomleft}, \dQuote{left}, \dQuote{topleft}, \dQuote{center}).}
+
+    \item{pointsize}{Base size of font used for plotting.}
+
+
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
 \references{
 McCloy, D. R. 2012 \dQuote{Normalizing and plotting vowels with the phonR package.} \emph{Technical Reports of the UW Linguistic Phonetics Laboratory}. \url{http://depts.washington.edu/phonlab/pubs/McCloy2012_phonR.pdf}
