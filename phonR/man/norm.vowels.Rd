@@ -1,19 +1,17 @@
-\name{normalizeVowels}
-\alias{normalizeVowels}
+\name{norm.vowels}
 \title{Normalize formant values using a variety of algorithms}
-\description{Transforms vowel formant data measured in Hertz using one of several normalization schemes commonly used in phonetic and sociolinguistic research. Returns an n-by-m matrix of n data points by m formants in ascending order, with fundamental frequency first (if present), except for method \dQuote{wattfabricius} which only and always returns F1 and F2, regardless of whether f0 and F3 were supplied.}
+\description{Convenience function wrapping to the individual \code{norm.[method]} functions. Transforms vowel formant data measured in Hertz using one of several normalization schemes commonly used in phonetic and sociolinguistic research. Returns an n-by-m matrix of n data points by m formants in ascending order, with fundamental frequency first (if present), except for method \dQuote{wattfabricius} which only and always returns F1 and F2, regardless of whether f0 and F3 were supplied.}
 \usage{
-normalizeVowels(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
-vowel=NULL, grouping.factor=NULL)
+    norm.vowels(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NULL, group=NULL)
+
 }
-\arguments{
-    \item{method}{Normalization method to use.  Possible values are \dQuote{none}, \dQuote{bark}, \dQuote{mel}, \dQuote{erb}, \dQuote{log}, \dQuote{z}|\dQuote{zscore}|\dQuote{ztransform}|\dQuote{lobanov}, \dQuote{logmean}|\dQuote{nearey1}, \dQuote{nearey2}, \dQuote{s}|\dQuote{scentroid}|\dQuote{wattfabricius}.}
-    \item{f0}{Vector of f0 (fundamental frequency) values. Required for method \dQuote{nearey2}.}
-    \item{f1}{Vector of F1 (first formant) values. Required for methods \dQuote{nearey2}, \dQuote{wattfabricius}.}
-    \item{f2}{Vector of F2 (second formant) values. Required for methods \dQuote{nearey2}, \dQuote{wattfabricius}.}
-    \item{f3}{Vector of F3 (third formant) values. Required for method \dQuote{nearey2}.}
+    \item{method}{Normalization method to use.  Possible values are \dQuote{bark}, \dQuote{mel}, \dQuote{erb}, \dQuote{log}, \dQuote{z}|\dQuote{zscore}|\dQuote{ztransform}|\dQuote{lobanov}, \dQuote{logmean}|\dQuote{nearey1}, \dQuote{nearey2}, \dQuote{s}|\dQuote{scentroid}|\dQuote{wattfabricius}.}
+    \item{f0}{Vector of f0 (fundamental frequency) values. Required for method \dQuote{nearey}.}
+    \item{f1}{Vector of F1 (first formant) values.}
+    \item{f2}{Vector of F2 (second formant) values.}
+    \item{f3}{Vector of F3 (third formant) values. Required for method \dQuote{nearey}.}
     \item{vowel}{Vector of vowel symbols. Required for method \dQuote{wattfabricius}, ignored for all other methods.}
-    \item{grouping.factor}{Vector of grouping factor values. If supplied, used to calculate group-intrinsic normalizations for methods \dQuote{lobanov}, \dQuote{nearey1}, \dQuote{nearey2}, and \dQuote{wattfabricius}.}
+    \item{group}{Vector of grouping factor values. If supplied, used to calculate group-intrinsic normalizations for methods \dQuote{lobanov}, \dQuote{logmean}, \dQuote{nearey}, and \dQuote{wattfabricius}.}
 }
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
 \references{
@@ -33,11 +31,10 @@ Watt, D., & Fabricius, A. H. 2002 \dQuote{Evaluation of a technique for improvin
 
 Zwicker, E., & Terhardt, E. 1980 \dQuote{Analytical expressions for critical-band rate and critical bandwidth as a function of frequency.} \emph{The Journal of the Acoustical Society of America}, 68(5), 1523-1525. \url{http://dx.doi.org/10.1121/1.385079}
 }
-\seealso{\code{\link{plotVowels}}}
+\seealso{\code{\link{norm.bark}}, \code{\link{norm.log}}, \code{\link{norm.mel}}, \code{\link{norm.erb}}, \code{\link{norm.lobanov}}, \code{\link{norm.logmean}}, \code{\link{norm.nearey}}, \code{\link{norm.wattfabricius}}}
 \examples{
-	data(indoVowelData)
-	bark <- normalizeVowels('bark', f1=indo$f1, f2=indo$f2)
-	wattfab <- normalizeVowels('wattfabricius', f1=indo$f1, f2=indo$f2, 
-	           vowel=indo$vowel, grouping.factor=indo$subj)
+    data(indoVowelData)
+	bark <- with(indo, norm.vowels('bark', f1=f1, f2=f2)
+	wattfab <- with(indo, norm.vowels('wattfabricius', f1=f1, f2=f2, vowel=vowel, group=subj)
 }
 \keyword{methods}

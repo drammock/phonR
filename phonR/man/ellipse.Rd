@@ -2,8 +2,7 @@
 \title{Draw Two-Dimensional Ellipse Based on Mean and Covariance}
 \alias{ellipse}
 \usage{
-ellipse(mu, sigma, alpha = .05, npoints = 250, newplot = FALSE,
-        draw = TRUE, ...)
+ellipse(mu, sigma, alpha=0.05, npoints=250, draw=TRUE, ...)
 }
 
 \description{
@@ -19,9 +18,6 @@ Ryan Elmore, Tom Hettmansperger, David Hunter, Hoben Thomas, and Fengjuan Xuan.
   \item{alpha}{Probability to be excluded from the ellipse. The
 default value is alpha = .05, which results in a 95\% ellipse.}
   \item{npoints}{Number of points comprising the border of the ellipse.}
-  \item{newplot}{If newplot = TRUE and draw = TRUE, plot the ellipse on a new
-plot.  If newplot = FALSE and draw = TRUE, add the ellipse to an
-existing plot.}
   \item{draw}{If TRUE, draw the ellipse.}
   \item{...}{Graphical parameters passed to \code{lines} or \code{plot}
 command.} 
@@ -31,17 +27,16 @@ command.}
 border of the ellipse.
 }
 \references{
-  Johnson, R. A. and Wichern, D. W. (2002) \emph{Applied Multivariate Statistical Analysis, Fifth Edition},
-  Prentice Hall.
+  Johnson, R. A. and Wichern, D. W. (2002) \emph{Applied Multivariate Statistical Analysis, Fifth Edition}, Prentice Hall.
 }
 \examples{
 ## Produce a 95\% ellipse with the specified mean and covariance structure. 
 
 mu <- c(1, 3)
 sigma <- matrix(c(1, .3, .3, 1.5), 2, 2)
+pts <- ellipse(mu, sigma, npoints=200, draw=FALSE)
+plot(pts)
 
-ellipse(mu, sigma, npoints = 200, newplot = TRUE)
- 
 }
 
 \keyword{file}

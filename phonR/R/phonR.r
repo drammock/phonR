@@ -230,12 +230,14 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
                 #args$col <- col.by  # will use default palette
             }
         } else {  # !is.null(color.palette)
+            # TODO: check for length of col.by vs length of color.palette,
+            # throw warning if color.palette too short.
             col.pal <- color.palette
         }
         args$col <- col.pal[col.by]
         # handle transparency
         col.pal.trans <- t(col2rgb(col.pal, alpha=TRUE))
-        col.pal.trans[,4] <- 255 - round(255 * fill.opacity)
+        col.pal.trans[,4] <- round(255 * fill.opacity)
         colnames(col.pal.trans) <- c("red", "green", "blue", "alpha")
         col.pal.trans <- do.call(rgb, c(as.data.frame(col.pal.trans), maxColorValue=255))
     }
@@ -399,9 +401,10 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     # PLOT HEATMAP  #
     # # # # # # # # #
     if(force.heatmap) {
-        force <- with(d, repulsive.force(f2, f1, v))
-        with(d, force.heatmap(f2, f1, force, vowel=v, resolution=force.res,
-                            colormap=force.colmap, method=force.method, add=TRUE))
+        force <- with(d, repulsiveForce(f2, f1, v))
+        with(d, repulsiveForceHeatmap(f2, f1, force, vowel=v, resolution=force.res,
+                                      colormap=force.colmap, method=force.method, 
+                                      add=TRUE))
     }
     # # # # # # #
     # PLOT HULL #
@@ -600,19 +603,22 @@ ellipse <- function(mu, sigma, alpha=0.05, npoints=250, draw=TRUE, ...) {
 }
 
 
-convexHull <- function(f1, f2, group) {
-    df <- data.frame(f1=f1, f2=f2, g=group, stringsAsFactors=FALSE)
-    bygrouppts <- by(df, df$g, function(x) x[chull(x$f2, x$f1),c('f2','f1')])
-    bygrouparea <- sapply(bygrouppts, function(i) areapl(as.matrix(data.frame(x=i$f2, y=i$f1, stringsAsFactors=FALSE))))
-    area <- bygrouparea[df$g]
-    return(area)
+convexHullArea <- function(x, y, group=NULL) {
+    require(splancs)
+    if(is.null(group))  group <- "all.points"
+    df <- data.frame(x=x, y=y, g=group, stringsAsFactors=FALSE)
+    bygrouppts <- by(df, df$g, function(i) i[chull(i$x, i$y),c('x','y')])
+    bygrouparea <- sapply(bygrouppts, function(i) {
+        areapl(as.matrix(data.frame(x=i$x, y=i$y, stringsAsFactors=FALSE)))
+        })
 }
 
 
-repulsive.force <- function(f2, f1, vowel) {
-    dmat <- as.matrix(dist(cbind(f2,f1)))
-    force <- sapply(seq_along(vowel),
-            function(i) sum(1/dmat[i, !(vowel %in% vowel[i])]^2))
+repulsiveForce <- function(x, y, type) {
+    dmat <- as.matrix(dist(cbind(x, y)))
+    force <- sapply(seq_along(type), function(i) {
+        sum(1 / dmat[i, !(type %in% type[i])] ^ 2)
+        })
 }
 
 
@@ -769,7 +775,7 @@ fill.triangle <- function(x, y, vertices) {
 }
 
 
-force.heatmap <- function(f2, f1, z, vowel=NULL, resolution=50,
+repulsiveForceHeatmap <- function(f2, f1, z, vowel=NULL, resolution=50,
                         colormap=NULL, method='default', add=TRUE, ...) {
     require(splancs)  # provides inpip()
     require(deldir)   # provides deldir() and triMat()
@@ -824,7 +830,7 @@ force.heatmap <- function(f2, f1, z, vowel=NULL, resolution=50,
 }	}
 
 
-vowelHeatmapLegend <- function (x, y, smoothness=50, alpha=1, colormap=NULL, lend=2, lwd=6, ...) {
+forceHeatmapLegend <- function (x, y, smoothness=50, alpha=1, colormap=NULL, lend=2, lwd=6, ...) {
     require(plotrix)
     if(is.null(colormap)) {  # default to grayscale
         colormap <- color.scale(x=0:100, cs1=0, cs2=0, cs3=c(0,100), alpha=1, color.spec='hcl')

@@ -37,9 +37,9 @@
     \item{force.colmap}{Colormap to use when drawing the heatmap (see \code{\link{plotrix::color.scale()}}.}
     \item{force.res}{Resolution to use when drawing the heatmap. Warning: high values of \code{force.res} can take a long time to calculate and plot. See \code{\link{force.heatmap}} for details.}
     \item{force.method}{String; method to use when assigning colors to the heatmap. The value of \dQuote{default} assigns each grid point a vowel identity based on its nearest neighbor and assigns a color value based on the repulsive force that would exist for that vowel at that location (if it had been in the dataset). The only other accepted value is \dQuote{pineda}, which uses Juan Pineda's triangle filling algorithm; this is considered experimental and not supported.}
-    \item{col.by}{}
-    \item{style.by}{}
-    \item{axis.labels}{}
+    \item{col.by}{Vector or factor indicating the dimension along which to vary color.}
+    \item{style.by}{Vector or factor indicating the dimension along which to vary linetype and plotting symbol.}
+    \item{axis.labels}{Two-element character vector of axis labels. If \code{NULL}, will default to \code{c("F2", "F1")}}
     \item{pretty}{Logical; a switch that sets various graphical parameters: \code{mar}, \code{las}, \code{mgp}, \code{ann}, \code{xpd}, \code{fg}, and \code{tcl}, as well as arrow parameters \code{length} and \code{angle} and \code{plotVowels}-specific parameters such as \code{color.palette}. It is permissible to set \code{pretty=TRUE} and also pass any of these parameters to \code{plotVowels} to override the \code{pretty} defaults.}
     \item{diphthong.smooth}{Logical; should a smoothing spline be drawn for each vowel instead of segments connecting individual timepoints?}
     \item{diphthong.arrows}{Logical; should the last timepoint of each vowel be marked with an arrowhead?}
@@ -48,16 +48,8 @@
     \item{color.palette}{Color palette to use for plotting. If \code{NULL}, defaults to \code{palette()} (unless \code{pretty==TRUE}, in which case defaults to equally spaced HCL hues).}
     \item{fill.opacity}{Numeric in the range [0,1], indicating the opacity of color fills for ellipses, vowel means polygons, and convex hulls (if drawn).}
     \item{...}{Other graphical parameters passed to methods; e.g., \code{width}, \code{height}, \code{asp}, \code{res}, etc.}
-    
-    
-    
-
-
-    \item{grayscale}{If TRUE, plot without color. Note that if \code{vary.colors==FALSE} and \code{colors} is unspecified, plots will be colorless even when \code{grayscale==FALSE} (because the default color in such cases is black).}
-
-    \item{legend}{If TRUE, prints a legend in the lower left corner of the graph. Also accepts the standard keyword values for the base graphics \code{legend()} command (\dQuote{top}, \dQuote{topright}, \dQuote{right}, \dQuote{bottomright}, \dQuote{bottom}, \dQuote{bottomleft}, \dQuote{left}, \dQuote{topleft}, \dQuote{center}).}
-
-    \item{pointsize}{Base size of font used for plotting.}
+    \item{legend}{If \code{TRUE}, prints a legend in the lower left corner of the graph. Also accepts the standard keyword values for the base graphics \code{legend()} command (\dQuote{top}, \dQuote{topright}, \dQuote{right}, \dQuote{bottomright}, \dQuote{bottom}, \dQuote{bottomleft}, \dQuote{left}, \dQuote{topleft}, \dQuote{center}).}
+}
 
 
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
