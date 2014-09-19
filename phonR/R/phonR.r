@@ -1,4 +1,4 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # phonR version 1.0-0-git
 # Functions for phoneticians and phonologists using R
 # AUTHOR: Daniel McCloy, drmccloy@uw.edu
@@ -36,7 +36,7 @@
 # Enhancements: support for custom axis titles (to accommodate pre-
 # normalized values), point and mean sizes, and fonts. Custom line types
 # added (11 total now).
-# # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # USAGE: source("phonR.r")
 # --or-- from command line (replace Xs with version number):
@@ -51,10 +51,22 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     hull.line=FALSE, hull.fill=FALSE, hull.col=NULL,
     poly.order=NA, poly.line=FALSE, poly.fill=FALSE, poly.col=NULL,
     force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default',
-    col.by=NA, style.by=NA, axis.labels=NULL, pretty=FALSE,
+    force.legend=NULL, force.labels=NULL, force.label.pos=c(1, 3), 
+    col.by=NA, style.by=NA, axis.labels=NULL, 
     diphthong.smooth=FALSE, diphthong.arrows=FALSE,
-    output='screen', units=NULL, color.palette=NULL, fill.opacity=0.3, ...)
+    pretty=FALSE, output='screen', units=NULL, color.palette=NULL,
+    fill.opacity=0.3, legend.kwd=NULL, ...)
 {
+    # # # # # # # # # # #
+    # LEGEND KWD CHECK  #
+    # # # # # # # # # # #
+    legend.kwds <- c("left", "right", "top", "bottom", "center", "topleft",
+                     "topright", "bottomleft", "bottomright")
+    if(!is.null(legend.kwd)) {
+        if(!legend.kwd %in% legend.kwds) {
+        warning(paste(c("legend.kwd must be one of '", 
+                        paste(legend.kwds, collapse="', '"), "'."), collapse=""))
+    }   }
     # # # # # # # # # # # #
     # DIPHTHONG HANDLING  #
     # # # # # # # # # # # #
@@ -230,8 +242,9 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
                 #args$col <- col.by  # will use default palette
             }
         } else {  # !is.null(color.palette)
-            # TODO: check for length of col.by vs length of color.palette,
-            # throw warning if color.palette too short.
+            if(num.col > length(color.palette)) warning("Color palette has ",
+                                                        "fewer values than data; ",
+                                                        "colors will be recycled.")
             col.pal <- color.palette
         }
         args$col <- col.pal[col.by]
@@ -289,9 +302,9 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
             poly.col <- NA[col.by]
         }
         if(poly.line) {
-            if(col.by.vowel) poly.line.col <- rep(1, num.col)
+            if(col.by.vowel) poly.line.col <- rep(par("fg"), num.col)
             #else if(pretty)  poly.line.col <- hcl(hue, chr, lum, alpha=1)[col.by]
-            else             poly.line.col <- args$col
+            else             poly.line.col <- args$col[col.by]
         } else {
             poly.line.col <- NA[col.by]
         }
@@ -401,10 +414,26 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     # PLOT HEATMAP  #
     # # # # # # # # #
     if(force.heatmap) {
+        if(pretty & is.null(force.colmap)) {
+            force.colmap <- color.scale(x=0:100, cs1=c(0, 180), cs2=100,
+                                        cs3=c(25, 100), alpha=0.5,
+                                        color.spec='hcl')
+        }
         force <- with(d, repulsiveForce(f2, f1, v))
         with(d, repulsiveForceHeatmap(f2, f1, force, vowel=v, resolution=force.res,
                                       colormap=force.colmap, method=force.method, 
                                       add=TRUE))
+        if(is.null(force.legend)) {
+            xl <- rep(args$xlim[1], 2)
+            yl <- args$ylim - c(0, diff(args$ylim) / 2)
+        } else if(!is.na(force.legend)) {
+            xl <- force.legend[1:2]
+            yl <- force.legend[3:4]
+        }
+        forceHeatmapLegend(xl, yl, colormap=force.colmap)
+        if(!is.null(force.labels)) {
+            text(xl, yl, labels=force.labels, pos=force.label.pos, xpd=TRUE)
+        }
     }
     # # # # # # #
     # PLOT HULL #
@@ -450,7 +479,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
             poly.order <- intersect(poly.order, v)
         }
         pp <- m
-        if(col.by.vowel) pp$color <- par('fg')
+        #if(col.by.vowel) pp$color <- par('fg')
         pp$v <- factor(pp$v, levels=poly.order)
         pp <- pp[order(pp$v),]
         pp <- split(pp, pp$gf)
@@ -463,7 +492,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
             else type <- 'l'
             bigenough <- sapply(pp, function(i) nrow(i) > 1)
             invisible(lapply(pp[bigenough], function(i) {
-                with(i[i$v %in% poly.order,], points(f2, f1, col=color,
+                with(i[i$v %in% poly.order,], points(f2, f1, col=poly.line.col,
                                                      type=type, lty=style,
                                                      cex=1.25*cex.means))
                 }))
@@ -564,8 +593,37 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
             with(m, text(f2, f1, labels=pch.means, col=color, cex=cex.means))
         }
     }
+    # # # # # #
+    # LEGEND  #
+    # # # # # #    
+    if(!is.null(legend.kwd)) {
+        if(col.by.vowel)  legend.text <- unique(m$v)
+        else              legend.text <- unique(m$gf)
+        legend.args <- list(legend.kwd, legend=legend.text, bty="n", seg.len=1)
+        # legend lines
+        if(hull.line | poly.line | ellipse.line) {
+            legend.args <- append(legend.args, list(lty=unique(m$style),
+                                                    pch=unique(m$pch.means),
+                                                    col=unique(m$color)))
+        } 
+        # legend boxes
+        if(hull.fill | poly.fill | ellipse.fill) {
+            if(!is.na(m$ellipse.col[1]))    legend.fill <- unique(m$ellipse.col)
+            else if (!is.na(m$poly.col[1])) legend.fill <- unique(m$poly.col)
+            else legend.fill <- unique(hull.col)
+            legend.args$pch <- 22
+            legend.args <- append(legend.args, list(pt.bg=legend.fill,
+                                                    pt.cex=2.5
+                                                    #fill=legend.fill,
+                                                    #border=unique(m$color)
+                                                    ))
+        } 
+        # draw legend
+        do.call(legend, legend.args)
+    }
+    
     # CLOSE FILE DEVICES
-    if(output != 'screen') dev.off()
+    if(output != "screen") dev.off()
     # RESET GRAPHICAL PARAMETERS
     #par(op)
     # RESET FONT HANDLING FOR WINDOWS
@@ -697,12 +755,11 @@ norm.logmean <- function(f, group=NULL) {
 }	}
 
 
-norm.nearey <- function() {
+norm.nearey <- function(f, group=NULL) {
     f <- as.matrix(f)
     if (ncol(f) != 4) {
         stop('Missing values: normalization method \'nearey2\' ',
-            'requires non-null values for all arguments (f0, f1, f2, ',
-            'and f3).')
+            'requires non-null values for f0, f1, f2, and f3).')
     }
     if (is.null(group)) {
         return(log(f) - sum(colMeans(log(f))))
@@ -830,14 +887,17 @@ repulsiveForceHeatmap <- function(f2, f1, z, vowel=NULL, resolution=50,
 }	}
 
 
-forceHeatmapLegend <- function (x, y, smoothness=50, alpha=1, colormap=NULL, lend=2, lwd=6, ...) {
+forceHeatmapLegend <- function (x, y, smoothness=50, colormap=NULL, lend=2,
+                                lwd=6, ...) {
     require(plotrix)
     if(is.null(colormap)) {  # default to grayscale
-        colormap <- color.scale(x=0:100, cs1=0, cs2=0, cs3=c(0,100), alpha=1, color.spec='hcl')
+        colormap <- color.scale(x=0:100, cs1=0, cs2=0, cs3=c(0,100), 
+                                alpha=1, color.spec='hcl')
     }
     xvals <- seq(x[1], x[2], length.out=smoothness)
     yvals <- seq(y[1], y[2], length.out=smoothness)
-    invisible(color.scale.lines(xvals, yvals, col=colormap, lend=lend, lwd=lwd, ...))
+    invisible(color.scale.lines(xvals, yvals, col=colormap, lend=lend, lwd=lwd,
+                                ...))
 }
 
 
@@ -846,5 +906,4 @@ vowelMeansPolygonArea <- function(f1, f2, vowel, talker) {
     df <- data.frame(f1=f1, f2=f2, v=vowel, t=talker)
     bytalker <- as.table(by(df, df$t, function(x) areapl(cbind(tapply(x$f2, x$v, mean), tapply(x$f1, x$v, mean)))))
     area <- bytalker[df$t]
-    return(area)
 }
