@@ -682,7 +682,7 @@ repulsiveForce <- function(x, y, type) {
 
 # OMNIBUS NORMALIZATION FUNCTION (convenience function)
 norm.vowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
-                    vowel=NULL, group=NULL) {
+                    vowel=NULL, group=NULL, ...) {
     m <- tolower(method)
     methods <- c('bark','mel','log','erb','z','zscore','lobanov',
                 'logmean','nearey1','nearey2','scentroid','s-centroid',
@@ -692,13 +692,13 @@ norm.vowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
                 'z|zscore|lobanov, logmean|nearey1, nearey2, ',
                 's|scentroid|s-centroid|wattfabricius|watt-fabricius.')
     }
-    f <- as.matrix(cbind(f0=f0, f1=f1, f2=f2, f3=f3))
+    f <- cbind(f0=f0, f1=f1, f2=f2, f3=f3)
     if (m %in% 'bark') return(norm.bark(f))
     else if (m %in% 'mel') return(norm.mel(f))
     else if (m %in% 'log') return(norm.log(f))
     else if (m %in% 'erb') return(norm.erb(f))
     else if (m %in% c('z','zscore','lobanov')) return(norm.lobanov(f, group))
-    else if (m %in% c('logmean','nearey1')) return(norm.logmean(f, group))
+    else if (m %in% c('logmean','nearey1')) return(norm.logmean(f, group, ...))
     else if (m %in% c('nearey','nearey2')) return(norm.nearey(f, group))
     else {
         f <- as.matrix(cbind(f1=f1, f2=f2))
@@ -708,96 +708,95 @@ norm.vowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
 
 # INDIVIDUAL NORMALIZATION FUNCTIONS
 norm.bark <- function(f) {
-    f <- as.matrix(f)
     26.81*f/(1960+f)-0.53
 }
 
 
 norm.log <- function(f) {
-    f <- as.matrix(f)
     log10(f)
 }
 
 
 norm.mel <- function(f) {
-    f <- as.matrix(f)
     2595*log10(1+f/700)
 }
 
 
 norm.erb <- function(f) {
-    f <- as.matrix(f)
     21.4*log10(1+0.00437*f)
 }
 
 
 norm.lobanov <- function(f, group=NULL) {
-    f <- as.matrix(f)
     if (is.null(group)) {
-        return(as.matrix(as.data.frame(scale(f))))
+        return(scale(f))
     } else {
+        f <- as.data.frame(f)
         groups <- split(f, group)
         scaled <- lapply(groups, function(x) as.data.frame(scale(x)))
-        return(as.matrix(unsplit(scaled, group)))
+        return(unsplit(scaled, group))
 }	}
 
 
-norm.logmean <- function(f, group=NULL) {
-    f <- as.matrix(f)
+norm.logmean <- function(f, group=NULL, ...) {
     if (is.null(group)) {
-        return(log(f) - rep(colMeans(log(f)), each=nrow(f)))
+        return(log(f) - rep(colMeans(log(f), ...), each=nrow(f)))
     } else {
+        f <- as.data.frame(f)
         groups <- split(f, group)
         logmeans <- lapply(groups,
                     function(x) log(x) - rep(apply(log(x), 2, mean),
                     each=nrow(x)))
-        return(as.matrix(unsplit(logmeans, group)))
+        return(unsplit(logmeans, group))
 }	}
 
 
-norm.nearey <- function(f, group=NULL) {
-    f <- as.matrix(f)
+norm.nearey <- function(f, group=NULL, ...) {
     if (ncol(f) != 4) {
-        stop('Missing values: normalization method \'nearey2\' ',
-            'requires non-null values for f0, f1, f2, and f3).')
+        stop("Missing values: normalization method 'nearey2' ",
+             "requires non-null values for f0, f1, f2, and f3).")
     }
     if (is.null(group)) {
-        return(log(f) - sum(colMeans(log(f))))
+        return(log(f) - sum(colMeans(log(f), ...)))
     } else {
+        f <- as.data.frame(f)
         groups <- split(f, group)
-        logmeans <- lapply(groups, function(x) log(x) - sum(colMeans(log(x))))
-        return(as.matrix(unsplit(logmeans, group)))
+        logmeans <- lapply(groups, function(x) log(x) - sum(colMeans(log(x), ...)))
+        return(unsplit(logmeans, group))
 }	}
 
 
 norm.wattfabricius <- function(f, vowel, group=NULL) {
-    f <- as.matrix(f)
     if (ncol(f) != 2) {
-        warning('Wrong dimensions: s-centroid normalization requires ',
-                'an Nx2 matrix or data frame of F1 and F2 values.')
+        warning("Wrong dimensions: s-centroid normalization requires ",
+                "an Nx2 matrix or data frame of F1 and F2 values.")
     }
     if(is.null(group)) group <- rep('g', nrow(f))
     subsets <- by(f, list(vowel, group), identity)  # 2D list (group x vowel) of lists (f1,f2)
-    means <- matrix(lapply(subsets, colMeans), ncol=ncol(subsets), dimnames=dimnames(subsets))
-    minima <- apply(means, 2, function(i) apply(do.call(rbind,i), 2, min)) # TODO: bug here when using diphthongs
-    maxima <- apply(means, 2, function(i) apply(do.call(rbind,i), 2, max))
+    means <- matrix(sapply(subsets, function(i) ifelse(is.null(i), 
+                                                       data.frame(I(c(f1=NA, f2=NA))), 
+                                                       data.frame(I(colMeans(x))))
+                           ), nrow=nrow(subsets), dimnames=dimnames(subsets))
+    # TODO: check whether this works with diphthongs
+    minima <- apply(means, 2, function(i) data.frame(t(apply(do.call(rbind, i), 2, min, na.rm=TRUE))))
+    maxima <- apply(means, 2, function(i) data.frame(t(apply(do.call(rbind, i), 2, max, na.rm=TRUE))))
     min.id <- apply(means, 2, function(i) apply(do.call(rbind,i), 2, which.min))
     max.id <- apply(means, 2, function(i) apply(do.call(rbind,i), 2, which.max))
     if (length(unique(min.id['f1',]))>1) {
         warning('The vowel with the lowest mean F1 value (usually /i/)',
                 ' does not match across all speakers/groups. You\'ll ',
                 'have to calculate s-centroid manually.')
-        data.frame(minF1=minima['f1',],
+        print(data.frame(minF1=minima['f1',],
                 vowel=dimnames(means)[[1]][min.id['f1',]],
-                group=dimnames(means)[[2]])
+                group=dimnames(means)[[2]]))
         stop()
     } else if (length(unique(max.id['f1',]))>1) {
         warning('The vowel with the highest mean F1 value (usually /a/)',
                 ' does not match across all speakers/groups. You\'ll ',
                 'have to calculate s-centroid manually.')
-        data.frame(maxF1=round(maxima['f1',]),
+        print(data.frame(maxF1=round(maxima['f1',]),
                 vowel=dimnames(means)[[1]][max.id['f1',]],
-                group=dimnames(means)[[2]])
+                group=dimnames(means)[[2]]))
         stop()
     }
     lowvowf2 <- do.call(rbind, means.list[unique(max.id['f1',]),])[,'f2']
@@ -901,7 +900,7 @@ forceHeatmapLegend <- function (x, y, smoothness=50, colormap=NULL, lend=2,
 }
 
 
-# TODO: integrate these four
+# TODO: integrate this
 vowelMeansPolygonArea <- function(f1, f2, vowel, talker) {
     df <- data.frame(f1=f1, f2=f2, v=vowel, t=talker)
     bytalker <- as.table(by(df, df$t, function(x) areapl(cbind(tapply(x$f2, x$v, mean), tapply(x$f1, x$v, mean)))))
