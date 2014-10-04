@@ -87,12 +87,12 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         if(length(f2) != length(f1)) stop('Unequal dimensions for "f1" and "f2".')
         else if(length(vowel) != length(f1)) stop('Unequal dimensions for "f1" and "vowel".')
     } else {
-        timepts <- ncol(f2d)
-        tokens <- nrow(f2d)
         f1d <- f1
         f2d <- f2
         f1 <- f1d[,1]
         f2 <- f2d[,1]
+        timepts <- ncol(f2d)
+        tokens <- nrow(f2d)
     }
     # # # # # # # # # #
     # OUTPUT PARSING  #
