@@ -52,7 +52,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     poly.order=NA, poly.line=FALSE, poly.fill=FALSE, poly.col=NULL,
     force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default',
     force.legend=NULL, force.labels=NULL, force.label.pos=c(1, 3), 
-    col.by=NA, style.by=NA, axis.labels=NULL, 
+    col.by=NA, style.by=NA, axis.labels=NULL, cex.labels=NULL,
     diphthong.smooth=FALSE, diphthong.arrows=FALSE,
     pretty=FALSE, output='screen', units=NULL, color.palette=NULL,
     fill.opacity=0.3, legend.kwd=NULL, ...)
@@ -146,6 +146,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
                   "mex", "mfcol", "mfrow", "mfg", "new", "oma", "omd", "omi",
                   "pin", "plt", "ps", "pty", "usr", "xlog", "ylog", "ylbias")
     arrow.only <- c("length", "angle", "code")
+    mtext.only <- c("cex.labels")
     if(output == 'screen') {
         par.only <- append(par.only, "family")
     } else {
@@ -156,7 +157,9 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     }
     par.args <- args[names(args) %in% par.only]
     arrow.args <- args[names(args) %in% arrow.only]
-    args <- args[!(names(args) %in% par.only) & !(names(args) %in% arrow.only)]
+    mtext.args <- args[names(args) %in% mtext.only]
+    args <- args[!(names(args) %in% par.only) & !(names(args) %in% arrow.only) &
+                 !(names(args) %in% mtext.only)]
     # DEFAULTS FOR "PRETTY"
     pretty.par <- list(mar=c(1,1,4,5), las=1)
     pretty.args <- list(mgp=c(2,0.5,0), xaxs='i', yaxs='i',
@@ -405,8 +408,10 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
                                         par('usr')[4]), labels=FALSE,
                                         col=par('fg'), tcl=0)
         # AXIS LABELS
-        mtext(axis.labels[1], side=3, line=2, col=par('fg'), las=pretty.par$las)
-        mtext(axis.labels[2], side=4, line=3, col=par('fg'), las=pretty.par$las)
+        mtext(axis.labels[1], side=3, line=2, col=par('fg'), las=pretty.par$las,
+              cex=cex.labels)
+        mtext(axis.labels[2], side=4, line=3, col=par('fg'), las=pretty.par$las,
+              cex=cex.labels)
     } else {
         do.call(plot, as.list(c(list(0, 0, type='n', ann=FALSE), args)))
     }
@@ -508,6 +513,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
             if(is.null(pch.tokens)) {
                 pch.tokens <- as.numeric(d$pch.tokens)
                 #with(d, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens, type="o"))
+                diphthong.smooth <- FALSE  # TODO: get this working
                 if(diphthong.smooth && timepts > 3) {
                     invisible(lapply(dsp, function(i) {
                         steep <- abs(lm(f1~f2)$coefficients['f2']) > 1
