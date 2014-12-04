@@ -57,6 +57,8 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     pretty=FALSE, output='screen', units=NULL, color.palette=NULL,
     fill.opacity=0.3, legend.kwd=NULL, ...)
 {
+    require(plotrix)  # provides color.scale()
+
     # # # # # # # # # # #
     # LEGEND KWD CHECK  #
     # # # # # # # # # # #
