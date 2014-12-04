@@ -1,6 +1,6 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # phonR version 1.0-0-git
-# Functions for phoneticians and phonologists using R
+# Functions for phoneticians and phonologists
 # AUTHOR: Daniel McCloy, drmccloy@uw.edu
 # LICENSED UNDER THE GNU GENERAL PUBLIC LICENSE v3.0:
 # http://www.gnu.org/licenses/gpl.html
@@ -13,7 +13,7 @@
 # for repulsive force heatmaps and convex hulls. Hulls, polygons, and
 # ellipses can have color fills. Shortcut argument "pretty=TRUE" soothes
 # the senses. Smarter handling of additional graphical arguments passed
-# via "..." to the appropriate function(s).
+# via "..." to the appropriate function(s). Diphthongs with arrowheads.
 #
 # v0.4: bugfixes: poly.order now works with arbitrary labels; bug in
 # s-centroid calculation fixed.  Enhancements: added user-override
@@ -47,9 +47,9 @@
 plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     plot.tokens=TRUE, pch.tokens=NULL, cex.tokens=NULL,
     plot.means=FALSE, pch.means=NULL, cex.means=NULL,
-    ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.3173,
     hull.line=FALSE, hull.fill=FALSE, hull.col=NULL,
-    poly.order=NA, poly.line=FALSE, poly.fill=FALSE, poly.col=NULL,
+    poly.line=FALSE, poly.fill=FALSE, poly.col=NULL, poly.order=NA,
+    ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.3173,
     force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default',
     force.legend=NULL, force.labels=NULL, force.label.pos=c(1, 3), 
     col.by=NA, style.by=NA, axis.labels=NULL, cex.labels=NULL,
@@ -257,69 +257,57 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         colnames(col.pal.trans) <- c("red", "green", "blue", "alpha")
         col.pal.trans <- do.call(rgb, c(as.data.frame(col.pal.trans), maxColorValue=255))
     }
-    # ellipse fill colors
-    if(ellipse.line || ellipse.fill) {
-        ellipse.col <- col.pal.trans[col.by]
-        #if(pretty) ellipse.col <- hcl(hue, chr, lum, alpha=0.3)
-        #else       ellipse.col <- rep('#00000099', num.col)
-    } else {
-        ellipse.col <- NA[col.by]
-    }
-    #ellipse.col <- ellipse.col[col.by]
+    # ellipse colors
+    if(ellipse.line) ellipse.line.col <- col.pal[col.by]
+    else             ellipse.line.col <- NA[col.by]
+    if(ellipse.fill) ellipse.fill.col <- col.pal.trans[col.by]
+    else             ellipse.fill.col <- NA[col.by]
+    
     # hull colors
-    if(is.null(hull.col)) {
-        if(hull.fill && !col.by.vowel) {
-            hull.col <- col.pal.trans[col.by]
-            #if(pretty) hull.col <- hcl(hue, chr, lum, alpha=0.3)[col.by]
-            #else {
-            #    hull.col <- rep(col.pal, length.out=max(args$col))[args$col]
-            #    hull.col <- t(sapply(hull.col, col2rgb, alpha=TRUE))
-            #    hull.col[,4] <- 153
-            #    hull.col <- rgb(hull.col[,1], hull.col[,2], hull.col[,3],
-            #                    hull.col[,4], maxColorValue=255)
-            #}
-        } else {
-            hull.col <- NA[col.by]
-        }
-        if(hull.line) {
-            if(col.by.vowel) hull.line.col <- rep(1, num.col)
-            #else if(pretty)  hull.line.col <- hcl(hue, chr, lum, alpha=1)[col.by]
-            else             hull.line.col <- args$col
-        } else {
-            hull.line.col <- NA[col.by]
-        }
+    if(hull.line) {
+        if (!is.null(hull.col)) hull.line.col <- hull.col[col.by]
+        else if (col.by.vowel)  hull.line.col <- rep(par("fg"), num.col)
+        #else if(pretty)        hull.line.col <- hcl(hue, chr, lum, alpha=1)[col.by]
+        else                    hull.line.col <- col.pal[col.by]
+    } else {
+        hull.line.col <- NA[col.by]
     }
+    if(hull.fill) {
+        if (!is.null(hull.col)) hull.fill.col <- hull.col[col.by]
+        else if (col.by.vowel)  hull.fill.col <- col.pal.trans[1]
+        #else if(pretty)        hull.fill.col <- hcl(hue, chr, lum, alpha=0.3)[col.by]
+        else                    hull.fill.col <- col.pal.trans[col.by]
+    } else {
+        hull.fill.col <- NA[col.by]
+    }
+    
     # polygon colors
-    if(is.null(poly.col)) {
-        if(poly.fill && !col.by.vowel) {
-            poly.col <- col.pal.trans[col.by]
-            #if(pretty) poly.col <- hcl(hue, chr, lum, alpha=0.3)[col.by]
-            #else {
-            #    poly.col <- rep(col.pal, length.out=max(args$col))[args$col]
-            #    poly.col <- t(sapply(poly.col, col2rgb, alpha=TRUE))
-            #    poly.col[,4] <- 153
-            #    poly.col <- rgb(poly.col[,1], poly.col[,2], poly.col[,3],
-            #                    poly.col[,4], maxColorValue=255)
-            #}
-        } else {
-            poly.col <- NA[col.by]
-        }
-        if(poly.line) {
-            if(col.by.vowel) poly.line.col <- rep(par("fg"), num.col)
-            #else if(pretty)  poly.line.col <- hcl(hue, chr, lum, alpha=1)[col.by]
-            else             poly.line.col <- args$col[col.by]
-        } else {
-            poly.line.col <- NA[col.by]
-        }
+    if(poly.line) {
+        if(!is.null(poly.col)) poly.line.col <- poly.col[col.by]
+        else if(col.by.vowel)  poly.line.col <- rep(par("fg"), num.col)
+        #else if(pretty)       poly.line.col <- hcl(hue, chr, lum, alpha=1)[col.by]
+        else                   poly.line.col <- col.pal[col.by]
+    } else {
+        poly.line.col <- NA[col.by]
+    }
+    if(poly.fill) {
+        if(!is.null(poly.col)) poly.fill.col <- poly.col[col.by]
+        else if(col.by.vowel)  poly.fill.col <- col.pal.trans[1]
+        #else if(pretty)       poly.fill.col <- hcl(hue, chr, lum, alpha=0.3)[col.by]
+        else                   poly.fill.col <- col.pal.trans[col.by]
+    } else {
+        poly.fill.col <- NA[col.by]
     }
     # # # # # # # # # # # # # #
     # COLLECT IMPORTANT STUFF #
     # # # # # # # # # # # # # #
     d <- data.frame(v=vowel, gf=factor(gf), m=rep(plot.means, l), 
-                    color=args$col, style=style.by, ellipse.col=ellipse.col, 
-                    poly.col=poly.col, hull.col=hull.col, 
-                    hull.line.col=hull.line.col, pch.means=pchm,
-                    pch.tokens=pcht, tokenid=1:length(vowel),
+                    color=args$col, style=style.by,
+                    ellipse.fill.col=ellipse.fill.col,
+                    ellipse.line.col=ellipse.line.col,
+                    poly.fill.col=poly.fill.col, poly.line.col=poly.line.col,
+                    hull.fill.col=hull.fill.col, hull.line.col=hull.line.col,
+                    pch.means=pchm, pch.tokens=pcht, tokenid=1:length(vowel),
                     stringsAsFactors=FALSE)
     if(diphthong) {
         e <- d
@@ -335,10 +323,6 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     } else {
         d$f2 <- f2
         d$f1 <- f1
-    }
-    if(col.by.vowel) {
-        d$hull.col <- NA
-        d$hull.line.col <- 1
     }
     dd <- by(d, d[c('v','gf')], identity)
     # CALCULATE VOWEL COVARIANCES (the following line still may yield
@@ -356,13 +340,12 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     m <- lapply(dd, function(i) if(!(is.null(i)))
         data.frame(f2=mean(i$f2, na.rm=TRUE), f1=mean(i$f1, na.rm=TRUE), 
                    v=unique(i$v), gf=unique(i$gf), m=unique(i$m), 
-                   #color=ifelse(length(unique(i$color)) > 1, par('fg'), unique(i$color)), 
-                   #style=ifelse(length(unique(i$style)) > 1, 1, unique(i$style)), 
-                   #poly.col=ifelse(length(unique(i$poly.col)) > 1, par('fg'), unique(i$poly.col)), 
-                   #ellipse.col=ifelse(length(unique(i$ellipse.col)) > 1, par('fg'), unique(i$ellipse.col)), 
-                   #pch.means=ifelse(length(unique(i$pch.means)) > 1, par('pch'), unique(i$pch.means)), 
-                   color=i$color[1], style=i$style[1], poly.col=i$poly.col[1],
-                   ellipse.col=i$ellipse.col[1], pch.means=i$pch.means[1],
+                   color=i$color[1], style=i$style[1], 
+                   poly.fill.col=i$poly.fill.col[1],
+                   poly.line.col=i$poly.line.col[1],
+                   ellipse.fill.col=i$ellipse.fill.col[1],
+                   ellipse.line.col=i$ellipse.line.col[1],
+                   pch.means=i$pch.means[1],
                    stringsAsFactors=FALSE))
     m <- do.call(rbind, m)
     m$gfn <- as.numeric(factor(m$gf))
@@ -446,29 +429,20 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     if(hull.fill || hull.line) {
         hh <- by(d, d$gf, function(i) i[!is.na(i$f2) & !is.na(i$f1),])
         hulls <- lapply(hh, function(i) with(i, i[chull(f2, f1),
-                        c('f2', 'f1', 'color', 'hull.col', 'hull.line.col',
+                        c('f2', 'f1', 'color', 'hull.fill.col', 'hull.line.col',
                         'style')]))
-        if(!hull.line) lapply(hulls, function(i) with(i, polygon(cbind(f2, f1),
-                                                    col=hull.col, border=NA)))
-        else if(!hull.fill) lapply(hulls, function(i) with(i, polygon(cbind(f2, f1),
-                                                        border=hull.line.col,
-                                                        col=NA, lty=style)))
-        else lapply(hulls, function(i) with(i, polygon(cbind(f2, f1), col=hull.col,
-                                            border=hull.line.col, lty=style)))
+        lapply(hulls, function(i) with(i, polygon(cbind(f2, f1),
+                                                  col=hull.fill.col,
+                                                  border=hull.line.col,
+                                                  lty=style)))
     }
     # # # # # # # # #
     # PLOT ELLIPSES #
     # # # # # # # # #
     if (ellipse.fill || ellipse.line) {
-        if (!ellipse.line) lapply(seq_along(ellipse.points),
-                                function(i) polygon(ellipse.points[[i]],
-                                col=m$ellipse.col[i], border=NA))
-        else if (!ellipse.fill) lapply(seq_along(ellipse.points),
-                                    function(i) polygon(ellipse.points[[i]],
-                                    col=NA, border=m$color[i], lty=m$style[i]))
-        else lapply(seq_along(ellipse.points),
-                    function(i) polygon(ellipse.points[[i]],
-                    col=m$ellipse.col[i], border=m$color[i], lty=m$style[i]))
+        lapply(seq_along(ellipse.points),
+               function(i) polygon(ellipse.points[[i]], col=m$ellipse.fill.col[i], 
+                                   border=m$ellipse.line.col[i], lty=m$style[i]))
     }
     # # # # # # # # #
     # PLOT POLYGONS #
@@ -484,13 +458,14 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
             poly.order <- intersect(poly.order, v)
         }
         pp <- m
-        #if(col.by.vowel) pp$color <- par('fg')
         pp$v <- factor(pp$v, levels=poly.order)
         pp <- pp[order(pp$v),]
         pp <- split(pp, pp$gf)
         if(poly.fill) {
             bigenough <- sapply(pp, function(i) nrow(i) > 2)
-            lapply(pp[bigenough], function(i) with(i, polygon(cbind(f2, f1), col=poly.col, border=NA)))
+            lapply(pp[bigenough], function(i) with(i, polygon(cbind(f2, f1), 
+                                                              col=poly.fill.col,
+                                                              border=NA)))
         }
         if(poly.line) {
             if(plot.means) type <- 'c'
