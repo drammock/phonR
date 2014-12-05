@@ -602,8 +602,8 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         }
         # legend boxes
         if (hull.fill | poly.fill | ellipse.fill) {
-            if (!is.na(m$ellipse.col[1]))    legend.fill <- unique(m$ellipse.col)
-            else if (!is.na(m$poly.col[1])) legend.fill <- unique(m$poly.col)
+            if (!is.na(m$ellipse.fill.col[1]))   legend.fill <- unique(m$ellipse.fill.col)
+            else if (!is.na(m$poly.fill.col[1])) legend.fill <- unique(m$poly.fill.col)
             else legend.fill <- unique(hull.col)
             legend.args$pch <- 22
             legend.args <- append(legend.args, list(pt.bg=legend.fill,
