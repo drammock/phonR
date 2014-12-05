@@ -182,7 +182,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     if ("xlab" %in% names(exargs)) xlab <- exargs$xlab
     else if (pretty)               xlab <- "F2"
     else                           xlab <- ""
-    if ("ylab" %in% names(exargs)) ylab <- exargs$xlab
+    if ("ylab" %in% names(exargs)) ylab <- exargs$ylab
     else if (pretty)               ylab <- "F1"
     else                           ylab <- ""
     if ("main" %in% names(exargs)) main <- exargs$main
@@ -612,15 +612,14 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         # draw legend
         do.call(legend, legend.args)
     }
-
-    # CLOSE FILE DEVICES
+    
+    # # # # # #
+    # CLEANUP #
+    # # # # # #    
+    # close file devices
     if (output != "screen") dev.off()
-    # RESET GRAPHICAL PARAMETERS
+    # reset graphical parameters to defaults
     par(op)
-    # RESET FONT HANDLING FOR WINDOWS
-    #if (is.win && 'family' %in% names(par.args) && output %in% output.raster) {
-    #	windowsFonts(sans=oldFont)
-    #}
 }
 
 
