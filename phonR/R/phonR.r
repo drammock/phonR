@@ -53,8 +53,8 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     diphthong.smooth=FALSE, diphthong.arrows=FALSE, diphthong.arrow.args=NULL,
     force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default',
     force.legend=NULL, force.labels=NULL, force.label.pos=c(1, 3),
-    col.by=NA, style.by=NA, fill.opacity=0.3,
-    mtext.args=NULL, legend.kwd=NULL, pretty=FALSE, output='screen', ...)
+    col.by=NA, style.by=NA, fill.opacity=0.3, legend.kwd=NULL, pretty=FALSE, 
+    output='screen', ...)
 {
     # # # # # # # # #
     # DEPENDENCIES  #
@@ -127,7 +127,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         warning(paste(c("legend.kwd must be one of '",
                         paste(legend.kwds, collapse="', '"), "'."), collapse=""))
     }   }
-
+    
     # # # # # # # # # # # #
     # DIPHTHONG HANDLING  #
     # # # # # # # # # # # #
@@ -173,11 +173,29 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     num.col <- length(unique(col.by))
     num.sty <- length(unique(style.by))
     # misc. plotting defaults
-    if (!"xlab" %in% names(exargs)) exargs$xlab <- "F2"
-    if (!"ylab" %in% names(exargs)) exargs$xlab <- "F1"
     if (is.null(cex.tokens))    cex.tokens <- par('cex')
     if (is.null(cex.means))      cex.means <- par('cex')
 
+    # # # # # # # #
+    # ANNOTATION  #
+    # # # # # # # #
+    if ("xlab" %in% names(exargs)) xlab <- exargs$xlab
+    else if (pretty)               xlab <- "F2"
+    else                           xlab <- ""
+    if ("ylab" %in% names(exargs)) ylab <- exargs$xlab
+    else if (pretty)               ylab <- "F1"
+    else                           ylab <- ""
+    if ("main" %in% names(exargs)) main <- exargs$main
+    else if (pretty)               main <- "Vowels"
+    else                           main <- ""
+    if ("sub" %in% names(exargs))   sub <- exargs$sub
+    else if (pretty)                sub <- "" # "plotted with love using phonR"
+    else                            sub <- ""
+    exargs$xlab <- NULL
+    exargs$ylab <- NULL
+    exargs$main <- NULL
+    exargs$sub <- NULL
+    
     # # # # # # # # # # # # #
     # DEFAULTS FOR "PRETTY" #
     # # # # # # # # # # # # #
@@ -193,21 +211,19 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         # LTY: custom linetypes more readily distinguishable
         pretty.lty <- c('solid', '44', 'F4', '4313', 'F3131313', '23F3',
                         '232923', '23258385', '282823B3', '13', '82')[style.by]
-        pretty.args <- list(mgp=c(2,0.5,0), xaxs='i', yaxs='i', ann=FALSE,
-                            fg=hcl(0,0,40), tcl=-0.25, xpd=NA, frame.plot=FALSE,
+        pretty.args <- list(mgp=c(2,0.5,0), xaxs='i', yaxs='i', axes=FALSE,
+                            fg=hcl(0,0,40), tcl=-0.25, xpd=NA, asp=1,
                             pch=pretty.pch, lty=pretty.lty, col=pretty.col)
-        pretty.par.args <- list(mar=c(1,1,4,5), las=1)
-        pretty.mtext.args <- list(cex.labels=1.1, las=0)
+                            # frame.plot=FALSE implied by axes=FALSE
+        pretty.par.args <- list(mar=c(1,1,5,5), las=1)  # oma=rep(0.5, 4)
         pretty.arrow.args <- list(length=0.1, angle=20)
         # LET USER-SPECIFIED ARGS OVERRIDE "PRETTY" DEFAULTS
         pretty.args[names(exargs)] <- exargs
         pretty.par.args[names(par.args)] <- par.args
-        pretty.mtext.args[names(mtext.args)] <- mtext.args
         pretty.arrow.args[names(diphthong.arrow.args)] <- diphthong.arrow.args
         # RE-UNIFY TO AVOID LATER LOGIC BRANCHING
         exargs <- pretty.args
         par.args <- pretty.par.args
-        mtext.args <- pretty.mtext.args
         diphthong.arrow.args <- pretty.arrow.args
     }
 
@@ -228,9 +244,9 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     trans.col <- makeTransparent(exargs$col, fill.opacity)
     trans.fg <- makeTransparent(par('fg'), fill.opacity)
     # ellipse colors
-    if (ellipse.line) ellipse.line.col <- exargs$col[col.by]
+    if (ellipse.line) ellipse.line.col <- exargs$col
     else              ellipse.line.col <- NA[col.by]
-    if (ellipse.fill) ellipse.fill.col <- trans.col[col.by]
+    if (ellipse.fill) ellipse.fill.col <- trans.col
     else              ellipse.fill.col <- NA[col.by]
     # hull colors
     if (hull.line) {
@@ -356,14 +372,32 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (!'ylim' %in% names(exargs)) exargs$ylim <- rev(plot.bounds[,2])
 
     if (pretty) {
+        # ticks
         xticks <- prettyticks(exargs$xlim)
         yticks <- prettyticks(exargs$ylim)
         exargs$xlim <- rev(range(xticks))
         exargs$ylim <- rev(range(yticks))
-        do.call(plot, as.list(c(list(0, 0, type='n', axes=FALSE), exargs)))
+        # annotation
+        x.args <- list(side=3, line=2, col=par("fg"))
+        y.args <- list(side=4, line=3, col=par("fg"))
+        t.args <- list(side=3, line=4, col=par("fg"))
+        s.args <- list(side=3, line=3, col=par("fg"))
+    } else {
+        x.args <- list(side=1, line=par("mgp")[1])
+        y.args <- list(side=2, line=par("mgp")[1])
+        t.args <- list(side=3, line=1, outer=TRUE)
+        s.args <- list(side=4, line=par("mgp")[1] + 1)
+    }
+    do.call(plot, as.list(c(list(NA, NA, type='n', ann=FALSE), exargs)))
+    do.call(mtext, as.list(c(xlab, x.args)))
+    do.call(mtext, as.list(c(ylab, y.args)))
+    do.call(mtext, as.list(c(main, t.args)))
+    do.call(mtext, as.list(c(sub, s.args)))
+    if (pretty) {
+        # axes
         axis(3, at=xticks, col.axis=par('fg'))
         axis(4, at=yticks, col.axis=par('fg'))
-        # EXTEND THE AXIS LINES TO MEET AT THE CORNER AS NEEDED
+        # extend the axis lines to meet at the corner
         if (exargs$xlim[2] != par('usr')[2]) {
             axis(3, at=c(exargs$xlim[2], par('usr')[2]), labels=FALSE,
                 col=par('fg'), tcl=0)
@@ -372,14 +406,8 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
             axis(4, at=c(exargs$ylim[2], par('usr')[4]), labels=FALSE,
                 col=par('fg'), tcl=0)
         }
-        # AXIS LABELS: now handled through xlab and ylab in plot()
-        #do.call(mtext, as.list(c(list(exargs$xlab, side=3, line=2,
-        #                              col=par('fg')), mtext.args))
-        #do.call(mtext, as.list(c(list(exargs$ylab, side=4, line=3,
-        #                              col=par('fg')), mtext.args))
-    } else {
-        do.call(plot, as.list(c(list(0, 0, type='n', ann=FALSE), exargs)))
     }
+    
     # # # # # # # # #
     # PLOT HEATMAP  #
     # # # # # # # # #
@@ -588,7 +616,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     # CLOSE FILE DEVICES
     if (output != "screen") dev.off()
     # RESET GRAPHICAL PARAMETERS
-    #par(op)
+    par(op)
     # RESET FONT HANDLING FOR WINDOWS
     #if (is.win && 'family' %in% names(par.args) && output %in% output.raster) {
     #	windowsFonts(sans=oldFont)
@@ -771,7 +799,7 @@ norm.wattfabricius <- function(f, vowel, group=NULL) {
 
 
 # pineda's triangle filling algorithm
-fill.triangle <- function(x, y, vertices) {
+fillTriangle <- function(x, y, vertices) {
     x0 <- vertices[1,1]
     x1 <- vertices[2,1]
     x2 <- vertices[3,1]
@@ -826,7 +854,7 @@ repulsiveForceHeatmap <- function(f2, f1, z, vowel=NULL, resolution=50,
     grid.indices <- lapply(triangs, function(i) inpip(grid, i, bound=FALSE))
     if (method %in% 'pineda') {
         grid.values <- lapply(seq_along(triangs),
-            function(i) fill.triangle(grid[grid.indices[[i]],1],
+            function(i) fillTriangle(grid[grid.indices[[i]],1],
             grid[grid.indices[[i]],2], triangs[[i]]))
         grid.indices <- do.call(c, grid.indices)
         grid.values <- do.call(c, grid.values)
@@ -870,9 +898,11 @@ makeTransparent <- function (opaque.color, opacity) {
     trans.color <- do.call(rgb, c(as.data.frame(rgba), maxColorValue=255))
 }
 
-# TODO: integrate this
+
 vowelMeansPolygonArea <- function(f1, f2, vowel, talker) {
     df <- data.frame(f1=f1, f2=f2, v=vowel, t=talker)
-    bytalker <- as.table(by(df, df$t, function(x) areapl(cbind(tapply(x$f2, x$v, mean), tapply(x$f1, x$v, mean)))))
+    bytalker <- as.table(by(df, df$t,
+                            function(x) areapl(cbind(tapply(x$f2, x$v, mean),
+                                                     tapply(x$f1, x$v, mean)))))
     area <- bytalker[df$t]
 }
