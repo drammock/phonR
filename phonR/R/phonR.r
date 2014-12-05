@@ -1,4 +1,4 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # phonR version 1.0-0-git
 # Functions for phoneticians and phonologists
 # AUTHOR: Daniel McCloy, drmccloy@uw.edu
@@ -36,7 +36,7 @@
 # Enhancements: support for custom axis titles (to accommodate pre-
 # normalized values), point and mean sizes, and fonts. Custom line types
 # added (11 total now).
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # USAGE: source("phonR.r")
 # --or-- from command line (replace Xs with version number):
@@ -53,7 +53,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     diphthong.smooth=FALSE, diphthong.arrows=FALSE, diphthong.arrow.args=NULL,
     force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default',
     force.legend=NULL, force.labels=NULL, force.label.pos=c(1, 3),
-    col.by=NA, style.by=NA, fill.opacity=0.3, legend.kwd=NULL, pretty=FALSE, 
+    col.by=NA, style.by=NA, fill.opacity=0.3, legend.kwd=NULL, pretty=FALSE,
     output='screen', ...)
 {
     # # # # # # # # #
@@ -66,6 +66,9 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # # #
     exargs <- list(...)
     font.specified <- 'family' %in% names(exargs)
+    # two arguments get overridden no matter what
+    exargs$ann <- FALSE
+    exargs$type <- 'n'
     # Some graphical devices only support inches, so we convert here.
     if ("units" %in% names(exargs)) {
         if (!exargs$units %in% c("in", "cm", "mm", "px")) {
@@ -127,7 +130,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         warning(paste(c("legend.kwd must be one of '",
                         paste(legend.kwds, collapse="', '"), "'."), collapse=""))
     }   }
-    
+
     # # # # # # # # # # # #
     # DIPHTHONG HANDLING  #
     # # # # # # # # # # # #
@@ -195,7 +198,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     exargs$ylab <- NULL
     exargs$main <- NULL
     exargs$sub <- NULL
-    
+
     # # # # # # # # # # # # #
     # DEFAULTS FOR "PRETTY" #
     # # # # # # # # # # # # #
@@ -388,7 +391,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         t.args <- list(side=3, line=1, outer=TRUE)
         s.args <- list(side=4, line=par("mgp")[1] + 1)
     }
-    do.call(plot, as.list(c(list(NA, NA, type='n', ann=FALSE), exargs)))
+    do.call(plot, as.list(c(list(NA, NA), exargs)))
     do.call(mtext, as.list(c(xlab, x.args)))
     do.call(mtext, as.list(c(ylab, y.args)))
     do.call(mtext, as.list(c(main, t.args)))
@@ -407,7 +410,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
                 col=par('fg'), tcl=0)
         }
     }
-    
+
     # # # # # # # # #
     # PLOT HEATMAP  #
     # # # # # # # # #
@@ -612,10 +615,10 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         # draw legend
         do.call(legend, legend.args)
     }
-    
+
     # # # # # #
     # CLEANUP #
-    # # # # # #    
+    # # # # # #
     # close file devices
     if (output != "screen") dev.off()
     # reset graphical parameters to defaults
@@ -902,6 +905,6 @@ vowelMeansPolygonArea <- function(f1, f2, vowel, talker) {
     df <- data.frame(f1=f1, f2=f2, v=vowel, t=talker)
     bytalker <- as.table(by(df, df$t,
                             function(x) areapl(cbind(tapply(x$f2, x$v, mean),
-                                                     tapply(x$f1, x$v, mean)))))
+                                                    tapply(x$f1, x$v, mean)))))
     area <- bytalker[df$t]
 }
