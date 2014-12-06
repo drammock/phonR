@@ -141,15 +141,19 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         f2 <- as.vector(f2)
         diphthong <- FALSE
     } else {
-        if (!all(dim(f1) == dim(f2))) stop('Unequal dimensions for "f1" and "f2".')
-        else if (length(dim(f1)) > 2) stop('Argument "f1" has more than two dimensions.')
-        else if (length(dim(f2)) > 2) stop('Argument "f2" has more than two dimensions.')
-        else if (length(vowel) != dim(f1)[1]) stop('First axis of "f1" does not equal length of "vowel".')
+        if (!all(dim(f1) == dim(f2))) stop("Unequal dimensions for 'f1' and 'f2'.")
+        else if (length(dim(f1)) > 2) stop("Argument 'f1' has more than two ",
+                                           "dimensions.")
+        else if (length(dim(f2)) > 2) stop("Argument 'f2' has more than two ",
+                                           "dimensions.")
+        else if (length(vowel) != dim(f1)[1]) stop("First axis of 'f1' does not ",
+                                                   "equal length of 'vowel'.")
         diphthong <- TRUE
     }
     if (!diphthong) {
         if (length(f2) != length(f1)) stop('Unequal dimensions for "f1" and "f2".')
-        else if (length(vowel) != length(f1)) stop('Unequal dimensions for "f1" and "vowel".')
+        else if (length(vowel) != length(f1)) stop("Unequal dimensions for 'f1' ",
+                                                   "and 'vowel'.")
     } else {
         f1d <- f1
         f2d <- f2
@@ -244,8 +248,8 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (is.null(pch.means))  pchm <- exargs$pch
     else                     pchm <- pch.means
     # transparency
-    trans.col <- makeTransparent(exargs$col, fill.opacity)
-    trans.fg <- makeTransparent(par('fg'), fill.opacity)
+    trans.col <- make.transparent(exargs$col, fill.opacity)
+    trans.fg <- make.transparent(par('fg'), fill.opacity)
     # ellipse colors
     if (ellipse.line) ellipse.line.col <- exargs$col
     else              ellipse.line.col <- NA[col.by]
@@ -258,7 +262,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         else                    hull.line.col <- exargs$col
     } else {                    hull.line.col <- NA[col.by] }
     if (hull.fill) {
-        if (!is.null(hull.col)) hull.fill.col <- makeTransparent(hull.col[col.by],
+        if (!is.null(hull.col)) hull.fill.col <- make.transparent(hull.col[col.by],
                                                                 fill.opacity)
         else if (col.by.vowel)  hull.fill.col <- trans.fg
         else                    hull.fill.col <- trans.col
@@ -270,7 +274,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         else                    poly.line.col <- exargs$col
     } else {                    poly.line.col <- NA[col.by] }
     if (poly.fill) {
-        if (!is.null(poly.col)) poly.fill.col <- makeTransparent(poly.col[col.by],
+        if (!is.null(poly.col)) poly.fill.col <- make.transparent(poly.col[col.by],
                                                                 fill.opacity)
         else if (col.by.vowel)  poly.fill.col <- trans.fg
         else                    poly.fill.col <- trans.col
@@ -376,8 +380,8 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 
     if (pretty) {
         # ticks
-        xticks <- prettyticks(exargs$xlim)
-        yticks <- prettyticks(exargs$ylim)
+        xticks <- pretty.ticks(exargs$xlim)
+        yticks <- pretty.ticks(exargs$ylim)
         exargs$xlim <- rev(range(xticks))
         exargs$ylim <- rev(range(yticks))
         # annotation
@@ -420,8 +424,8 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
                                         cs3=c(25, 100), alpha=0.5,
                                         color.spec='hcl')
         }
-        force <- with(d, repulsiveForce(f2, f1, v))
-        with(d, repulsiveForceHeatmap(f2, f1, force, vowel=v, resolution=force.res,
+        force <- with(d, repulsive.force(f2, f1, v))
+        with(d, force.heatmap(f2, f1, force, vowel=v, resolution=force.res,
                                     colormap=force.colmap, method=force.method,
                                     add=TRUE))
         if (is.null(force.legend)) {
@@ -431,7 +435,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
             xl <- force.legend[1:2]
             yl <- force.legend[3:4]
         }
-        forceHeatmapLegend(xl, yl, colormap=force.colmap)
+        force.heatmap.legend(xl, yl, colormap=force.colmap)
         if (!is.null(force.labels)) {
             text(xl, yl, labels=force.labels, pos=force.label.pos, xpd=TRUE)
         }
@@ -461,13 +465,15 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     # PLOT POLYGONS #
     # # # # # # # # #
     if (!is.na(poly.order[1]) && (poly.fill || poly.line)) {
-        if (length(poly.order) != length(unique(poly.order))) warning(
-            'Duplicate entries in "polygon" detected; they will be ignored.')
+        if (length(poly.order) != length(unique(poly.order))) {
+            warning("Duplicate entries in 'poly.order' detected; they will be ",
+                    "ignored.")
+        } 
         poly.order <- unique(as.character(poly.order)) # as.character in case factor
         v <- unique(as.character(m$v))
         if (length(setdiff(poly.order, v)) > 0) {
-            warning('There are vowels in "polygon" that are not in ',
-                    '"vowel"; they will be ignored.')
+            warning("There are vowels in 'poly.order' that are not in ",
+                    "'vowel'; they will be ignored.")
             poly.order <- intersect(poly.order, v)
         }
         pp <- m
@@ -626,54 +632,9 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 }
 
 
-prettyticks <- function(lim) {
-    axrange <- abs(diff(lim))
-    step <- 10^(floor(log(axrange,10)))
-    coef <- ifelse(axrange/step < 1, 0.1, ifelse(axrange/step < 2, 0.2,
-            ifelse(axrange/step < 5, 0.5, 1)))
-    step <- step*coef
-    lims <- c(ceiling(max(lim)/step)*step, floor(min(lim)/step)*step)
-    if (diff(lims) < 0) {step <- -step}
-    seq(lims[1],lims[2],step)
-}
-
-
-ellipse <- function(mu, sigma, alpha=0.05, npoints=250, draw=TRUE, ...) {
-    # adapted from the (now-defunct) mixtools package
-    es <- eigen(sigma)
-    e1 <- es$vec %*% diag(sqrt(es$val))
-    r1 <- sqrt(qchisq(1-alpha, 2))
-    theta <- seq(0, 2*pi, len=npoints)
-    v1 <- cbind(r1*cos(theta), r1*sin(theta))
-    pts <- t(mu-(e1 %*% t(v1)))
-    if (draw) {
-        colnames(pts) <- c('x','y')
-        polygon(pts, ...)
-    }
-    invisible(pts)
-}
-
-
-convexHullArea <- function(x, y, group=NULL) {
-    require(splancs)
-    if (is.null(group))  group <- "all.points"
-    df <- data.frame(x=x, y=y, g=group, stringsAsFactors=FALSE)
-    bygrouppts <- by(df, df$g, function(i) i[chull(i$x, i$y),c('x','y')])
-    bygrouparea <- sapply(bygrouppts, function(i) {
-        areapl(as.matrix(data.frame(x=i$x, y=i$y, stringsAsFactors=FALSE)))
-        })
-}
-
-
-repulsiveForce <- function(x, y, type) {
-    dmat <- as.matrix(dist(cbind(x, y)))
-    force <- sapply(seq_along(type), function(i) {
-        sum(1 / dmat[i, !(type %in% type[i])] ^ 2)
-        })
-}
-
-
-# OMNIBUS NORMALIZATION FUNCTION (convenience function)
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# OMNIBUS NORMALIZATION FUNCTION (convenience function) #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 norm.vowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
                     vowel=NULL, group=NULL, ...) {
     m <- tolower(method)
@@ -800,8 +761,55 @@ norm.wattfabricius <- function(f, vowel, group=NULL) {
 }
 
 
+pretty.ticks <- function(lim) {
+    axrange <- abs(diff(lim))
+    step <- 10^(floor(log(axrange,10)))
+    coef <- ifelse(axrange/step < 1, 0.1, ifelse(axrange/step < 2, 0.2,
+                                                 ifelse(axrange/step < 5, 0.5, 1)))
+    step <- step*coef
+    lims <- c(ceiling(max(lim)/step)*step, floor(min(lim)/step)*step)
+    if (diff(lims) < 0) {step <- -step}
+    seq(lims[1],lims[2],step)
+}
+
+
+ellipse <- function(mu, sigma, alpha=0.05, npoints=250, draw=TRUE, ...) {
+    # adapted from the (now-defunct) mixtools package
+    es <- eigen(sigma)
+    e1 <- es$vec %*% diag(sqrt(es$val))
+    r1 <- sqrt(qchisq(1-alpha, 2))
+    theta <- seq(0, 2*pi, len=npoints)
+    v1 <- cbind(r1*cos(theta), r1*sin(theta))
+    pts <- t(mu-(e1 %*% t(v1)))
+    if (draw) {
+        colnames(pts) <- c('x','y')
+        polygon(pts, ...)
+    }
+    invisible(pts)
+}
+
+
+convex.hull.area <- function(x, y, group=NULL) {
+    require(splancs)
+    if (is.null(group))  group <- "all.points"
+    df <- data.frame(x=x, y=y, g=group, stringsAsFactors=FALSE)
+    bygrouppts <- by(df, df$g, function(i) i[chull(i$x, i$y),c('x','y')])
+    bygrouparea <- sapply(bygrouppts, function(i) {
+        areapl(as.matrix(data.frame(x=i$x, y=i$y, stringsAsFactors=FALSE)))
+    })
+}
+
+
+repulsive.force <- function(x, y, type) {
+    dmat <- as.matrix(dist(cbind(x, y)))
+    force <- sapply(seq_along(type), function(i) {
+        sum(1 / dmat[i, !(type %in% type[i])] ^ 2)
+    })
+}
+
+
 # pineda's triangle filling algorithm
-fillTriangle <- function(x, y, vertices) {
+fill.triangle <- function(x, y, vertices) {
     x0 <- vertices[1,1]
     x1 <- vertices[2,1]
     x2 <- vertices[3,1]
@@ -824,7 +832,7 @@ fillTriangle <- function(x, y, vertices) {
 }
 
 
-repulsiveForceHeatmap <- function(f2, f1, z, vowel=NULL, resolution=50,
+force.heatmap <- function(f2, f1, z, vowel=NULL, resolution=50,
                         colormap=NULL, method='default', add=TRUE, ...) {
     require(splancs)  # provides inpip()
     require(deldir)   # provides deldir() and triMat()
@@ -856,7 +864,7 @@ repulsiveForceHeatmap <- function(f2, f1, z, vowel=NULL, resolution=50,
     grid.indices <- lapply(triangs, function(i) inpip(grid, i, bound=FALSE))
     if (method %in% 'pineda') {
         grid.values <- lapply(seq_along(triangs),
-            function(i) fillTriangle(grid[grid.indices[[i]],1],
+            function(i) fill.triangle(grid[grid.indices[[i]],1],
             grid[grid.indices[[i]],2], triangs[[i]]))
         grid.indices <- do.call(c, grid.indices)
         grid.values <- do.call(c, grid.values)
@@ -879,7 +887,7 @@ repulsiveForceHeatmap <- function(f2, f1, z, vowel=NULL, resolution=50,
 }	}
 
 
-forceHeatmapLegend <- function (x, y, smoothness=50, colormap=NULL, lend=2,
+force.heatmap.legend <- function (x, y, smoothness=50, colormap=NULL, lend=2,
                                 lwd=6, ...) {
     require(plotrix)
     if (is.null(colormap)) {  # default to grayscale
@@ -893,7 +901,7 @@ forceHeatmapLegend <- function (x, y, smoothness=50, colormap=NULL, lend=2,
 }
 
 
-makeTransparent <- function (opaque.color, opacity) {
+make.transparent <- function (opaque.color, opacity) {
     rgba <- t(col2rgb(opaque.color, alpha=TRUE))
     rgba[,4] <- round(255 * opacity)
     colnames(rgba) <- c("red", "green", "blue", "alpha")
@@ -901,10 +909,20 @@ makeTransparent <- function (opaque.color, opacity) {
 }
 
 
-vowelMeansPolygonArea <- function(f1, f2, vowel, talker) {
-    df <- data.frame(f1=f1, f2=f2, v=vowel, t=talker)
-    bytalker <- as.table(by(df, df$t,
-                            function(x) areapl(cbind(tapply(x$f2, x$v, mean),
-                                                    tapply(x$f1, x$v, mean)))))
-    area <- bytalker[df$t]
+vowel.means.polygon.area <- function(f1, f2, vowel, poly.order) {
+    if (length(poly.order) != length(unique(poly.order))) {
+        warning("Duplicate entries in 'poly.order' detected; they will be ",
+                "ignored.")
+    }
+    poly.order <- unique(as.character(poly.order)) # as.character in case factor
+    v <- unique(as.character(vowel))
+    if (length(setdiff(poly.order, v)) > 0) {
+        warning("There are vowels in 'poly.order' that are not in ",
+                "'vowel'; they will be ignored.")
+        poly.order <- intersect(poly.order, v)
+    }
+    df <- data.frame(f1=f1, f2=f2, v=factor(vowel, levels=poly.order))
+    df <- df[order(df$v),]
+    area <- areapl(cbind(tapply(df$f2, df$v, mean), 
+                         tapply(df$f1, df$v, mean)))
 }
