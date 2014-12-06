@@ -657,7 +657,10 @@ norm.vowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
 
 # INDIVIDUAL NORMALIZATION FUNCTIONS
 norm.bark <- function(f) {
-    26.81*f/(1960+f)-0.53
+    bark <- 26.81 * f / (1960 + f) - 0.53
+    bark[bark < 2] <- bark[bark < 2] + 0.15 * (2 - bark[bark < 2])
+    bark[bark > 20.1] <- bark[bark > 20.1] + 0.22 * (bark[bark > 20.1] - 20.1)
+	return(bark)
 }
 
 
@@ -702,7 +705,7 @@ norm.logmean <- function(f, group=NULL, ...) {
 
 norm.nearey <- function(f, group=NULL, ...) {
     if (ncol(f) != 4) {
-        stop("Missing values: normalization method 'nearey2' ",
+        stop("Missing values: normalization method 'norm.nearey' ",
             "requires non-null values for f0, f1, f2, and f3).")
     }
     if (is.null(group)) {
@@ -749,7 +752,8 @@ norm.wattfabricius <- function(f, vowel, group=NULL) {
         stop()
     }
     lowvowf2 <- do.call(rbind, means.list[unique(max.id['f1',]),])[,'f2']
-    centroids <- rbind(f1=(2*minima['f1',] + maxima['f1',])/3, f2=(minima['f2',] + maxima['f2',] + lowvowf2)/3)
+    centroids <- rbind(f1=(2*minima['f1',] + maxima['f1',])/3, 
+    				   f2=(minima['f2',] + maxima['f2',] + lowvowf2)/3)
     rnames <- rep(rownames(subsets),times=ncol(subsets))
     cnames <- rep(colnames(subsets),each=nrow(subsets))
     f/t(centroids[,group])
@@ -759,8 +763,9 @@ norm.wattfabricius <- function(f, vowel, group=NULL) {
 pretty.ticks <- function(lim) {
     axrange <- abs(diff(lim))
     step <- 10^(floor(log(axrange,10)))
-    coef <- ifelse(axrange/step < 1, 0.1, ifelse(axrange/step < 2, 0.2,
-                                                 ifelse(axrange/step < 5, 0.5, 1)))
+    coef <- ifelse(axrange/step < 1, 0.1, 
+    			   ifelse(axrange/step < 2, 0.2,
+    			   		  ifelse(axrange/step < 5, 0.5, 1)))
     step <- step*coef
     lims <- c(ceiling(max(lim)/step)*step, floor(min(lim)/step)*step)
     if (diff(lims) < 0) {step <- -step}
