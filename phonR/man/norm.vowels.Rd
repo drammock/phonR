@@ -24,7 +24,7 @@
     \item{f2}{Vector of F2 (second formant) values.}
     \item{f3}{Vector of F3 (third formant) values. Required for method 
               \dQuote{nearey}.}
-    \item{vowel}{Vector of vowel symbols. Required for method 
+    \item{vowel}{Vector or factor of vowel symbols. Required for method 
                  \dQuote{wattfabricius}, ignored for all other methods.}
     \item{group}{Vector or factor of grouping values (e.g., talker ID). If 
                  supplied, used to calculate group-intrinsic normalizations for 
@@ -46,14 +46,15 @@ Stevens, S. S., & Volkmann, J. 1940 \dQuote{The relation of pitch to frequency: 
 Traunmuller, H. 1990 \dQuote{Analytical expressions for the tonotopic sensory scale.} \emph{The Journal of the Acoustical Society of America}, 88(1), 97-100. \url{http://dx.doi.org/10.1121/1.399849}
 
 Watt, D., & Fabricius, A. H. 2002 \dQuote{Evaluation of a technique for improving the mapping of multiple speakers' vowel spaces in the F1 ~ F2 plane.} \emph{Leeds Working Papers in Linguistics and Phonetics}, 9, 159-173.
-
-Zwicker, E., & Terhardt, E. 1980 \dQuote{Analytical expressions for critical-band rate and critical bandwidth as a function of frequency.} \emph{The Journal of the Acoustical Society of America}, 68(5), 1523-1525. \url{http://dx.doi.org/10.1121/1.385079}
 }
-\seealso{\code{\link{norm.bark}}, \code{\link{norm.log}}, \code{\link{norm.mel}}, \code{\link{norm.erb}}, \code{\link{norm.lobanov}}, \code{\link{norm.logmean}}, \code{\link{norm.nearey}}, \code{\link{norm.wattfabricius}}}
+\seealso{\code{\link{norm.bark}}, \code{\link{norm.erb}}, 
+         \code{\link{norm.lobanov}}, \code{\link{norm.log}}, 
+         \code{\link{norm.logmean}}, \code{\link{norm.mel}}, 
+         \code{\link{norm.nearey}}, \code{\link{norm.wattfabricius}}}
 \examples{
     data(indoVowelData)
-	bark <- with(indo, norm.vowels('bark', f1=f1, f2=f2)
-	wattfab <- with(indo, norm.vowels('wattfabricius', f1=f1, f2=f2, vowel=vowel, 
-                  group=subj)
+  	bark <- with(indo, norm.vowels('bark', f1=f1, f2=f2)
+	  wattfab <- with(indo, norm.vowels('wattfabricius', f1=f1, f2=f2, 
+                    vowel=vowel, group=subj))
 }
 \keyword{methods}
