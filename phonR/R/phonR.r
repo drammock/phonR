@@ -412,8 +412,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         if (exargs$ylim[2] != par('usr')[4]) {
             axis(4, at=c(exargs$ylim[2], par('usr')[4]), labels=FALSE,
                 col=par('fg'), tcl=0)
-        }
-    }
+    }   }
 
     # # # # # # # # #
     # PLOT HEATMAP  #
@@ -424,10 +423,10 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
                                         cs3=c(25, 100), alpha=0.5,
                                         color.spec='hcl')
         }
-        force <- with(d, repulsive.force(f2, f1, v))
-        with(d, force.heatmap(f2, f1, force, vowel=v, resolution=force.res,
-                                    colormap=force.colmap, method=force.method,
-                                    add=TRUE))
+        with(d, repulsive.force.heatmap(f2, f1, type=v,
+                                        resolution=force.res, 
+                                        colormap=force.colmap, 
+                                        method=force.method, add=TRUE))
         if (is.null(force.legend)) {
             xl <- rep(exargs$xlim[1], 2)
             yl <- exargs$ylim - c(0, diff(exargs$ylim) / 2)
@@ -438,8 +437,8 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         force.heatmap.legend(xl, yl, colormap=force.colmap)
         if (!is.null(force.labels)) {
             text(xl, yl, labels=force.labels, pos=force.label.pos, xpd=TRUE)
-        }
-    }
+    }   }
+
     # # # # # # #
     # PLOT HULL #
     # # # # # # #
@@ -492,11 +491,10 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
             bigenough <- sapply(pp, function(i) nrow(i) > 1)
             invisible(lapply(pp[bigenough], function(i) {
                 with(i[i$v %in% poly.order,], points(f2, f1, col=poly.line.col,
-                                                    type=type, lty=style,
-                                                    cex=1.25*cex.means))
+                                                     type=type, lty=style,
+                                                     cex=1.25*cex.means))
                 }))
-        }
-    }
+    }   }
     # # # # # # # #
     # PLOT TOKENS #
     # # # # # # # #
@@ -579,9 +577,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
                 with(d, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens))
             } else {
                 with(d, text(f2, f1, labels=pch.tokens, col=color, cex=cex.tokens))
-            }
-        }
-    }
+    }   }   }
     # # # # # # # #
     # PLOT MEANS  #
     # # # # # # # #
@@ -591,8 +587,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
             with(m, points(f2, f1, col=color, pch=pch.means, cex=cex.means))
         } else {
             with(m, text(f2, f1, labels=pch.means, col=color, cex=cex.means))
-        }
-    }
+    }   }
     # # # # # #
     # LEGEND  #
     # # # # # #
@@ -796,16 +791,14 @@ convex.hull.area <- function(x, y, group=NULL) {
     bygrouppts <- by(df, df$g, function(i) i[chull(i$x, i$y),c('x','y')])
     bygrouparea <- sapply(bygrouppts, function(i) {
         areapl(as.matrix(data.frame(x=i$x, y=i$y, stringsAsFactors=FALSE)))
-    })
-}
+})  }
 
 
 repulsive.force <- function(x, y, type) {
     dmat <- as.matrix(dist(cbind(x, y)))
     force <- sapply(seq_along(type), function(i) {
         sum(1 / dmat[i, !(type %in% type[i])] ^ 2)
-    })
-}
+})  }
 
 
 # pineda's triangle filling algorithm
@@ -832,20 +825,20 @@ fill.triangle <- function(x, y, vertices) {
 }
 
 
-force.heatmap <- function(f2, f1, z, vowel=NULL, resolution=50,
-                        colormap=NULL, method='default', add=TRUE, ...) {
+repulsive.force.heatmap <- function(x, y, type=NULL, resolution=50,
+                                    colormap=NULL, method="default", ...) {
     require(splancs)  # provides inpip()
     require(deldir)   # provides deldir() and triMat()
     require(plotrix)  # provides color.scale()
     # default to grayscale
     if (is.null(colormap)) colormap <- color.scale(x=0:100, cs1=0, cs2=0,
-                                    cs3=c(25,100), alpha=1, color.spec='hcl')
+                                    cs3=c(25,100), alpha=1, color.spec="hcl")
     # create grid encompassing vowel space
-    vertices <- data.frame(x=f2, y=f1, z=z, v=vowel)
+    vertices <- data.frame(x=x, y=y, v=type)  # z=z, 
     vertices <- vertices[!is.na(vertices$x) & !is.na(vertices$y),]
-    bounding.rect <- apply(vertices[c('x', 'y')], 2, range, na.rm=TRUE)
-    xr <- abs(diff(bounding.rect[,'x']))
-    yr <- abs(diff(bounding.rect[,'y']))
+    bounding.rect <- apply(vertices[c("x", "y")], 2, range, na.rm=TRUE)
+    xr <- abs(diff(bounding.rect[,"x"]))
+    yr <- abs(diff(bounding.rect[,"y"]))
     if (xr > yr) {
         xres <- round(resolution * xr / yr)
         yres <- resolution
@@ -853,37 +846,44 @@ force.heatmap <- function(f2, f1, z, vowel=NULL, resolution=50,
         xres <- resolution
         yres <- round(resolution * yr / xr)
     }
-    xgrid <- seq(floor(bounding.rect[1,1]), ceiling(bounding.rect[2,1]), length.out=xres)
-    ygrid <- seq(floor(bounding.rect[1,2]), ceiling(bounding.rect[2,2]), length.out=yres)
+    xgrid <- seq(floor(bounding.rect[1,1]), ceiling(bounding.rect[2,1]), 
+                 length.out=xres)
+    ygrid <- seq(floor(bounding.rect[1,2]), ceiling(bounding.rect[2,2]), 
+                 length.out=yres)
     grid <- expand.grid(x=xgrid, y=ygrid)
     grid$z <- NA
     # create delaunay triangulation of vowels
     triangs <- with(vertices, triMat(deldir(x, y, suppressMsge=TRUE)))
-    triangs <- apply(triangs, 1, function(i) data.frame(x=vertices$x[i], y=vertices$y[i], z=vertices$z[i]))
-    # which grid points are inside the vowel space
+    triangs <- apply(triangs, 1, function(i) data.frame(x=vertices$x[i], 
+                                                        y=vertices$y[i]))
+    # which grid points are inside the vowel space?
     grid.indices <- lapply(triangs, function(i) inpip(grid, i, bound=FALSE))
-    if (method %in% 'pineda') {
+    if (method == "pineda") {
         grid.values <- lapply(seq_along(triangs),
-            function(i) fill.triangle(grid[grid.indices[[i]],1],
-            grid[grid.indices[[i]],2], triangs[[i]]))
+                              function(i) fill.triangle(grid[grid.indices[[i]],1],
+                                                        grid[grid.indices[[i]],2], 
+                                                        triangs[[i]]))
         grid.indices <- do.call(c, grid.indices)
         grid.values <- do.call(c, grid.values)
         grid$z[grid.indices] <- grid.values
-        image(xgrid, ygrid, matrix(grid$z, nrow=length(xgrid)),
-            col=colormap, add=add)
+        image(xgrid, ygrid, matrix(grid$z, nrow=length(xgrid)), col=colormap, ...)
     } else {
-        if (is.null(vowel)) stop('Default method requires non-null values for "vowel".')
+        if (is.null(type)) stop("Default method requires non-null values for 'type'.")
         grid.force <- rep(NA, nrow(grid))
         hull <- vertices[chull(vertices),]  # polygon of hull
         subgrid <- grid[inpip(grid[,1:2], hull),]
         # which vowel is closest to each grid point?
-        dist.matrix <- apply(subgrid, 1, function(i) apply(as.matrix(vertices[c('x','y')]), 1, function(j) sqrt(sum((j[1:2] - i[1:2])^2))))
+        dist.matrix <- apply(subgrid, 1, 
+                             function(i) apply(as.matrix(vertices[c('x','y')]), 1, 
+                                               function(j) sqrt(sum((j[1:2] - i[1:2])^2))))
         indices <- apply(dist.matrix, 2, function(i) which(i == min(i)))
         indices <- sapply(indices, function(i) i[1])  # if there is a tie of which vowel is closest, pick first one (arbitrarily)
         subgrid.nearest.vowel <- vertices$v[indices]
-        subgrid.force <- sapply(seq_along(subgrid.nearest.vowel), function(i) sum(1/dist.matrix[!(vertices$v %in% subgrid.nearest.vowel[i]),i]^2))
+        subgrid.force <- sapply(seq_along(subgrid.nearest.vowel), 
+                                function(i) sum(1/dist.matrix[!(vertices$v %in% subgrid.nearest.vowel[i]),i]^2))
         grid.force[inpip(grid[,1:2], hull)] <- log10(subgrid.force)
-        image(xgrid, ygrid, matrix(grid.force, nrow=length(xgrid)), col=colormap, add=add, ...)
+        image(xgrid, ygrid, matrix(grid.force, nrow=length(xgrid)), 
+              col=colormap, ...)
 }	}
 
 
