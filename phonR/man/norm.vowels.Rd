@@ -1,17 +1,35 @@
 \name{norm.vowels}
 \title{Normalize formant values using a variety of algorithms}
-\description{Convenience function wrapping to the individual \code{norm.[method]} functions. Transforms vowel formant data measured in Hertz using one of several normalization schemes commonly used in phonetic and sociolinguistic research. Returns an n-by-m matrix of n data points by m formants in ascending order, with fundamental frequency first (if present), except for method \dQuote{wattfabricius} which only and always returns F1 and F2, regardless of whether f0 and F3 were supplied.}
+\description{Convenience function wrapping to the individual \code{norm.[method]}
+             functions. Transforms vowel formant data measured in Hertz using one
+             of several normalization schemes commonly used in phonetic and 
+             sociolinguistic research. Returns an n-by-m matrix of n data points 
+             by m formants with formants in ascending order, with fundamental 
+             frequency first (if present), except for method 
+             \code{wattfabricius} which only and always returns F1 and F2, 
+             regardless of whether f0 and F3 were supplied.}
 \usage{
-    norm.vowels(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NULL, group=NULL)
-
+    norm.vowels(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NULL, 
+                group=NULL)
 }
-    \item{method}{Normalization method to use.  Possible values are \dQuote{bark}, \dQuote{mel}, \dQuote{erb}, \dQuote{log}, \dQuote{z}|\dQuote{zscore}|\dQuote{ztransform}|\dQuote{lobanov}, \dQuote{logmean}|\dQuote{nearey1}, \dQuote{nearey2}, \dQuote{s}|\dQuote{scentroid}|\dQuote{wattfabricius}.}
-    \item{f0}{Vector of f0 (fundamental frequency) values. Required for method \dQuote{nearey}.}
+\arguments{
+    \item{method}{Normalization method to use. Possible values are \dQuote{bark},
+                  \dQuote{mel}, \dQuote{erb}, \dQuote{log}, 
+                  \dQuote{z}|\dQuote{zscore}|\dQuote{ztransform}|\dQuote{lobanov}, 
+                  \dQuote{logmean}|\dQuote{nearey1}, \dQuote{nearey2}, 
+                  \dQuote{s}|\dQuote{scentroid}|\dQuote{wattfabricius}.}
+    \item{f0}{Vector of f0 (fundamental frequency) values. Required for method 
+              \dQuote{nearey}.}
     \item{f1}{Vector of F1 (first formant) values.}
     \item{f2}{Vector of F2 (second formant) values.}
-    \item{f3}{Vector of F3 (third formant) values. Required for method \dQuote{nearey}.}
-    \item{vowel}{Vector of vowel symbols. Required for method \dQuote{wattfabricius}, ignored for all other methods.}
-    \item{group}{Vector of grouping factor values. If supplied, used to calculate group-intrinsic normalizations for methods \dQuote{lobanov}, \dQuote{logmean}, \dQuote{nearey}, and \dQuote{wattfabricius}.}
+    \item{f3}{Vector of F3 (third formant) values. Required for method 
+              \dQuote{nearey}.}
+    \item{vowel}{Vector of vowel symbols. Required for method 
+                 \dQuote{wattfabricius}, ignored for all other methods.}
+    \item{group}{Vector or factor of grouping values (e.g., talker ID). If 
+                 supplied, used to calculate group-intrinsic normalizations for 
+                 methods \dQuote{lobanov}, \dQuote{logmean}, \dQuote{nearey}, 
+                 and \dQuote{wattfabricius}.}
 }
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
 \references{
@@ -35,6 +53,7 @@ Zwicker, E., & Terhardt, E. 1980 \dQuote{Analytical expressions for critical-ban
 \examples{
     data(indoVowelData)
 	bark <- with(indo, norm.vowels('bark', f1=f1, f2=f2)
-	wattfab <- with(indo, norm.vowels('wattfabricius', f1=f1, f2=f2, vowel=vowel, group=subj)
+	wattfab <- with(indo, norm.vowels('wattfabricius', f1=f1, f2=f2, vowel=vowel, 
+                  group=subj)
 }
 \keyword{methods}
