@@ -1,5 +1,5 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# phonR version 1.0-0-git
+# phonR version 1.0-0
 # Functions for phoneticians and phonologists
 # AUTHOR: Daniel McCloy, drmccloy@uw.edu
 # LICENSED UNDER THE GNU GENERAL PUBLIC LICENSE v3.0:

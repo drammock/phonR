@@ -1,12 +1,12 @@
 Package: phonR
 Type: Package
 Title: R tools for phoneticians and phonologists
-Version: 1.0-0-git
-Date: 2014-06-14
+Version: 1.0-0
+Date: 2014-12-07
 Author: Daniel R. McCloy
 Maintainer: Daniel R. McCloy <drmccloy@uw.edu>
 Depends: R (>= 2.10), splancs, deldir, plotrix
-Description: phonR is an R package for phoneticians and phonologists, including functions for normalization and plotting of vowels.
+Description: Tools for phoneticians and phonologists, including functions for normalization and plotting of vowels.
 License: GPL-3
 URL: https://github.com/drammock/phonR
 BugReports: https://github.com/drammock/phonR/issues 

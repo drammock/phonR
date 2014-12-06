@@ -4,7 +4,7 @@ citHeader("To cite package 'phonR' in publications use:")
      vers <- paste("R package version", meta$Version)
      
      citEntry(entry="Manual",
-              title = "phonR: R tools for phoneticians and phonologists",
+              title = "phonR: tools for phoneticians and phonologists",
               author = personList(as.person("Daniel McCloy")),
               year = year,
               note = vers,
@@ -12,5 +12,5 @@ citHeader("To cite package 'phonR' in publications use:")
               textVersion =
               paste("Daniel McCloy (",
                     year,
-                    "). phonR: R tools for phoneticians and phonologists. ",
+                    "). phonR: tools for phoneticians and phonologists. ",
                     vers, ".", sep=""))
