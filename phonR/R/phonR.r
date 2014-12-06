@@ -164,7 +164,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     l <- length(vowel)
     if (is.null(group)) gf <- rep('gf', l)
-    else 			    gf <- as.numeric(factor(group))
+    else 			    gf <- factor(group)
     # used later to set default polygon color when color varies by vowel
     if (identical(col.by, vowel)) col.by.vowel <- TRUE
     else                          col.by.vowel <- FALSE
@@ -592,7 +592,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # #
     if (!is.null(legend.kwd)) {
         if (col.by.vowel)  legend.text <- unique(m$v)
-        else              legend.text <- unique(m$gf)
+        else               legend.text <- unique(m$gf)
         legend.args <- list(legend.kwd, legend=legend.text, bty="n", seg.len=1)
         # legend lines
         if (hull.line | poly.line | ellipse.line) {
