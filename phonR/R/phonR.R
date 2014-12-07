@@ -44,7 +44,7 @@
 # Then library(phonR)
 # Then call functions as needed
 
-plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
+plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     plot.tokens=TRUE, pch.tokens=NULL, cex.tokens=NULL,
     plot.means=FALSE, pch.means=NULL, cex.means=NULL,
     hull.line=FALSE, hull.fill=FALSE, hull.col=NULL,
@@ -56,11 +56,6 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     col.by=NA, style.by=NA, fill.opacity=0.3, legend.kwd=NULL, pretty=FALSE,
     output='screen', ...)
 {
-    # # # # # # # # #
-    # DEPENDENCIES  #
-    # # # # # # # # #
-    require(plotrix)  # provides color.scale()
-
     # # # # # # # # # # #
     # HANDLE EXTRA ARGS #
     # # # # # # # # # # #
@@ -248,8 +243,8 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (is.null(pch.means))  pchm <- exargs$pch
     else                     pchm <- pch.means
     # transparency
-    trans.col <- make.transparent(exargs$col, fill.opacity)
-    trans.fg <- make.transparent(par('fg'), fill.opacity)
+    trans.col <- makeTransparent(exargs$col, fill.opacity)
+    trans.fg <- makeTransparent(par('fg'), fill.opacity)
     # ellipse colors
     if (ellipse.line) ellipse.line.col <- exargs$col
     else              ellipse.line.col <- NA[col.by]
@@ -262,7 +257,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         else                    hull.line.col <- exargs$col
     } else {                    hull.line.col <- NA[col.by] }
     if (hull.fill) {
-        if (!is.null(hull.col)) hull.fill.col <- make.transparent(hull.col[col.by],
+        if (!is.null(hull.col)) hull.fill.col <- makeTransparent(hull.col[col.by],
                                                                 fill.opacity)
         else if (col.by.vowel)  hull.fill.col <- trans.fg
         else                    hull.fill.col <- trans.col
@@ -274,7 +269,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         else                    poly.line.col <- exargs$col
     } else {                    poly.line.col <- NA[col.by] }
     if (poly.fill) {
-        if (!is.null(poly.col)) poly.fill.col <- make.transparent(poly.col[col.by],
+        if (!is.null(poly.col)) poly.fill.col <- makeTransparent(poly.col[col.by],
                                                                 fill.opacity)
         else if (col.by.vowel)  poly.fill.col <- trans.fg
         else                    poly.fill.col <- trans.col
@@ -297,7 +292,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
         if (output=='screen') warning("Font specification may fail if saving ",
                                     "as PDF from onscreen plot window menu. ",
                                     "To ensure PDF font fidelity, run ",
-                                    "plot.vowels() with output='pdf'.")
+                                    "plotVowels() with output='pdf'.")
     }
     # INITIAL CALL TO PAR()
     op <- par(par.args)
@@ -380,8 +375,8 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 
     if (pretty) {
         # ticks
-        xticks <- pretty.ticks(exargs$xlim)
-        yticks <- pretty.ticks(exargs$ylim)
+        xticks <- prettyTicks(exargs$xlim)
+        yticks <- prettyTicks(exargs$ylim)
         exargs$xlim <- rev(range(xticks))
         exargs$ylim <- rev(range(yticks))
         # annotation
@@ -423,7 +418,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
                                         cs3=c(25, 100), alpha=0.5,
                                         color.spec='hcl')
         }
-        with(d, repulsive.force.heatmap(f2, f1, type=v,
+        with(d, repulsiveForceHeatmap(f2, f1, type=v,
                                         resolution=force.res, 
                                         colormap=force.colmap, 
                                         method=force.method, add=TRUE))
@@ -434,7 +429,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
             xl <- force.legend[1:2]
             yl <- force.legend[3:4]
         }
-        force.heatmap.legend(xl, yl, colormap=force.colmap)
+        forceHeatmapLegend(xl, yl, colormap=force.colmap)
         if (!is.null(force.labels)) {
             text(xl, yl, labels=force.labels, pos=force.label.pos, xpd=TRUE)
     }   }
@@ -630,7 +625,7 @@ plot.vowels <- function(f1, f2, vowel=NULL, group=NULL,
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # OMNIBUS NORMALIZATION FUNCTION (convenience function) #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-norm.vowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
+normVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
                     vowel=NULL, group=NULL, ...) {
     m <- tolower(method)
     methods <- c('bark','mel','log','erb','z','zscore','lobanov',
@@ -642,21 +637,21 @@ norm.vowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
                 's|scentroid|s-centroid|wattfabricius|watt-fabricius.')
     }
     f <- cbind(f0=f0, f1=f1, f2=f2, f3=f3)
-    if (m %in% 'bark') return(norm.bark(f))
-    else if (m %in% 'mel') return(norm.mel(f))
-    else if (m %in% 'log') return(norm.log(f))
-    else if (m %in% 'erb') return(norm.erb(f))
-    else if (m %in% c('z','zscore','lobanov')) return(norm.lobanov(f, group))
-    else if (m %in% c('logmean','nearey1')) return(norm.logmean(f, group, ...))
-    else if (m %in% c('nearey','nearey2')) return(norm.nearey(f, group))
+    if (m %in% 'bark') return(normBark(f))
+    else if (m %in% 'mel') return(normMel(f))
+    else if (m %in% 'log') return(normLog(f))
+    else if (m %in% 'erb') return(normErb(f))
+    else if (m %in% c('z','zscore','lobanov')) return(normLobanov(f, group))
+    else if (m %in% c('logmean','nearey1')) return(normLogmean(f, group, ...))
+    else if (m %in% c('nearey','nearey2')) return(normNearey(f, group))
     else {
         f <- as.matrix(cbind(f1=f1, f2=f2))
-        return(norm.wattfabricius(f, vowel, group))
+        return(normWattFabricius(f, vowel, group))
 }	}
 
 
 # INDIVIDUAL NORMALIZATION FUNCTIONS
-norm.bark <- function(f) {
+normBark <- function(f) {
     bark <- 26.81 * f / (1960 + f) - 0.53
     bark[bark < 2] <- bark[bark < 2] + 0.15 * (2 - bark[bark < 2])
     bark[bark > 20.1] <- bark[bark > 20.1] + 0.22 * (bark[bark > 20.1] - 20.1)
@@ -664,22 +659,22 @@ norm.bark <- function(f) {
 }
 
 
-norm.log <- function(f) {
+normLog <- function(f) {
     log10(f)
 }
 
 
-norm.mel <- function(f) {
+normMel <- function(f) {
     2595*log10(1+f/700)
 }
 
 
-norm.erb <- function(f) {
+normErb <- function(f) {
     21.4*log10(1+0.00437*f)
 }
 
 
-norm.lobanov <- function(f, group=NULL) {
+normLobanov <- function(f, group=NULL) {
     if (is.null(group)) {
         return(scale(f))
     } else {
@@ -690,7 +685,7 @@ norm.lobanov <- function(f, group=NULL) {
 }	}
 
 
-norm.logmean <- function(f, group=NULL, ...) {
+normLogmean <- function(f, group=NULL, ...) {
     if (is.null(group)) {
         return(log(f) - rep(colMeans(log(f), ...), each=nrow(f)))
     } else {
@@ -703,7 +698,7 @@ norm.logmean <- function(f, group=NULL, ...) {
 }	}
 
 
-norm.nearey <- function(f, group=NULL, ...) {
+normNearey <- function(f, group=NULL, ...) {
     if (ncol(f) != 4) {
         stop("Missing values: normalization method 'norm.nearey' ",
             "requires non-null values for f0, f1, f2, and f3).")
@@ -718,7 +713,7 @@ norm.nearey <- function(f, group=NULL, ...) {
 }	}
 
 
-norm.wattfabricius <- function(f, vowel, group=NULL) {
+normWattFabricius <- function(f, vowel, group=NULL) {
     if (ncol(f) != 2) {
         warning("Wrong dimensions: s-centroid normalization requires ",
                 "an Nx2 matrix or data frame of F1 and F2 values.")
@@ -760,7 +755,7 @@ norm.wattfabricius <- function(f, vowel, group=NULL) {
 }
 
 
-pretty.ticks <- function(lim) {
+prettyTicks <- function(lim) {
     axrange <- abs(diff(lim))
     step <- 10^(floor(log(axrange,10)))
     coef <- ifelse(axrange/step < 1, 0.1, 
@@ -789,8 +784,7 @@ ellipse <- function(mu, sigma, alpha=0.05, npoints=250, draw=TRUE, ...) {
 }
 
 
-convex.hull.area <- function(x, y, group=NULL) {
-    require(splancs)
+convexHullArea <- function(x, y, group=NULL) {
     if (is.null(group))  group <- "all.points"
     df <- data.frame(x=x, y=y, g=group, stringsAsFactors=FALSE)
     bygrouppts <- by(df, df$g, function(i) i[chull(i$x, i$y),c('x','y')])
@@ -799,7 +793,7 @@ convex.hull.area <- function(x, y, group=NULL) {
 })  }
 
 
-repulsive.force <- function(x, y, type) {
+repulsiveForce <- function(x, y, type) {
     dmat <- as.matrix(dist(cbind(x, y)))
     force <- sapply(seq_along(type), function(i) {
         sum(1 / dmat[i, !(type %in% type[i])] ^ 2)
@@ -807,7 +801,7 @@ repulsive.force <- function(x, y, type) {
 
 
 # pineda's triangle filling algorithm
-fill.triangle <- function(x, y, vertices) {
+fillTriangle <- function(x, y, vertices) {
     x0 <- vertices[1,1]
     x1 <- vertices[2,1]
     x2 <- vertices[3,1]
@@ -830,11 +824,8 @@ fill.triangle <- function(x, y, vertices) {
 }
 
 
-repulsive.force.heatmap <- function(x, y, type=NULL, resolution=50,
+repulsiveForceHeatmap <- function(x, y, type=NULL, resolution=50,
                                     colormap=NULL, method="default", ...) {
-    require(splancs)  # provides inpip()
-    require(deldir)   # provides deldir() and triMat()
-    require(plotrix)  # provides color.scale()
     # default to grayscale
     if (is.null(colormap)) colormap <- color.scale(x=0:100, cs1=0, cs2=0,
                                     cs3=c(25,100), alpha=1, color.spec="hcl")
@@ -865,9 +856,9 @@ repulsive.force.heatmap <- function(x, y, type=NULL, resolution=50,
     grid.indices <- lapply(triangs, function(i) inpip(grid, i, bound=FALSE))
     if (method == "pineda") {
         grid.values <- lapply(seq_along(triangs),
-                              function(i) fill.triangle(grid[grid.indices[[i]],1],
-                                                        grid[grid.indices[[i]],2], 
-                                                        triangs[[i]]))
+                              function(i) fillTriangle(grid[grid.indices[[i]],1],
+                                                       grid[grid.indices[[i]],2], 
+                                                       triangs[[i]]))
         grid.indices <- do.call(c, grid.indices)
         grid.values <- do.call(c, grid.values)
         grid$z[grid.indices] <- grid.values
@@ -892,9 +883,8 @@ repulsive.force.heatmap <- function(x, y, type=NULL, resolution=50,
 }	}
 
 
-force.heatmap.legend <- function (x, y, smoothness=50, colormap=NULL, lend=2,
+forceHeatmapLegend <- function (x, y, smoothness=50, colormap=NULL, lend=2,
                                 lwd=6, ...) {
-    require(plotrix)
     if (is.null(colormap)) {  # default to grayscale
         colormap <- color.scale(x=0:100, cs1=0, cs2=0, cs3=c(0,100),
                                 alpha=1, color.spec='hcl')
@@ -906,15 +896,15 @@ force.heatmap.legend <- function (x, y, smoothness=50, colormap=NULL, lend=2,
 }
 
 
-make.transparent <- function (opaque.color, opacity) {
-    rgba <- t(col2rgb(opaque.color, alpha=TRUE))
+makeTransparent <- function (color, opacity) {
+    rgba <- t(col2rgb(color, alpha=TRUE))
     rgba[,4] <- round(255 * opacity)
     colnames(rgba) <- c("red", "green", "blue", "alpha")
     trans.color <- do.call(rgb, c(as.data.frame(rgba), maxColorValue=255))
 }
 
 
-vowel.means.polygon.area <- function(f1, f2, vowel, poly.order) {
+vowelMeansPolygonArea <- function(f1, f2, vowel, poly.order) {
     if (length(poly.order) != length(unique(poly.order))) {
         warning("Duplicate entries in 'poly.order' detected; they will be ",
                 "ignored.")

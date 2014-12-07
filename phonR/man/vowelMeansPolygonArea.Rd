@@ -1,10 +1,10 @@
-\name{vowel.means.polygon.area}
+\name{vowelMeansPolygonArea}
 \title{Calculate the area of a polygon connecting vowel formant means.}
 \description{The polygon's vertices are the means of the vowel formant 
 			 frequencies given by \code{f1} and \code{f2}, and are connected in
 			 the order specified in \code{poly.order}.}
 \usage{
-    vowel.means.polygon.area(f1, f2, vowel, poly.order)
+    vowelMeansPolygonArea(f1, f2, vowel, poly.order)
 }
 \arguments{
     \item{f1}{Numeric vector of first formant frequencies.}
@@ -16,10 +16,10 @@
 }
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
 \references{}
-\seealso{\code{\link{plot.vowels}}}
+\seealso{\code{\link{plotVowels}}}
 \examples{
     data(indoVowelData)
-	area <- with(indo, vowel.means.polygon.area(f1, f2, vowel, 
+	area <- with(indo, vowelMeansPolygonArea(f1, f2, vowel, 
 				 poly.order=c('i', 'e', 'a', 'o', 'u')))
 }
 \keyword{methods}

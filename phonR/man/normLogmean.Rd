@@ -1,10 +1,10 @@
-\name{norm.logmean}
+\name{normLogmean}
 \title{Normalize formant values using the logmean transform.}
 \description{Transforms vowel formant data measured in Hertz using the logmean
              transform (the log of the frequency minus the mean of the logs of
              all formant frequencies for that formant).}
 \usage{
-    norm.logmean(f, group=NULL, ...)
+    normLogmean(f, group=NULL, ...)
 }
 \arguments{
     \item{f}{Vector or matrix of frequencies. If a matrix, each column should be
@@ -22,12 +22,12 @@
 \references{
 Nearey, T. M. 1978 \dQuote{Phonetic feature systems for vowels} (Doctoral dissertation, University of Alberta). Reprinted by the Indiana University Linguistics Club. \url{http://www.ualberta.ca/~tnearey/Nearey1978_compressed.pdf}
 }
-\seealso{\code{\link{norm.vowels}}, \code{\link{norm.bark}}, 
-		 \code{\link{norm.erb}}, \code{\link{norm.lobanov}}, 
-		 \code{\link{norm.log}}, \code{\link{norm.mel}}, 
-		 \code{\link{norm.nearey}}, \code{\link{norm.wattfabricius}}}
+\seealso{\code{\link{normVowels}}, \code{\link{normBark}}, 
+		 \code{\link{normErb}}, \code{\link{normLobanov}}, 
+		 \code{\link{normLog}}, \code{\link{normMel}}, 
+		 \code{\link{normNearey}}, \code{\link{normWattFabricius}}}
 \examples{
     data(indoVowelData)
-	logmean <- with(indo, norm.logmean(cbind(f1, f2), group=gender)
+	logmean <- with(indo, normLogmean(cbind(f1, f2), group=gender))
 }
 \keyword{methods}

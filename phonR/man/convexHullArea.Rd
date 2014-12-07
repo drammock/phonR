@@ -1,8 +1,8 @@
-\name{convex.hull.area}
+\name{convexHullArea}
 \title{Calculate convex hull area}
 \description{Calculate the area of the convex hull surrounding all points.}
 \usage{
-    convex.hull.area(x, y, group=NULL)
+    convexHullArea(x, y, group=NULL)
 }
 \arguments{
     \item{x}{Vector of x-values.}
@@ -16,7 +16,7 @@
 \seealso{\code{\link{grDevices::chull}}, \code{\link{splancs::areapl}}}
 \examples{
     data(indoVowelData)
-    with(indo, convex.hull.area(f2, f1))
-    with(indo, convex.hull.area(f2, f1, gender))
+    with(indo, convexHullArea(f2, f1))
+    with(indo, convexHullArea(f2, f1, gender))
 }
 \keyword{}

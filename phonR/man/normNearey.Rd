@@ -1,9 +1,9 @@
-\name{norm.nearey}
+\name{normNearey}
 \title{Normalize formant values using the \dQuote{Nearey 2} method.}
 \description{Transforms vowel formant data measured in Hertz using Nearey's
 			transformation.}
 \usage{
-    norm.nearey(f, group=NULL, ...)
+    normNearey(f, group=NULL, ...)
 }
 \arguments{
     \item{f}{N-by-4 matrix of frequencies, with columns \dQuote{f0}, \dQuote{F1}, 
@@ -18,9 +18,9 @@
 \references{
 Nearey, T. M. 1978 \dQuote{Phonetic feature systems for vowels} (Doctoral dissertation, University of Alberta). Reprinted by the Indiana University Linguistics Club. \url{http://www.ualberta.ca/~tnearey/Nearey1978_compressed.pdf}
 }
-\seealso{\code{\link{norm.vowels}}, \code{\link{norm.bark}}, 
-		 \code{\link{norm.erb}}, \code{\link{norm.lobanov}}, 
-		 \code{\link{norm.log}}, \code{\link{norm.logmean}}, 
-		 \code{\link{norm.mel}}, \code{\link{norm.wattfabricius}}}
+\seealso{\code{\link{normVowels}}, \code{\link{normBark}}, 
+		 \code{\link{normErb}}, \code{\link{normLobanov}}, 
+		 \code{\link{normLog}}, \code{\link{normLogmean}}, 
+		 \code{\link{normMel}}, \code{\link{normWattFabricius}}}
 \examples{}
 \keyword{methods}

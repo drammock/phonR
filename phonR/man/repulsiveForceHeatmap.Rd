@@ -1,9 +1,9 @@
-\name{replusive.force.heatmap}
+\name{repulsiveForceHeatmap}
 \title{Plot a heatmap of repulsive force values for a vowel space.}
 \description{}
 \usage{
-    repulsive.force.heatmap(x, y, type=NULL, resolution=50, colormap=NULL, 
-    						method='default', add=TRUE, ...)
+    repulsiveForceHeatmap(x, y, type=NULL, resolution=50, colormap=NULL, 
+    					  method='default', add=TRUE, ...)
 }
 \arguments{
     \item{x}{Numeric vector of x values (e.g., F2 frequencies).}
@@ -22,7 +22,7 @@
     				  plotted with lower resolution on a Hertz scale.)}
     \item{colormap}{Colormap to use when drawing the heatmap (see 
                     \code{\link{plotrix::color.scale}}. See 
-                    \code{\link{force.heatmap.legend}} for notes regarding the
+                    \code{\link{forceHeatmapLegend}} for notes regarding the
                     use of semi-transparent colors in heatmaps; in brief, it
                     works fine for the heatmap itself, but works poorly in the
                     legend colorbar, so avoiding semi-transparent colors is
@@ -35,7 +35,7 @@
                   only other accepted value is \dQuote{pineda}, which uses Juan 
                   Pineda's triangle filling algorithm; this is considered 
                   experimental and not supported.}
-    \item{...}{Additional arguments passed to \code{\link{graphics::image()}},
+    \item{...}{Additional arguments passed to \code{\link{graphics::image}},
                the most important of which is probably \code{add}.}
 }
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
@@ -53,7 +53,7 @@ Pineda, J. 1988 \dQuote{A parallel algorithm for polygon rasterization}. \emph{A
     colmap <- color.scale(x=0:100, cs1=c(0, 180), cs2=100, cs3=c(25, 100), 
     	                    alpha=0.5, color.spec='hcl')
     with(indo[indo$subj==indo$subj[1],], 
-    	 repulsive.force.heatmap(f2, f1, type=vowel, resolution=10, 
-    	 					     colormap=colmap, add=FALSE))
+    	 repulsiveForceHeatmap(f2, f1, type=vowel, resolution=10, 
+    	 					   colormap=colmap, add=FALSE))
 }
 \keyword{methods}

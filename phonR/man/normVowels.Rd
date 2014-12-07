@@ -1,4 +1,4 @@
-\name{norm.vowels}
+\name{normVowels}
 \title{Normalize formant values using a variety of algorithms}
 \description{Convenience function wrapping to the individual \code{norm.[method]}
              functions. Transforms vowel formant data measured in Hertz using one
@@ -9,7 +9,7 @@
              \code{wattfabricius} which only and always returns F1 and F2, 
              regardless of whether f0 and F3 were supplied.}
 \usage{
-    norm.vowels(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NULL, 
+    normVowels(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NULL, 
                 group=NULL)
 }
 \arguments{
@@ -47,14 +47,14 @@ Traunmuller, H. 1990 \dQuote{Analytical expressions for the tonotopic sensory sc
 
 Watt, D., & Fabricius, A. H. 2002 \dQuote{Evaluation of a technique for improving the mapping of multiple speakers' vowel spaces in the F1 ~ F2 plane.} \emph{Leeds Working Papers in Linguistics and Phonetics}, 9, 159-173.
 }
-\seealso{\code{\link{norm.bark}}, \code{\link{norm.erb}}, 
-         \code{\link{norm.lobanov}}, \code{\link{norm.log}}, 
-         \code{\link{norm.logmean}}, \code{\link{norm.mel}}, 
-         \code{\link{norm.nearey}}, \code{\link{norm.wattfabricius}}}
+\seealso{\code{\link{normBark}}, \code{\link{normErb}}, 
+         \code{\link{normLobanov}}, \code{\link{normLog}}, 
+         \code{\link{normLogmean}}, \code{\link{normMel}}, 
+         \code{\link{normNearey}}, \code{\link{normWattFabricius}}}
 \examples{
     data(indoVowelData)
-  	bark <- with(indo, norm.vowels('bark', f1=f1, f2=f2)
-	  wattfab <- with(indo, norm.vowels('wattfabricius', f1=f1, f2=f2, 
+  	bark <- with(indo, normVowels('bark', f1=f1, f2=f2))
+	  wattfab <- with(indo, normVowels('wattfabricius', f1=f1, f2=f2, 
                     vowel=vowel, group=subj))
 }
 \keyword{methods}

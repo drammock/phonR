@@ -1,11 +1,12 @@
-\name{fill.triangle}
+\name{fillTriangle}
 \title{Calculate a z-value for an arbitrary point (x, y) inside a triangle,
        based on the z-values of the triangle's vertices.}
 \description{Uses Juan Pineda's filling algorithm, designed for continuous color
 			 blending in 2-dimensions.}
 \usage{
-    fill.triangle(x, y, vertices)
+    fillTriangle(x, y, vertices)
 }
+\arguments{
     \item{x}{Numeric vector of x-coordinates.}
     \item{y}{Numeric vector of y-coordinates.}
     \item{vertices}{3-by-3 matrix of (x, y, z) values (columns) for the three 
@@ -26,7 +27,7 @@ Pineda, J. 1988 \dQuote{A parallel algorithm for polygon rasterization}. \emph{A
 	grid <- expand.grid(x=xseq, y=yseq)
     grid$z <- NA
     grid.indices <- inpip(grid, vertices[,1:2], bound=FALSE)
-    grid$z[grid.indices] <- with(grid[grid.indices,], fill.triangle(x, y, vertices))
+    grid$z[grid.indices] <- with(grid[grid.indices,], fillTriangle(x, y, vertices))
     par(mfrow=c(1,2))
     # points example
     with(grid, plot(x, y, col=colmap[round(z)], pch=16))

@@ -1,9 +1,9 @@
-\name{norm.lobanov}
+\name{normLobanov}
 \title{Normalize formant values using Lobanov's method.}
 \description{Transforms vowel formant data measured in Hertz using Lobanov's 
              method (a standard z-transform, typically within-speaker).}
 \usage{
-    norm.lobanov(f, group=NULL)
+    normLobanov(f, group=NULL)
 }
 \arguments{
     \item{f}{Vector or matrix of frequencies.}
@@ -17,12 +17,12 @@
 \references{
 Lobanov, B. M. 1971 \dQuote{Classification of Russian vowels spoken by different speakers.} \emph{The Journal of the Acoustical Society of America}, 49(2), 606-608. \url{http://dx.doi.org/10.1121/1.1912396}
 }
-\seealso{\code{\link{norm.vowels}}, \code{\link{norm.bark}}, 
-		 \code{\link{norm.erb}}, \code{\link{norm.log}}, 
-		 \code{\link{norm.logmean}}, \code{\link{norm.mel}}, 
-		 \code{\link{norm.nearey}}, \code{\link{norm.wattfabricius}}}
+\seealso{\code{\link{normVowels}}, \code{\link{normBark}}, 
+		 \code{\link{normErb}}, \code{\link{normLog}}, 
+		 \code{\link{normLogmean}}, \code{\link{normMel}}, 
+		 \code{\link{normNearey}}, \code{\link{norm.WattFabricius}}}
 \examples{
     data(indoVowelData)
-	lobanov <- with(indo, norm.lobanov(cbind(f1, f2), group=subj)
+	lobanov <- with(indo, normLobanov(cbind(f1, f2), group=subj))
 }
 \keyword{methods}

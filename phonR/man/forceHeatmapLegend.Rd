@@ -1,9 +1,12 @@
-\name{force.heatmap.legend}
+\name{forceHeatmapLegend}
 \title{Draw a colorbar legend for repulsive force heatmaps.}
-\description{}
+\description{Given endpoints \code{x} and \code{y}, draws a colorbar legend 
+			 with \code{smoothness} number of steps using the provided colormap
+			 (or defaults to grayscale if \code{colormap} is \code{NULL}.}
 \usage{
-    force.heatmap.legend(x, y, smoothness=50, colormap=NULL, lend=2, lwd=6, ...)
+    forceHeatmapLegend(x, y, smoothness=50, colormap=NULL, lend=2, lwd=6, ...)
 }
+\arguments{
     \item{x}{Numeric vector of length 2, specifying the x-coordinates of the
              ends of the colorbar.}
     \item{y}{Numeric vector of length 2, specifying the y-coordinates of the
@@ -43,10 +46,10 @@
     colmap <- color.scale(x=0:100, cs1=c(0, 180), cs2=100, cs3=c(25, 100), 
                             alpha=0.5, color.spec='hcl')
     with(indo[indo$subj==indo$subj[1],], 
-    	 repulsive.force.heatmap(f2, f1, type=vowel, resolution=10, 
-    	 					     colormap=colmap, add=FALSE))
-    xl <- rep(max(range(f2)), 2)
-    yl <- rev(range(f1)) + c(0, abs(diff(range(f1)) / 2))
-    force.heatmap.legend(xl, yl, colormap=colmap)
+    	 repulsiveForceHeatmap(f2, f1, type=vowel, resolution=10, 
+    	 					   colormap=colmap, add=FALSE))
+    xl <- rep(max(range(indo$f2)), 2)
+    yl <- rev(range(indo$f1)) + c(0, abs(diff(range(indo$f1)) / 2))
+    forceHeatmapLegend(xl, yl, colormap=colmap)
 }
 \keyword{}
