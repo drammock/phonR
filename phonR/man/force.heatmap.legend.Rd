@@ -38,6 +38,15 @@
 \seealso{\code{\link{repulsive.force.heatmap}}, 
 		 \code{\link{plot.vowels}}}
 \examples{
-	# TODO: add example
+    require(plotrix)
+    data(indoVowelData)
+    colmap <- color.scale(x=0:100, cs1=c(0, 180), cs2=100, cs3=c(25, 100), 
+                            alpha=0.5, color.spec='hcl')
+    with(indo[indo$subj==indo$subj[1],], 
+    	 repulsive.force.heatmap(f2, f1, type=vowel, resolution=10, 
+    	 					     colormap=colmap, add=FALSE))
+    xl <- rep(max(range(f2)), 2)
+    yl <- rev(range(f1)) + c(0, abs(diff(range(f1)) / 2))
+    force.heatmap.legend(xl, yl, colormap=colmap)
 }
 \keyword{}
