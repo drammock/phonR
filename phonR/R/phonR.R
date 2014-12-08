@@ -54,7 +54,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default',
     force.legend=NULL, force.labels=NULL, force.label.pos=c(1, 3),
     col.by=NA, style.by=NA, fill.opacity=0.3, legend.kwd=NULL, pretty=FALSE,
-    output='screen', ...)
+    label.args=NULL, output='screen', ...)
 {
     # # # # # # # # # # #
     # HANDLE EXTRA ARGS #
@@ -98,8 +98,46 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         exargs <- exargs[!(names(exargs) %in% file.only)]
     }
     par.args <- exargs[names(exargs) %in% par.only]
-    exargs <- exargs[!(names(exargs) %in% par.only)]
+    # split out arguments for annotations. axes get drawn separately from plot()
+    # if "pretty"; other annotation gets drawn in separate mtext() calls whether
+    # "pretty" or not.
+    if (pretty) {
+        axis.only <- c("cex.axis", "col.axis", "font.axis")
+        axis.args <- exargs[names(exargs) %in% axis.only]
+        names(axis.args) <- gsub(".axis", "", names(axis.args))
+    } else {
+        axis.only <- c()
+    }
+    main.only <- c("cex.main", "col.main", "font.main")
+    lab.only <- c("cex.lab",  "col.lab",  "font.lab")
+    sub.only <- c("cex.sub",  "col.sub",  "font.sub")
+    main.args <- exargs[names(exargs) %in% main.only]
+    lab.args <- exargs[names(exargs) %in% lab.only]
+    sub.args <- exargs[names(exargs) %in% sub.only]
+    names(main.args) <- gsub(".main", "", names(main.args))
+    names(lab.args) <- gsub(".lab", "", names(lab.args))
+    names(sub.args) <- gsub(".sub", "", names(sub.args))
+    if ("xlab" %in% names(exargs)) xlab <- exargs$xlab
+    else if (pretty)               xlab <- "F2"
+    else                           xlab <- ""
+    if ("ylab" %in% names(exargs)) ylab <- exargs$ylab
+    else if (pretty)               ylab <- "F1"
+    else                           ylab <- ""
+    if ("main" %in% names(exargs)) main <- exargs$main
+    else if (pretty)               main <- "Vowels"
+    else                           main <- ""
+    if ("sub" %in% names(exargs))   sub <- exargs$sub
+    else if (pretty)                sub <- "" # "plotted with love using phonR"
+    else                            sub <- ""
+    exargs$xlab <- NULL
+    exargs$ylab <- NULL
+    exargs$main <- NULL
+    exargs$sub <- NULL    
+    # don't pass them twice!
+    args.to.remove <- c(par.only, main.only, axis.only, lab.only, sub.only)
+    exargs <- exargs[!names(exargs) %in% args.to.remove]
 
+    
     # # # # # # # # # #
     # OUTPUT PARSING  #
     # # # # # # # # # #
@@ -178,26 +216,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (is.null(cex.tokens))    cex.tokens <- par('cex')
     if (is.null(cex.means))      cex.means <- par('cex')
 
-    # # # # # # # #
-    # ANNOTATION  #
-    # # # # # # # #
-    if ("xlab" %in% names(exargs)) xlab <- exargs$xlab
-    else if (pretty)               xlab <- "F2"
-    else                           xlab <- ""
-    if ("ylab" %in% names(exargs)) ylab <- exargs$ylab
-    else if (pretty)               ylab <- "F1"
-    else                           ylab <- ""
-    if ("main" %in% names(exargs)) main <- exargs$main
-    else if (pretty)               main <- "Vowels"
-    else                           main <- ""
-    if ("sub" %in% names(exargs))   sub <- exargs$sub
-    else if (pretty)                sub <- "" # "plotted with love using phonR"
-    else                            sub <- ""
-    exargs$xlab <- NULL
-    exargs$ylab <- NULL
-    exargs$main <- NULL
-    exargs$sub <- NULL
-
     # # # # # # # # # # # # #
     # DEFAULTS FOR "PRETTY" #
     # # # # # # # # # # # # #
@@ -214,18 +232,20 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         pretty.lty <- c('solid', '44', 'F4', '4313', 'F3131313', '23F3',
                         '232923', '23258385', '282823B3', '13', '82')[style.by]
         pretty.args <- list(mgp=c(2,0.5,0), xaxs='i', yaxs='i', axes=FALSE,
-                            fg=hcl(0,0,40), tcl=-0.25, xpd=NA, asp=1,
+                            fg=hcl(0,0,40), tcl=-0.25, xpd=NA, # asp=1,
                             pch=pretty.pch, lty=pretty.lty, col=pretty.col)
-                            # frame.plot=FALSE implied by axes=FALSE
         pretty.par.args <- list(mar=c(1,1,5,5), las=1)  # oma=rep(0.5, 4)
+        pretty.label.args <- list(las=0)
         pretty.arrow.args <- list(length=0.1, angle=20)
         # LET USER-SPECIFIED ARGS OVERRIDE "PRETTY" DEFAULTS
         pretty.args[names(exargs)] <- exargs
         pretty.par.args[names(par.args)] <- par.args
+        pretty.label.args[names(label.args)] <- label.args
         pretty.arrow.args[names(diphthong.arrow.args)] <- diphthong.arrow.args
         # RE-UNIFY TO AVOID LATER LOGIC BRANCHING
         exargs <- pretty.args
         par.args <- pretty.par.args
+        label.args <- pretty.label.args
         diphthong.arrow.args <- pretty.arrow.args
     }
 
@@ -380,25 +400,27 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         exargs$xlim <- rev(range(xticks))
         exargs$ylim <- rev(range(yticks))
         # annotation
-        x.args <- list(side=3, line=2, col=par("fg"))
-        y.args <- list(side=4, line=3, col=par("fg"))
-        t.args <- list(side=3, line=4, col=par("fg"))
-        s.args <- list(side=3, line=3, col=par("fg"))
+        x.args <- list(side=3, line=2)
+        y.args <- list(side=4, line=3)
+        t.args <- list(side=3, line=4)
+        s.args <- list(side=3, line=3)
     } else {
         x.args <- list(side=1, line=par("mgp")[1])
         y.args <- list(side=2, line=par("mgp")[1])
         t.args <- list(side=3, line=1, outer=TRUE)
         s.args <- list(side=4, line=par("mgp")[1] + 1)
     }
-    do.call(plot, as.list(c(list(NA, NA), exargs)))
-    do.call(mtext, as.list(c(xlab, x.args)))
-    do.call(mtext, as.list(c(ylab, y.args)))
-    do.call(mtext, as.list(c(main, t.args)))
-    do.call(mtext, as.list(c(sub, s.args)))
+    do.call(plot, c(list(NA, NA), exargs))
+    do.call(mtext, c(xlab, x.args, lab.args))
+    do.call(mtext, c(ylab, y.args, lab.args))
+    do.call(mtext, c(main, t.args, main.args))
+    do.call(mtext, c(sub, s.args, sub.args))
     if (pretty) {
         # axes
-        axis(3, at=xticks, col.axis=par('fg'))
-        axis(4, at=yticks, col.axis=par('fg'))
+        x.axis.args <- c(side=3, at=xticks, axis.args)
+        y.axis.args <- c(side=4, at=yticks, axis.args)
+        do.call(axis, x.axis.args)
+        do.call(axis, y.axis.args)
         # extend the axis lines to meet at the corner
         if (exargs$xlim[2] != par('usr')[2]) {
             axis(3, at=c(exargs$xlim[2], par('usr')[2]), labels=FALSE,
