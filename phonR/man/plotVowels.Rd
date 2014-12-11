@@ -12,12 +12,12 @@
                hull.fill=FALSE, hull.col=NULL, poly.line=FALSE,
                poly.fill=FALSE, poly.col=NULL, poly.order=NA,
                ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.3173,
-               diphthong.smooth=FALSE, diphthong.arrows=FALSE,
-               diphthong.arrow.args=NULL, force.heatmap=FALSE,
-               force.colmap=NULL, force.res=50, force.method='default',
-               force.legend=NULL, force.labels=NULL, force.label.pos=c(1, 3),
-               col.by=NA, style.by=NA, fill.opacity=0.3, legend.kwd=NULL,
-               pretty=FALSE, label.las=NULL, output='screen', ...)
+               diph.smooth=FALSE, diph.arrows=FALSE, diph.args.tokens=NULL,
+               diph.args.means=NULL, force.heatmap=FALSE, force.colmap=NULL,
+               force.res=50, force.method='default', force.legend=NULL,
+               force.labels=NULL, force.label.pos=c(1, 3), col.by=NA,
+               style.by=NA, fill.opacity=0.3, legend.kwd=NULL, label.las=NULL,
+               pretty=FALSE, output='screen', ...)
 }
 \arguments{
     \item{f1}{Vector or matrix of F1 values. To plot multiple timepoints for
@@ -83,21 +83,30 @@
                         1 sample standard deviation). Note that because this is
                         an alpha level, \emph{higher} numbers yield
                         \emph{smaller} ellipses.}
-    \item{diphthong.smooth}{Logical; should a smoothing spline be drawn instead
-                            of segments connecting individual timepoints? This
-                            is an unsupported feature under development and the
-                            argument is currently ignored.}
-    \item{diphthong.arrows}{Logical; should the last timepoint of each vowel be
-                            marked with an arrowhead?}
-    \item{diphthong.arrow.args}{List of named arguments to be passed to
-                                \code{\link{graphics::arrows}} (ignored if
-                                \code{diphthong.arrows==FALSE}). If
-                                \code{pretty==TRUE}, the values
-                                \code{length=0.1} and \code{angle=20} are passed
-                                to \code{graphics::arrows} by default, but
-                                will be overridden by values of \code{length} or
-                                \code{angle} specified in
-                                \code{diphthong.arrow.args}.}
+    \item{diph.smooth}{Logical; should a smoothing spline be drawn instead of
+                       segments connecting individual timepoints? This feature
+                       is under development, unstable, unsupported, and to the
+                       extent that it is implemented, it is only implemented for
+                       tokens, not means.}
+    \item{diph.arrows}{Logical; should the last timepoint of each vowel be
+                       marked with an arrowhead?}
+    \item{diph.args.tokens}{List of named arguments to be passed to
+                            \code{\link{graphics::points}} and/or
+                            \code{\link{graphics::arrows}} when plotting tokens
+                            (ignored if \code{f1} and \code{f2} are 1-dimensional).
+                            Default is to plot bare lines (\code{type="l"}) when
+                            \code{pch.tokens} is \code{NULL}, to draw points and
+                            lines overplotted (\code{type="o"}) when
+                            \code{diph.arrows==FALSE}, and to plot bare lines
+                            with the first timepoint of each diphthong plotted
+                            when \code{diph.arrows==TRUE}. When \code{pretty==TRUE}
+                            and \code{diph.arrows==TRUE}, additional default
+                            settings are \code{length=0.1} and \code{angle=20}.
+                            All of these defaults will be overridden by values passed
+                            to \code{diph.args.tokens}.}
+    \item{diph.args.means}{See \code{\link{diph.args.tokens}}. The only difference
+                           is that \code{lwd} for \code{diphthong.args.means}
+                           defaults to \code{2 * par("lwd")} when \code{pretty==TRUE}.}
     \item{force.heatmap}{Logical; should a repulsive force heatmap be drawn?}
     \item{force.colmap}{Colormap to use when drawing the heatmap (see
                         \code{\link{plotrix::color.scale}}. Note that the
@@ -152,6 +161,11 @@
     \item{legend.kwd}{Keyword indicating legend placement (see
                       \code{\link{graphics::legend}}). If \code{NULL} (the
                       default), no legend will be printed.}
+    \item{label.las}{Controls the orientation of axis labels relative to the axis
+                     line (independently from the axis tick numbers). Possible
+                     values are integers 0-4 (see \code{\link{graphics::par}}), or
+                     \code{NULL} (to use the default value of \code{par("las")}, or
+                     a value passed to \code{plotVowels} as \code{las} if available).
     \item{pretty}{Logical; a switch that sets various graphical parameters:
                   \code{mar}, \code{las}, \code{mgp}, \code{xpd}, \code{fg}, and
                   \code{tcl}, as well as arrow parameters like \code{length} and
@@ -159,11 +173,6 @@
                   as \code{color.palette}. It is permissible to set
                   \code{pretty=TRUE} and also pass any of these parameters to
                   \code{plotVowels} to override the \code{pretty} defaults.}
-    \item{label.las}{Controls the orientation of axis labels relative to the axis
-                     line (independently from the axis tick numbers). Possible
-                     values are integers 0-4 (see \code{\link{graphics::par}}), or
-                     \code{NULL} (to use the default value of \code{par("las")}, or
-                     a value passed to \code{plotVowels} as \code{las} if available).
     \item{output}{Graphical device to plot to. Supported values are
                   \dQuote{screen}, \dQuote{pdf}, \dQuote{svg}, \dQuote{jpg},
                   \dQuote{tif}, \dQuote{png}, \dQuote{bmp}.}
@@ -190,7 +199,7 @@ McCloy, D. R. 2012 \dQuote{Normalizing and plotting vowels with the phonR packag
         f2b <- f2 + sample(c(-50:-10,10:50), length(f2), replace=TRUE)
         })
 	with(indo, plotVowels(f1=cbind(f1, f1b), f2=cbind(f2, f2b), vowel, group=subj,
-         diphthong.arrows=TRUE, pretty=TRUE))
+         diph.arrows=TRUE, pretty=TRUE))
 }
 \keyword{device}
 \keyword{hplot}

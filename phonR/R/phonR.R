@@ -50,11 +50,12 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     hull.line=FALSE, hull.fill=FALSE, hull.col=NULL,
     poly.line=FALSE, poly.fill=FALSE, poly.col=NULL, poly.order=NA,
     ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.3173,
-    diphthong.smooth=FALSE, diphthong.arrows=FALSE, diphthong.arrow.args=NULL,
-    force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default',
-    force.legend=NULL, force.labels=NULL, force.label.pos=c(1, 3),
-    col.by=NA, style.by=NA, fill.opacity=0.3, legend.kwd=NULL, pretty=FALSE,
-    label.las=NULL, output='screen', ...)
+    diph.smooth=FALSE, diph.arrows=FALSE, #diph.arrow.args=NULL,
+    diph.args.tokens=NULL, diph.args.means=NULL,
+    force.heatmap=FALSE, force.colmap=NULL,  force.res=50, force.method='default',
+    force.legend=NULL,  force.labels=NULL, force.label.pos=c(1, 3),
+    col.by=NA, style.by=NA,  fill.opacity=0.3, legend.kwd=NULL,
+    pretty=FALSE, label.las=NULL, output='screen', ...)
 {
     # # # # # # # # # # #
     # HANDLE EXTRA ARGS #
@@ -144,7 +145,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     args.to.remove <- c(par.only, main.only, axis.only, lab.only, sub.only)
     exargs <- exargs[!names(exargs) %in% args.to.remove]
 
-
     # # # # # # # # # #
     # OUTPUT PARSING  #
     # # # # # # # # # #
@@ -201,8 +201,35 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         f2d <- f2
         f1 <- f1d[,1]
         f2 <- f2d[,1]
-        timepts <- ncol(f2d)
+        timepts <- ncol(f2d)  # TODO: delete this and next line?
         tokens <- nrow(f2d)
+    }
+
+    # # # # # # # # # # # # # #
+    # DIPHTHONG ARG HANDLING  #
+    # # # # # # # # # # # # # #
+    if (diphthong) {
+        arrow.only <- c("angle", "length")
+        line.only <- c("type")
+        if (pretty) {
+            if (is.null(pch.means)) type <- "l"
+            else                    type <- "o"
+            pretty.diph.tokens <- list(length=0.1, angle=20, type=type)
+            pretty.diph.means  <- list(length=0.1, angle=20, type=type,
+                                       lwd=2*par("lwd"))
+            # user override
+            pretty.diph.tokens[names(diph.args.tokens)] <- diph.args.tokens
+            pretty.diph.means[names(diph.args.means)] <- diph.args.means
+            # re-unify
+            diph.args.tokens <- pretty.diph.tokens
+            diph.args.means  <- pretty.diph.means
+        }
+        if (diph.arrows) {
+            diph.arrow.tokens <- diph.args.tokens[!names(diph.args.tokens) %in% line.only]
+            diph.arrow.means  <- diph.args.means[!names(diph.args.means) %in% line.only]
+        }
+        diph.args.tokens[names(diph.args.tokens) %in% arrow.only] <- NULL
+        diph.args.means[names(diph.args.means) %in% arrow.only] <- NULL
     }
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -244,15 +271,12 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                             fg=hcl(0,0,40), tcl=-0.25, xpd=NA, # asp=1,
                             pch=pretty.pch, lty=pretty.lty, col=pretty.col)
         pretty.par.args <- list(mar=c(1,1,5,5), las=1)  # oma=rep(0.5, 4)
-        pretty.arrow.args <- list(length=0.1, angle=20)
         # LET USER-SPECIFIED ARGS OVERRIDE "PRETTY" DEFAULTS
         pretty.args[names(exargs)] <- exargs
         pretty.par.args[names(par.args)] <- par.args
-        pretty.arrow.args[names(diphthong.arrow.args)] <- diphthong.arrow.args
         # RE-UNIFY TO AVOID LATER LOGIC BRANCHING
         exargs <- pretty.args
         par.args <- pretty.par.args
-        diphthong.arrow.args <- pretty.arrow.args
     }
 
     # # # # # # # # # #
@@ -337,18 +361,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     pch.means=pchm, pch.tokens=pcht, tokenid=1:length(vowel),
                     stringsAsFactors=FALSE)
     if (diphthong) {
-        #e <- d
         d$f2 <- f2d[,1]
         d$f1 <- f1d[,1]
-        d$f2d <- apply(f2d, 1, list)
-        d$f1d <- apply(f1d, 1, list)
-        #d$t <- 1
-        #for(i in 2:timepts) {
-        #    e$f2 <- f2d[,i]
-        #    e$f1 <- f1d[,i]
-        #    e$t <- i
-        #    d <- do.call(rbind, list(d, e))
-        #}
+        d$f2d <- lapply(apply(f2d, 1, list), unlist, recursive=TRUE, use.names=FALSE)
+        d$f1d <- lapply(apply(f1d, 1, list), unlist, recursive=TRUE, use.names=FALSE)
     } else {
         d$f2 <- f2
         d$f1 <- f1
@@ -370,14 +386,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     })
     sigma <- do.call(rbind, sigma)
     # DATAFRAME OF MEANS
-    f2dm <- lapply(byd, function(i) { if (!is.null(i)) {
-                   with(i, list(colMeans(do.call(rbind, simplify2array(f2d)))))
-    }})
-    f1dm <- lapply(byd, function(i) { if (!is.null(i)) {
-                   with(i, list(colMeans(do.call(rbind, simplify2array(f1d)))))
-    }})
-    f2dm <- do.call(rbind, f2dm)
-    f1dm <- do.call(rbind, f1dm)
     m <- lapply(byd, function(i) { if (!is.null(i)) {
         with(i, data.frame(f2=mean(f2, na.rm=TRUE),
                            f1=mean(f1, na.rm=TRUE),
@@ -391,11 +399,15 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                            stringsAsFactors=FALSE))
         }})
     m <- do.call(rbind, m)
-    m$f2d <- f2dm
-    m$f1d <- f1dm
     m$gfn <- as.numeric(factor(m$gf))
     m$mu <- mu
     m$sigma <- sigma
+    if (diphthong) {
+        m$f2d <- do.call(rbind, lapply(byd, function(i) if (!is.null(i))
+            with(i, list(colMeans(do.call(rbind, f2d))))))
+        m$f1d <- do.call(rbind, lapply(byd, function(i) if (!is.null(i))
+            with(i, list(colMeans(do.call(rbind, f1d))))))
+    }
 
     # # # # # # # # # # # # #
     # DETERMINE PLOT BOUNDS #
@@ -504,6 +516,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                                 border=hull.line.col,
                                                 lty=style)))
     }
+
     # # # # # # # # #
     # PLOT ELLIPSES #
     # # # # # # # # #
@@ -512,6 +525,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             function(i) polygon(ellipse.points[[i]], col=m$ellipse.fill.col[i],
                                 border=m$ellipse.line.col[i], lty=m$style[i]))
     }
+
     # # # # # # # # #
     # PLOT POLYGONS #
     # # # # # # # # #
@@ -547,123 +561,145 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                                      cex=1.25*cex.means))
                 }))
     }   }
+
     # # # # # # # #
     # PLOT TOKENS #
     # # # # # # # #
     if (plot.tokens) {
         if (diphthong) {
-            d <- d[order(d$tokenid, d$t),]
-            dsp <- split(d, d$tokenid)
-            if (is.null(pch.tokens)) {
-                pch.tokens <- as.numeric(d$pch.tokens)
-                #with(d, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens, type="o"))
-                diphthong.smooth <- FALSE  # TODO: get this working
-                if (diphthong.smooth && timepts > 3) {
-                    invisible(lapply(dsp, function(i) {
-                        steep <- abs(lm(f1~f2)$coefficients['f2']) > 1
-                        if (steep)  pc <- prcomp(i[c("f1", "f2")], center=FALSE, scale.=FALSE)
-                        else       pc <- prcomp(i[c("f2", "f1")], center=FALSE, scale.=FALSE)
-                        tryCatch({
-                            ss <- smooth.spline(pc$x)
-                            ssi <- as.matrix(as.data.frame(predict(ss))) %*% solve(pc$rotation) #* pc$scale + pc$center
-                            if (steep)  ssi <- ssi[,2:1]
-                            #ssi[1,] <- unlist(i[1, c("f2", "f1")])
-                            #ssi[nrow(ssi),] <- unlist(i[nrow(i), c("f2", "f1")])
-                            if (diphthong.arrows) {
-                                end <- nrow(ssi)
-                                lines(ssi[1:end-1,], col=i$color)
-                                with(as.data.frame(ssi),
-                                    do.call(arrows, c(list(x0=f2[end-1], y0=f1[end-1],
-                                                            x1=f2[end], y1=f1[end],
-                                                            col=i$color), diphthong.arrow.args)))
-                            } else {
-                                lines(ssi, col=i$color)
-                            }
-                        },
-                        error=function(e){
-                            message("warning: could not plot smoother for ",
-                                    "diphthong. Plotting connecting segments instead.")
-                            message(paste(e, ""))
-                            if (diphthong.arrows) {
-                                end <- nrow(i)
-                                with(i, points(f2[1:end-1], f1[1:end-1], col=color,
-                                            pch=pch.tokens, cex=cex.tokens, type="o"))
-                                with(i, do.call(arrows, c(list(x0=f2[end-1], y0=f1[end-1],
-                                                            x1=f2[end], y1=f1[end],
-                                                            col=color), diphthong.arrow.args)))
-                            } else {
-                                with(i, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens, type="o"))
-                            }
-                        },
-                        warning=function(w) message(w), finally={}
-                        )
-                    }))
-                } else {
-                    if (diphthong.smooth) {
-                        warning("Cannot smooth diphthong traces with fewer than 4 timepoints.",
-                                "Plotting connecting segments.")
-                    }
-                    invisible(lapply(dsp, function(i) {
-                        if (diphthong.arrows) {
-                            end <- nrow(i)
-                            # TODO: switch these to use f2d and f1d
-                            with(i, points(f2[1:end-1], f1[1:end-1], col=color,
-                                        pch=pch.tokens, cex=cex.tokens, type="o"))
-                            with(i, do.call(arrows, c(list(x0=f2[end-1], y0=f1[end-1],
-                                                        x1=f2[end], y1=f1[end],
-                                                        col=color), diphthong.arrow.args)))
+            # setup
+            timepts <- length(d$f2d[[1]])
+            if (diph.arrows) line.range <- 1:(timepts-1)
+            else             line.range <- 1:timepts
+            # no smoothing splines
+            if (!diph.smooth || timepts < 4) {
+                if (diph.smooth) warning("Cannot smooth diphthong traces with ",
+                                         "fewer than 4 timepoints. Plotting ",
+                                         "connecting segments instead.")
+                # plot lines
+                apply(d, 1, function(i) {
+                    with(i, do.call(points, c(list(t(f2d)[line.range],
+                                                   t(f1d)[line.range],
+                                                   pch=pch.tokens,
+                                                   cex=cex.tokens,
+                                                   col=color),
+                                              diph.args.tokens)))
+                })
+                # plot arrowheads
+                if (diph.arrows) {
+                    apply(d, 1, function(i) {
+                        with(i, do.call(arrows, c(list(x0=t(f2d)[timepts-1],
+                                                       y0=t(f1d)[timepts-1],
+                                                       x1=t(f2d)[timepts],
+                                                       y1=t(f1d)[timepts],
+                                                       col=color),
+                                                  diph.arrow.tokens)
+                        ))
+                    })
+                    # plot only first point
+                    if (!is.null(pch.tokens)) {
+                        with(d, text(f2, f1, labels=pch.tokens, col=color,
+                                     cex=cex.tokens))
+                }   }
+            # diphthong smoothing spline
+            } else if (diph.smooth) {  # timepts > 3
+                apply(d, 1, function(i) {
+                    tryCatch({
+                        steep <- with(i, abs(lm(f1d~f2d)$coefficients['f2d']) > 1)
+                        if (steep) dat <- with(i, cbind(f1d, f2d))
+                        else       dat <- with(i, cbind(f2d, f1d))
+                        pc <- prcomp(dat, center=FALSE, scale.=FALSE)
+                        ss <- smooth.spline(pc$x)
+                        ssi <- as.matrix(as.data.frame(predict(ss))) %*% solve(pc$rotation)  #* pc$scale + pc$center
+                        end <- nrow(ssi)
+                        if (diph.arrows) {
+                            curve.range <- 1:(end-1)
+                            with(as.data.frame(ssi),
+                                 do.call(arrows, c(list(x0=f2[end-1],
+                                                        y0=f1[end-1],
+                                                        x1=f2[end],
+                                                        y1=f1[end],
+                                                        col=i$color),
+                                                   diph.arrow.tokens)))
                         } else {
-                            with(i, points(f2, f1, col=color, pch=pch.tokens,
-                                        cex=cex.tokens, type="o"))
+                            curve.range <- 1:end
                         }
-                    }))
-                }
-            } else {
-                invisible(lapply(dsp, function(i) {
-                    with(i, points(f2, f1, col=color, type="c", cex=1.25*cex.tokens))
-                    #with(d, text(f2, f1, labels=pch.tokens, col=color, cex=cex.tokens))
-                }))
+                        do.call(lines, c(list(ssi[curve.range]), diph.args.tokens))
+                    },
+                    error=function(e){
+                        message("Warning: could not plot diphthong smoother. ",
+                                "Plotting connecting segments instead.")
+                        message(paste(e, ""))
+                        if (diph.arrows) {
+                            end <- nrow(i)
+                            with(i, points(f2[1:end-1], f1[1:end-1], col=color,
+                                           pch=pch.tokens, cex=cex.tokens, type="o"))
+                            with(i, do.call(arrows, c(list(x0=f2[end-1], y0=f1[end-1],
+                                                           x1=f2[end], y1=f1[end],
+                                                           col=color), diph.arrow.args)))
+                        } else {
+                            with(i, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens, type="o"))
+                        }
+                    },
+                    warning=function(w) message(w),
+                    finally={}
+                    )
+                })
             }
-        } else {
+        } else {  # !diphthong
             if (is.null(pch.tokens)) {
-                pch.tokens <- as.numeric(d$pch.tokens)
-                with(d, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens))
+                pch.tokens <- as.numeric(d$gf)
+                with(d, points(f2, f1, pch=pch.tokens, cex=cex.tokens, col=color))
             } else {
-                with(d, text(f2, f1, labels=pch.tokens, col=color, cex=cex.tokens))
+                with(d, text(f2, f1, labels=pch.tokens, cex=cex.tokens, col=color))
     }   }   }
+
     # # # # # # # #
     # PLOT MEANS  #
     # # # # # # # #
     if (plot.means) {
-        if (is.null(pch.means)) {
-            pch.means <- as.numeric(factor(colnames(m)))
-        }
         if (diphthong) {
-            f2dm <- t(apply(m$f2d, 1, unlist))
-            f1dm <- t(apply(m$f1d, 1, unlist))
-            print(f2dm)
-            if (diphthong.arrows) {
-                end <- ncol(f2dm)
+            # TODO: implement smoothing splines for means
+            # setup
+            timepts <- length(m$f2d[[1]])
+            if (diph.arrows) line.range <- 1:(timepts-1)
+            else             line.range <- 1:timepts
+            # plot lines
+            apply(m, 1, function(i) {
+                with(i, do.call(points, c(list(t(f2d)[line.range],
+                                               t(f1d)[line.range],
+                                               pch=pch.means,
+                                               cex=cex.means,
+                                               col=color),
+                                          diph.args.means)))
+            })
+            # plot arrowheads
+            if (diph.arrows) {
                 apply(m, 1, function(i) {
-                      with(i, points(t(f2d)[1:end-1], t(f1d)[1:end-1],
-                                     col=color, pch=pch.means,
-                                     cex=cex.means, type="o"))
-                      })
-                # TODO: change this to an apply like above
-                with(m, do.call(arrows, c(list(x0=f2dm[,end-1], y0=f1dm[,end-1],
-                                               x1=f2dm[,end], y1=f1dm[,end],
-                                               col=color), diphthong.arrow.args)))
-            } else {
-                # TODO: change this to an apply like above
-                with(m, points(f2dm, f1dm, col=color, pch=pch.means,
-                               cex=cex.means, type="o"))
+                    with(i, do.call(arrows, c(list(x0=t(f2d)[timepts-1],
+                                                   y0=t(f1d)[timepts-1],
+                                                   x1=t(f2d)[timepts],
+                                                   y1=t(f1d)[timepts],
+                                                   col=color),
+                                              diph.arrow.means)
+                    ))
+                })
+                # plot only first point
+                if (!is.null(pch.means)) {
+                    with(m, text(f2, f1, labels=pch.means, col=color,
+                                 cex=cex.means))
+                }
             }
         } else {
             if (is.null(pch.means)) {
+                pch.means <- m$gfn
                 with(m, points(f2, f1, col=color, pch=pch.means, cex=cex.means))
             } else {
                 with(m, text(f2, f1, labels=pch.means, col=color, cex=cex.means))
-    }   }   }
+            }
+        }
+    }
+
     # # # # # #
     # LEGEND  #
     # # # # # #
