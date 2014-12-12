@@ -1,4 +1,5 @@
 \name{prettyTicks}
+\alias{prettyTicks}
 \title{Calculate nice tick locations given the extrema of the data.}
 \description{Calculates tick positions that are \dQuote{nice round numbers} in
 			 that they are always factors of 10, 5, or 2.}
@@ -10,7 +11,4 @@
 }
 \value{A numeric vector of tick locations.}
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
-\references{}
-\seealso{\code{\link{plot.vowels}}}
-\examples{}
-\keyword{}
+\seealso{\code{\link{plotVowels}}}

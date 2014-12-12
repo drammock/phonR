@@ -34,14 +34,14 @@
     \item{pch.tokens}{Vector of strings or integers; the symbol(s) to use when
                       plotting vowel tokens. Integers are interpreted as
                       standard R \code{pch} values (see
-                      \code{\link{graphics::points}}).}
+                      \code{\link[graphics]{points}}).}
     \item{cex.tokens}{Numeric; size of individual vowel points relative to
                       \code{par("cex")}.}
     \item{plot.means}{Logical; should individual vowel tokens be plotted?}
     \item{pch.means}{Vector of strings or integers; the symbol(s) to use when
                      plotting vowel means. Integers are interpreted as standard
                      R \code{pch} values (see
-                     \code{\link{graphics::points}}).}
+                     \code{\link[graphics]{points}}).}
     \item{cex.means}{Size of vowel means relative to \code{par("cex")}.}
     \item{hull.line}{Logical; should a line be drawn tracing the convex hull
                      encompassing all tokens (separately for each level of
@@ -90,30 +90,27 @@
                        tokens, not means.}
     \item{diph.arrows}{Logical; should the last timepoint of each vowel be
                        marked with an arrowhead?}
-    \item{diph.args.tokens}{List of named arguments to be passed to
-                            \code{\link{graphics::points}} and/or
-                            \code{\link{graphics::arrows}} when plotting tokens
-                            (ignored if \code{f1} and \code{f2} are 1-dimensional).
-                            Default is to plot bare lines (\code{type="l"}) when
-                            \code{pch.tokens} is \code{NULL}, to draw points and
-                            lines overplotted (\code{type="o"}) when
-                            \code{diph.arrows==FALSE}, and to plot bare lines
-                            with the first timepoint of each diphthong plotted
-                            when \code{diph.arrows==TRUE}. When \code{pretty==TRUE}
-                            and \code{diph.arrows==TRUE}, additional default
-                            settings are \code{length=0.1} and \code{angle=20}.
-                            All of these defaults will be overridden by values passed
-                            to \code{diph.args.tokens}.}
-    \item{diph.args.means}{See \code{\link{diph.args.tokens}}. The only difference
-                           is that \code{lwd} for \code{diphthong.args.means}
-                           defaults to \code{2 * par("lwd")} when \code{pretty==TRUE}.}
+    \item{diph.args.tokens,diph.args.means}{List of named arguments to be passed 
+          to \code{\link[graphics]{points}} and/or \code{\link[graphics]{arrows}} 
+          when plotting tokens or means (ignored if \code{f1} and \code{f2} are 
+          1-dimensional). Default is to plot bare lines (\code{type="l"}) when
+          \code{pch.tokens} is \code{NULL}, to draw points and lines overplotted 
+          (\code{type="o"}) when \code{diph.arrows=FALSE}, and to plot bare 
+          lines with the first timepoint of each diphthong plotted when 
+          \code{diph.arrows=TRUE}. When \code{pretty=TRUE} and 
+          \code{diph.arrows=TRUE}, additional default settings are 
+          \code{length=0.1} and \code{angle=20}. For \code{diph.args.means}, 
+          \code{lwd} defaults to \code{2 * par("lwd")} when \code{pretty=TRUE}. 
+          All of these defaults are overridden by values passed to 
+          \code{diph.args.tokens} or \code{diph.args.means} in the function 
+          call.}
     \item{force.heatmap}{Logical; should a repulsive force heatmap be drawn?}
     \item{force.colmap}{Colormap to use when drawing the heatmap (see
-                        \code{\link{plotrix::color.scale}}. Note that the
+                        \code{\link[plotrix]{color.scale}}. Note that the
                         heatmap may use semi-transparent colors, but this
                         transparency does not usually translate to the
                         \code{force.legend} colorbar, due to the way that
-                        \code{\link{plotrix::color.scale.lines}} works. In
+                        \code{\link[plotrix]{color.scale.lines}} works. In
                         short: the legend colorbar is made of lots of little
                         segments that don't quite touch when plotted, leaving
                         thin gaps in the colorbar where the background shows
@@ -149,7 +146,7 @@
                         \code{force.legend} is \code{NA}.}
     \item{force.label.pos}{Vector of integers (length 2); position codes for the
                            colorbar labels. See the \code{pos} argument of
-                           \code{\link{graphics::text}} for explanation.}
+                           \code{\link[graphics]{text}} for explanation.}
     \item{col.by}{Vector or factor indicating the dimension along which to vary
                   color.}
     \item{style.by}{Vector or factor indicating the dimension along which to
@@ -159,13 +156,14 @@
                         Does not affect \code{force.heatmap} colors, which are
                         specified via \code{force.colmap}.}
     \item{legend.kwd}{Keyword indicating legend placement (see
-                      \code{\link{graphics::legend}}). If \code{NULL} (the
+                      \code{\link[graphics]{legend}}). If \code{NULL} (the
                       default), no legend will be printed.}
     \item{label.las}{Controls the orientation of axis labels relative to the axis
                      line (independently from the axis tick numbers). Possible
-                     values are integers 0-4 (see \code{\link{graphics::par}}), or
-                     \code{NULL} (to use the default value of \code{par("las")}, or
-                     a value passed to \code{plotVowels} as \code{las} if available).
+                     values are integers 0-4 (see \code{\link[graphics]{par}}),
+                     or \code{NULL} (to use the default value of \code{par("las")},
+                     or a value passed to \code{plotVowels} as \code{las} if 
+                     available).}
     \item{pretty}{Logical; a switch that sets various graphical parameters:
                   \code{mar}, \code{las}, \code{mgp}, \code{xpd}, \code{fg}, and
                   \code{tcl}, as well as arrow parameters like \code{length} and
@@ -186,20 +184,20 @@
 \references{
 McCloy, D. R. 2012 \dQuote{Normalizing and plotting vowels with the phonR package.} \emph{Technical Reports of the UW Linguistic Phonetics Laboratory}. \url{http://depts.washington.edu/phonlab/pubs/McCloy2012_phonR.pdf}
 }
-\seealso{\code{\link{normalizeVowels}}}
+\seealso{\code{\link{normVowels}}}
 \examples{
 	data(indoVowelData)
   with(indo, plotVowels(f1, f2, vowel, group=gender, plot.means=TRUE,
                         pch.means=vowel, ellipse.line=TRUE, poly.line=TRUE,
                         poly.order=c('i','e','a','o','u'), col.by=vowel,
-                        style.by=gender, pretty=TRUE)
+                        style.by=gender, pretty=TRUE))
 	# simulate some diphthongs
-  indo <- within(indo, {
+  indo_d <- within(indo, {
         f1b <- f1 + sample(c(-30:-5,5:30), length(f1), replace=TRUE)
         f2b <- f2 + sample(c(-50:-10,10:50), length(f2), replace=TRUE)
         })
-	with(indo, plotVowels(f1=cbind(f1, f1b), f2=cbind(f2, f2b), vowel, group=subj,
-         diph.arrows=TRUE, pretty=TRUE))
+	with(indo_d, plotVowels(f1=cbind(f1, f1b), f2=cbind(f2, f2b), vowel, 
+                          group=subj, diph.arrows=TRUE, pretty=TRUE))
 }
 \keyword{device}
 \keyword{hplot}

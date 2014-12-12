@@ -50,12 +50,11 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     hull.line=FALSE, hull.fill=FALSE, hull.col=NULL,
     poly.line=FALSE, poly.fill=FALSE, poly.col=NULL, poly.order=NA,
     ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.3173,
-    diph.smooth=FALSE, diph.arrows=FALSE, #diph.arrow.args=NULL,
-    diph.args.tokens=NULL, diph.args.means=NULL,
-    force.heatmap=FALSE, force.colmap=NULL,  force.res=50, force.method='default',
-    force.legend=NULL,  force.labels=NULL, force.label.pos=c(1, 3),
-    col.by=NA, style.by=NA,  fill.opacity=0.3, legend.kwd=NULL,
-    pretty=FALSE, label.las=NULL, output='screen', ...)
+    diph.smooth=FALSE, diph.arrows=FALSE, diph.args.tokens=NULL, diph.args.means=NULL, 
+    force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default', 
+    force.legend=NULL,  force.labels=NULL, force.label.pos=c(1, 3), 
+    col.by=NA, style.by=NA,  fill.opacity=0.3, legend.kwd=NULL, label.las=NULL, 
+    pretty=FALSE, output='screen', ...)
 {
     # # # # # # # # # # #
     # HANDLE EXTRA ARGS #
@@ -745,13 +744,13 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
 normVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
                     vowel=NULL, group=NULL, ...) {
     m <- tolower(method)
-    methods <- c('bark','mel','log','erb','z','zscore','lobanov',
-                'logmean','nearey1','nearey2','scentroid','s-centroid',
-                's','wattfabricius','watt-fabricius')
+    methods <- c('bark', 'mel', 'log', 'erb', 'zscore', 'lobanov',
+                'logmean', 'nearey', 'nearey1', 'nearey2', 'scentroid',
+                'wattfabricius')
     if (!(m %in% methods)) {
         warning('Method must be one of: bark, mel, log, erb, ',
-                'z|zscore|lobanov, logmean|nearey1, nearey2, ',
-                's|scentroid|s-centroid|wattfabricius|watt-fabricius.')
+                'zscore | lobanov, logmean | nearey1, nearey | nearey2, ',
+                'scentroid | wattfabricius.')
     }
     f <- cbind(f0=f0, f1=f1, f2=f2, f3=f3)
     if (m %in% 'bark') return(normBark(f))
@@ -760,7 +759,7 @@ normVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
     else if (m %in% 'erb') return(normErb(f))
     else if (m %in% c('z','zscore','lobanov')) return(normLobanov(f, group))
     else if (m %in% c('logmean','nearey1')) return(normLogmean(f, group, ...))
-    else if (m %in% c('nearey','nearey2')) return(normNearey(f, group))
+    else if (m %in% c('nearey','nearey2')) return(normNearey(f, group, ...))
     else {
         f <- as.matrix(cbind(f1=f1, f2=f2))
         return(normWattFabricius(f, vowel, group))
@@ -839,13 +838,13 @@ normWattFabricius <- function(f, vowel, group=NULL) {
     subsets <- by(f, list(vowel, group), identity)  # 2D list (group x vowel) of lists (f1,f2)
     means <- matrix(sapply(subsets, function(i) ifelse(is.null(i),
                                                     data.frame(I(c(f1=NA, f2=NA))),
-                                                    data.frame(I(colMeans(x))))
+                                                    data.frame(I(colMeans(i))))
                         ), nrow=nrow(subsets), dimnames=dimnames(subsets))
     # TODO: check whether this works with diphthongs
-    minima <- apply(means, 2, function(i) data.frame(t(apply(do.call(rbind, i), 2, min, na.rm=TRUE))))
-    maxima <- apply(means, 2, function(i) data.frame(t(apply(do.call(rbind, i), 2, max, na.rm=TRUE))))
-    min.id <- apply(means, 2, function(i) apply(do.call(rbind,i), 2, which.min))
-    max.id <- apply(means, 2, function(i) apply(do.call(rbind,i), 2, which.max))
+    minima <- do.call(rbind, apply(means, 2, function(i) data.frame(t(apply(do.call(rbind, i), 2, min, na.rm=TRUE)))))
+    maxima <- do.call(rbind, apply(means, 2, function(i) data.frame(t(apply(do.call(rbind, i), 2, max, na.rm=TRUE)))))
+    min.id <- apply(means, 2, function(i) apply(do.call(rbind, i), 2, which.min))
+    max.id <- apply(means, 2, function(i) apply(do.call(rbind, i), 2, which.max))
     if (length(unique(min.id['f1',]))>1) {
         warning('The vowel with the lowest mean F1 value (usually /i/)',
                 ' does not match across all speakers/groups. You\'ll ',
@@ -863,12 +862,12 @@ normWattFabricius <- function(f, vowel, group=NULL) {
                 group=dimnames(means)[[2]]))
         stop()
     }
-    lowvowf2 <- do.call(rbind, means.list[unique(max.id['f1',]),])[,'f2']
-    centroids <- rbind(f1=(2*minima['f1',] + maxima['f1',])/3,
-    				   f2=(minima['f2',] + maxima['f2',] + lowvowf2)/3)
-    rnames <- rep(rownames(subsets),times=ncol(subsets))
-    cnames <- rep(colnames(subsets),each=nrow(subsets))
-    f/t(centroids[,group])
+    lowvowf2 <- do.call(rbind, means[unique(max.id['f1',]),])[,'f2']
+    centroids <- t(rbind(f1=(2*minima$f1 + maxima$f1) / 3,
+    				     f2=(minima$f2 + maxima$f2 + lowvowf2) / 3))
+    #rnames <- rep(rownames(subsets), times=ncol(subsets))
+    #cnames <- rep(colnames(subsets), each=nrow(subsets))
+    f / centroids[group,]
 }
 
 

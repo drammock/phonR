@@ -1,4 +1,5 @@
 \name{convexHullArea}
+\alias{convexHullArea}
 \title{Calculate convex hull area}
 \description{Calculate the area of the convex hull surrounding all points.}
 \usage{
@@ -12,11 +13,9 @@
                  will be generated for all points.}
 }
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
-\references{}
-\seealso{\code{\link{grDevices::chull}}, \code{\link{splancs::areapl}}}
+\seealso{\code{\link[grDevices]{chull}}, \code{\link[splancs]{areapl}}}
 \examples{
     data(indoVowelData)
     with(indo, convexHullArea(f2, f1))
     with(indo, convexHullArea(f2, f1, gender))
 }
-\keyword{}

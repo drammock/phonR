@@ -1,4 +1,5 @@
 \name{vowelMeansPolygonArea}
+\alias{vowelMeansPolygonArea}
 \title{Calculate the area of a polygon connecting vowel formant means.}
 \description{The polygon's vertices are the means of the vowel formant 
 			 frequencies given by \code{f1} and \code{f2}, and are connected in
@@ -14,8 +15,8 @@
     \item{poly.order}{Order in which the polygon vertices should be connected.
     				  Should contain each value in \code{vowel} once.}
 }
+\value{Numeric: area of the polygon inscribed.}
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
-\references{}
 \seealso{\code{\link{plotVowels}}}
 \examples{
     data(indoVowelData)
