@@ -19,7 +19,7 @@
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
 \seealso{\code{\link{plotVowels}}}
 \examples{
-    data(indoVowelData)
+    data(indoVowels)
 	area <- with(indo, vowelMeansPolygonArea(f1, f2, vowel, 
 				 poly.order=c('i', 'e', 'a', 'o', 'u')))
 }

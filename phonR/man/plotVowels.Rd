@@ -186,7 +186,7 @@ McCloy, D. R. 2012 \dQuote{Normalizing and plotting vowels with the phonR packag
 }
 \seealso{\code{\link{normVowels}}}
 \examples{
-	data(indoVowelData)
+	data(indoVowels)
   with(indo, plotVowels(f1, f2, vowel, group=gender, plot.means=TRUE,
                         pch.means=vowel, ellipse.line=TRUE, poly.line=TRUE,
                         poly.order=c('i','e','a','o','u'), col.by=vowel,

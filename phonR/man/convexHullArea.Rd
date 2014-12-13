@@ -15,7 +15,7 @@
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
 \seealso{\code{\link[grDevices]{chull}}, \code{\link[splancs]{areapl}}}
 \examples{
-    data(indoVowelData)
+    data(indoVowels)
     with(indo, convexHullArea(f2, f1))
     with(indo, convexHullArea(f2, f1, gender))
 }

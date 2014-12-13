@@ -78,7 +78,7 @@ Pineda, J. 1988 \dQuote{A parallel algorithm for polygon rasterization}. \emph{A
 \seealso{\code{\link{plotVowels}}}
 \examples{
     require(plotrix)
-    data(indoVowelData)
+    data(indoVowels)
     force <- with(indo[indo$subj==indo$subj[1],], repulsiveForce(f2, f1, vowel))
     colmap <- color.scale(x=0:100, cs1=c(0, 180), cs2=100, cs3=c(25, 100), 
                           alpha=0.5, color.spec='hcl')

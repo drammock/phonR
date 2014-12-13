@@ -103,7 +103,7 @@ Traunmuller, H. 1990 \dQuote{Analytical expressions for the tonotopic sensory sc
 Watt, D., & Fabricius, A. H. 2002 \dQuote{Evaluation of a technique for improving the mapping of multiple speakers' vowel spaces in the F1 ~ F2 plane.} \emph{Leeds Working Papers in Linguistics and Phonetics}, 9, 159-173.
 }
 \examples{
-    data(indoVowelData)
+    data(indoVowels)
     bark <- with(indo, normBark(cbind(f1, f2)))
     erbn <- with(indo, normErb(cbind(f1, f2)))
     mel <- with(indo, normMel(cbind(f1, f2)))
