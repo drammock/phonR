@@ -20,6 +20,51 @@ The phonR package can be downloaded from the [Comprehensive R Archive Network](h
 The `plotVowels` function has been developed to be maximally compatible with the base `R` function `plot`, so that many familiar function arguments and graphical parameters can be passed to `plotVowels` and work as expected. Arguments like `family` for specifying font family, `xlab`, `ylab`, `main` and `sub` for axis annotation and titles, or `xlim` and `ylim` for specifying axis bounds are all respected. Other arguments applicable to direct-to-file plotting are also respected (e.g., `filename`, `width`, `height`, `res`, `units`, etc). Finally, just as with the base `plot` function, arguments specific to the individual components of the plot such as `cex.main`, `col.axis`, or `font.main` are available to specify the size, color, and font style of titles, axes, and axis labels.
 
 ## Minimal example
+Using the included `indo` vowel data, the default behavior of `plotVowels` is not much different from a standard `plot` command, with the exception that the axis directions are reversed (as is standard practice in linguistics).
+
+```{r, fig.cap="Minimal example of `plotVowels` function."}
+library(phonR)
+data(indoVowels)  # provides dataframe "indo"
+with(indo, plotVowels(f1, f2))
+```
+
+## The arguments `vowel`, `group`, `col.by` and `style.by`
+Of course, there is little point in plotting all the vowels with the same symbol, and without further information, `plotVowels` doesn't know which F1 and F2 values belong to which vowel and which talker or group. It also doesn't know how you want them plotted, which is why the next plot looks just like the previous one: even though we have *semantically* distinguished them by telling `plotVowels` which formant values belong to which vowel / talker, we haven't specified any way of *visually* distinguishing the points on the plot.
+
+```{r, fig.cap="A near-minimal example, illustrating that simply specifying vowel and group is not enough."}
+with(indo, plotVowels(f1, f2, vowel, group=subj))
+```
+
+The next plot solves this problem by specifying how to assign colors and styles to the plot. On the left, both color and symbol redundantly encode vowel identity. On the right, color encodes the gender of the talker, and symbol type again encodes vowel identity. Notice that in neither of these plots are we making use of the `group` argument; as we will see later, `group` is used for the calculation of vowel means and the drawing of ellipses and polygons based on those means, but is functionally independent from the means of controlling color and style.
+
+```{r, fig.show='hold', fig.cap="Illustration of the `col.by` and `style.by` arguments."}
+with(indo, plotVowels(f1, f2, vowel, group=subj, col.by=vowel, style.by=vowel))
+with(indo, plotVowels(f1, f2, vowel, group=subj, col.by=gender, style.by=vowel))
+```
+
+## The `pretty` argument
+By now you will have noticed that the default colors and symbols are ugly, and the axes are on the wrong sides of the plot (from a phonetician’s perspective, anyway). `plotVowels` has a wonderful argument called `pretty` that sets a whole bunch of default color and style options all at once, as a shortcut to getting plots that are easy on the eyes. Take a look at the same two plots you just saw, but `pretty`:
+
+```{r, fig.show='hold', fig.cap="Default appearance with `pretty=TRUE`."}
+with(indo, plotVowels(f1, f2, vowel, group=subj, col.by=vowel, style.by=vowel, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, group=subj, col.by=gender, style.by=vowel, pretty=TRUE))
+```
+
+Don’t worry if you don’t love the colors, or want different symbols or a different size: anything that `pretty` changes can be overridden by explicitly including extra graphical arguments in the `plotVowels` function call, while leaving the remaining `pretty` options in place. The only thing you can’t undo is the axis placement on the top and right instead of bottom and left — that one is hard-wired. We’ll be leaving `pretty=TRUE` from now on, so you’ll see how it affects other aspects of the plots as we proceed.
+
+## Tokens, means, and groups
+As we have seen, the default for `plotVowels` is to plot each individual vowel token, potentially colored and styled in different ways. But sometimes a summary view is helpful to look at group differences. This is easily achieved by turning off the `plot.tokens` argument (which defaults to `TRUE`) and turning on the `plot.means` argument (which defaults to `FALSE`). <!--Of course, you can always set both to `TRUE` if you prefer; if you do, there are arguments to style and size them independently (`pch.tokens`, `cex.tokens`, `pch.means`, and `cex.means`).--> Now that we’re calculating means for each vowel, the `group` argument becomes important. These next two plots show the mean F1 and F2 values for each vowel, but with different grouping factors: on the left, the mean for each vowel is calculated within-speaker; on the right, the means are calculated within gender groups.
+
+```{r, fig.show='hold', fig.cap=""}
+with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE, col.by=gender, style.by=vowel, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE, col.by=gender, style.by=vowel, pretty=TRUE))
+```
+
+## Replacing symbols with text
+
+```{r, fig.cap=""}
+with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowels, col.by=gender, style.by=vowel, pretty=TRUE))
+```
 
 
 
