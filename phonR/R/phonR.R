@@ -50,10 +50,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     hull.line=FALSE, hull.fill=FALSE, hull.col=NULL,
     poly.line=FALSE, poly.fill=FALSE, poly.col=NULL, poly.order=NA,
     ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.3173,
-    diph.smooth=FALSE, diph.arrows=FALSE, diph.args.tokens=NULL, diph.args.means=NULL, 
-    force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default', 
-    force.legend=NULL,  force.labels=NULL, force.label.pos=c(1, 3), 
-    col.by=NA, style.by=NA,  fill.opacity=0.3, legend.kwd=NULL, label.las=NULL, 
+    diph.smooth=FALSE, diph.arrows=FALSE, diph.args.tokens=NULL, diph.args.means=NULL,
+    force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default',
+    force.legend=NULL,  force.labels=NULL, force.label.pos=c(1, 3),
+    col.by=NA, style.by=NA,  fill.opacity=0.3, legend.kwd=NULL, label.las=NULL,
     pretty=FALSE, output='screen', ...)
 {
     # # # # # # # # # # #
@@ -186,15 +186,17 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             stop("Argument 'f1' has more than two dimensions.")
         } else if (length(dim(f2)) > 2) {
             stop("Argument 'f2' has more than two dimensions.")
-        } else if (length(vowel) != dim(f1)[1]) {
+        } else if (!is.null(vowel) && length(vowel) != dim(f1)[1]) {
             stop("First axis of 'f1' does not equal length of 'vowel'.")
         }
         diphthong <- TRUE
     }
     if (!diphthong) {
         if (length(f2) != length(f1)) stop('Unequal dimensions for "f1" and "f2".')
-        else if (length(vowel) != length(f1)) stop("Unequal dimensions for 'f1' ",
-                                                   "and 'vowel'.")
+        else if (!is.null(vowel) && length(vowel) != length(f1)) {
+            stop("Unequal dimensions for 'f1' and 'vowel'.")
+        }
+        l <- length(f1)
     } else {
         f1d <- f1
         f2d <- f2
@@ -202,6 +204,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         f2 <- f2d[,1]
         timepts <- ncol(f2d)  # TODO: delete this and next line?
         tokens <- nrow(f2d)
+        l <- nrow(f1)
     }
 
     # # # # # # # # # # # # # #
@@ -234,7 +237,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # PRELIMINARY HANDLING OF GROUPING FACTOR, COLOR, AND STYLE #
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    l <- length(vowel)
+    if (is.null(vowel)) vowel <- rep(NA, l)
     if (is.null(group)) gf <- rep('gf', l)
     else 			    gf <- factor(group)
     # used later to set default polygon color when color varies by vowel
