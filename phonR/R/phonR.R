@@ -237,7 +237,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # PRELIMINARY HANDLING OF GROUPING FACTOR, COLOR, AND STYLE #
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    if (is.null(vowel)) vowel <- rep(NA, l)
+    if (is.null(vowel)) v <- rep(NA, l)
+    else                v <- factor(vowel)
     if (is.null(group)) gf <- rep('gf', l)
     else 			    gf <- factor(group)
     # used later to set default polygon color when color varies by vowel
@@ -352,7 +353,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # # # # # #
     # COLLECT INTO DATAFRAMES #
     # # # # # # # # # # # # # #
-    d <- data.frame(v=vowel, gf=factor(gf), m=rep(plot.means, l),
+    d <- data.frame(v=v, gf=factor(gf), m=rep(plot.means, l),
                     color=exargs$col, style=style.by,
                     ellipse.fill.col=ellipse.fill.col,
                     ellipse.line.col=ellipse.line.col,
@@ -360,7 +361,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     poly.line.col=poly.line.col,
                     hull.fill.col=hull.fill.col,
                     hull.line.col=hull.line.col,
-                    pch.means=pchm, pch.tokens=pcht, tokenid=1:length(vowel),
+                    pch.means=pchm, pch.tokens=pcht,
                     stringsAsFactors=FALSE)
     if (diphthong) {
         d$f2 <- f2d[,1]
@@ -371,7 +372,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         d$f2 <- f2
         d$f1 <- f1
     }
-    byd <- by(d, d[c('v','gf')], identity)
+    if (is.null(vowel) && is.null(group))  byd <- list(d=d)
+    else                                   byd <- by(d, d[c('v','gf')], identity)
     # MEANS & COVARIANCES FOR ELLIPSE DRAWING
     mu <- lapply(byd, function(i) { if (!is.null(i)) {
             with(i, list(colMeans(cbind(f2, f1), na.rm=TRUE)))
