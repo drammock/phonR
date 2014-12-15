@@ -1,0 +1,85 @@
+---
+title: "Normalizing and plotting vowels with phonR 1.0-0"
+subtitle: ""
+author: "Daniel R. McCloy"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Normalizing and plotting vowels with phonR 1.0-0}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc}
+---
+
+# Introduction
+The `phonR` package provides functions for vowel formant frequency and $f_0$ normalization, as well as a vowel plotting function `plotVowels` with many advanced features. There are also several helper functions that serve to simplify the `phonR` codebase; those are described in the documentation distributed with the package, but are not discussed further here. `phonR` also includes sample data in the form of F1 and F2 measurements for eight speakers of Standard Indonesian.
+
+# Installation
+The phonR package can be downloaded from the [Comprehensive R Archive Network](http://cran.r-project.org/package=phonR) or installed through `R` via `install.packages("phonR")`. The source code is hosted on [GitHub](https://github.com/drammock/phonR), and is licensed under [GPL-3](http://www.gnu.org/licenses/gpl.html). `phonR` has three dependencies (all relating to the vowel space heatmaps): `deldir` (for Delaunay triangulations), `plotrix` (for creating color scales), and `splancs` (for point-in-polygon functions). Plotting vowels with non-ASCII characters (i.e., most vowel symbols in the IPA) also requires that the user’s computer have a typeface installed that contains glyphs at the necessary codepoints, and that the user specify that typeface when calling the `plotVowels` function.
+
+# The `plotVowels` function
+The `plotVowels` function has been developed to be maximally compatible with the base `R` function `plot`, so that many familiar function arguments and graphical parameters can be passed to `plotVowels` and work as expected. Arguments like `family` for specifying font family, `xlab`, `ylab`, `main` and `sub` for axis annotation and titles, or `xlim` and `ylim` for specifying axis bounds are all respected. Other arguments applicable to direct-to-file plotting are also respected (e.g., `filename`, `width`, `height`, `res`, `units`, etc). Finally, just as with the base `plot` function, arguments specific to the individual components of the plot such as `cex.main`, `col.axis`, or `font.main` are available to specify the size, color, and font style of titles, axes, and axis labels.
+
+## Minimal example
+
+
+
+<!-- The `plotVowels` function was developed to enhance the flexibility and visual appeal of vowel plots, especially plots showing data from multiple talkers or talker groups on a single graph. To that end, several options are available in `plotVowels` that are unavailable or difficult to achieve with other vowel plotting tools (the `vowels` package in R [@vowelsR] and its associated website NORM [@norm] being a popular alternative). In particular, `phonR` implements confidence interval plotting for vowel formant frequency means based on bivariate normal density contours, allowing for ellipsoids in F2×F1 space whose major and minor axes are not restricted to the horizontal or vertical, and whose confidence level can be easily adjusted.[^ellipse] Additionally, the `plotVowels` function can visualize the vowel space in several ways, e.g., by drawing convex polygons that encompass all vowel tokens, by drawing polygons connecting vowel formant mean values (in any order specified by the user, with the option to omit some vowels), or by drawing heatmaps that color-code the degree of vowel category overlap or encroachment. Apart from the heatmap, each of these visualization tools (ellipses, convex hulls, and polygons connecting vowel means) can be plotted separately for each talker or group, with variation in color and/or linestyle to distinguish them. Vowel means and individual vowel tokens may be plotted with any arbitrary text (including IPA glyphs) or geometric symbols; either tokens or means may be also be omitted.
+
+[^ellipse]: Ellipse drawing is a possible in the `vowels` package, though not in its NORM web frontend.
+-->
+
+# Vowel normalization with `phonR`
+`phonR` implements eight different vowel formant frequency normalization function algorithms as separate functions, and additionally provides a convenience function `normalizeVowels` that wraps to the individual functions, specified by a `method` argument. The algorithms implemented are listed in Table 1. Most of the normalization functions accept a vector or matrix of $f_0$ or formant frequencies, and return a vector or matrix of the same dimensions.
+
+
+
+| **Normalization method**               | **Function name**   | **Source**           | **Formula**                                           |
+|:---------------------------------------|:--------------------|:---------------------|:------------------------------------------------------|
+| Bark                                   | `normBark`          | [@traunmuller1990]   | $ \frac {26.81 \times F_n}{1960+F_n} - 0.53 $         |
+| Equivalent Rectangular Bandwidth (ERB) | `normErb`           | [@glasbergMoore1990] | $ 21.4 \times \log_{10} (1 + F_n \times 0.00437) $    |
+| Mel                                    | `normMel`           | [@mel]               | $ 2595 \times \log_{10} (1 + \frac{F_n}{700}) $       |
+| Log                                    | `normLog`           | n/a                  | $ \log_{10}(F_n) $                                    |
+| Lobanov (z‑score)                      | `normLobanov`       | [@lobanov1971]       | $ \frac{F_n - \mu(F_n)}{\sigma(F_n)} $                |
+| Watt-Fabricius (s‑centroid)[^wf]       | `normWattFabricius` | [@wattFabricius2002] | $ \frac{F_n}{centroid} $                              |
+| Nearey‑1 (logmean)                     | `normLogmean`       | [@nearey1977]        | $ \log_{e} (F_n) - \mu(\log_{e}(F_n)) $               |
+| Nearey‑2 (nearey)                      | `normNearey`        | [@nearey1977]        | $ \log_{e}(F_n) - \sum_{n=0}^{3} \mu(\log_{e}(F_n)) $ |
+
+\caption{Normalization methods available via `phonR` \texttt{normalizeVowels} function}
+
+[^wf]: In `phonR`, the centroid is defined as the point $ \langle \frac{\min(\overline{F2}_{vowel})+\max(\overline{F2}_{vowel})}{2}, \frac{2 \times \min(\overline{F1}_{vowel})+\max(\overline{F1}_{vowel})}{3} \rangle $.  This varies slightly from the formula in [@wattFabricius2002], since the `phonR` implementation simply calculates which vowel has the highest mean F1 value and designates it as low corner of the triangle, rather than asking the user to expressly specify the *trap* or *start* vowel. Similarly, the `phonR` implementation simply calculates which vowel has the highest mean F2 value and uses that to calculate the upper left corner, rather than expressly looking for the mean of the “point-vowel” /i/.  The upper right corner is, as in the original method, derived from the other two corners.
+
+
+<!--
+## Styles
+The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
+
+    output:
+      rmarkdown::html_vignette:
+        css: mystyles.css
+
+## Figures
+The figure sizes have been customised so that you can easily put two images side-by-side.
+
+```{r, fig.show='hold'}
+plot(1:10)
+plot(10:1)
+```
+
+You can enable figure captions by `fig_caption: yes` in YAML:
+    output:
+      rmarkdown::html_vignette:
+        fig_caption: yes
+Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+
+## More Examples
+You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+
+```{r, echo=FALSE, results='asis'}
+knitr::kable(head(mtcars, 10))
+```
+
+Also a quote using `>`:
+
+> "He who gives up [code] safety for [code] speed deserves neither."
+([via](https://twitter.com/hadleywickham/status/504368538874703872))
+-->
