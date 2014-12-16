@@ -6,26 +6,31 @@
              direct-to-file using built-in R file output methods (PDF, SVG, JPG,
              PNG, TIFF, or BMP).}
 \usage{
-    plotVowels(f1, f2, vowel=NULL, group=NULL, plot.tokens=TRUE,
-               pch.tokens=NULL, cex.tokens=NULL, plot.means=FALSE,
-               pch.means=NULL, cex.means=NULL, hull.line=FALSE,
-               hull.fill=FALSE, hull.col=NULL, poly.line=FALSE,
-               poly.fill=FALSE, poly.col=NULL, poly.order=NA,
-               ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.3173,
-               diph.smooth=FALSE, diph.arrows=FALSE, diph.args.tokens=NULL,
-               diph.args.means=NULL, force.heatmap=FALSE, force.colmap=NULL,
-               force.res=50, force.method='default', force.legend=NULL,
-               force.labels=NULL, force.label.pos=c(1, 3), col.by=NA,
-               style.by=NA, fill.opacity=0.3, legend.kwd=NULL, label.las=NULL,
+    plotVowels(f1, f2, vowel=NULL, group=NULL, 
+    		   plot.tokens=TRUE, pch.tokens=NULL, 
+    		   cex.tokens=NULL, alpha.tokens=NULL,
+               plot.means=FALSE, pch.means=NULL, 
+               cex.means=NULL, alpha.means=NULL, 
+               hull.line=FALSE, hull.fill=FALSE, 
+               hull.col=NULL, poly.line=FALSE, 
+               poly.fill=FALSE, poly.col=NULL, 
+               poly.order=NA, ellipse.line=FALSE, 
+               ellipse.fill=FALSE, ellipse.conf=0.3173,
+               diph.smooth=FALSE, diph.arrows=FALSE, 
+               diph.args.tokens=NULL, diph.args.means=NULL, 
+               force.heatmap=FALSE, force.colmap=NULL,
+               force.res=50, force.method='default', 
+               force.legend=NULL, force.labels=NULL, 
+               force.label.pos=c(1, 3), col.by=NA, 
+               style.by=NA,  fill.opacity=0.3, 
+               legend.kwd=NULL, label.las=NULL,
                pretty=FALSE, output='screen', ...)
 }
 \arguments{
-    \item{f1}{Vector or matrix of F1 values. To plot multiple timepoints for
-              each vowel, \code{f1} should be a matrix with vowel tokens varying
-              along the rows and timepoints varying across the columns.}
-    \item{f2}{Vector or matrix of F2 values. To plot multiple timepoints for
-              each vowel, \code{f1} should be an N-by-M matrix with vowel tokens
-              varying along the rows and timepoints varying across the columns.}
+    \item{f1,f2}{Vector or matrix of formant frequency values. To plot multiple 
+    			 timepoints for each vowel, \code{f1} and \code{f2} should be 
+    			 matrices with vowel tokens varying along the rows and 
+    			 timepoints varying across the columns.}
     \item{vowel}{Vector of vowel symbols/labels.}
     \item{group}{Vector or factor that determines the groups used in calculating
                  vowel means, e.g., a factor indicating \dQuote{gender},
@@ -37,12 +42,16 @@
                       \code{\link[graphics]{points}}).}
     \item{cex.tokens}{Numeric; size of individual vowel points relative to
                       \code{par("cex")}.}
+    \item{alpha.tokens}{Numeric in range [0,1], indicating opacity of plotted 
+    					vowel tokens.}
     \item{plot.means}{Logical; should individual vowel tokens be plotted?}
     \item{pch.means}{Vector of strings or integers; the symbol(s) to use when
                      plotting vowel means. Integers are interpreted as standard
                      R \code{pch} values (see
                      \code{\link[graphics]{points}}).}
     \item{cex.means}{Size of vowel means relative to \code{par("cex")}.}
+    \item{alpha.means}{Numeric in range [0,1], indicating opacity of plotted 
+    				   vowel means.}
     \item{hull.line}{Logical; should a line be drawn tracing the convex hull
                      encompassing all tokens (separately for each level of
                      \code{group})?}

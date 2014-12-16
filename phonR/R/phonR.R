@@ -45,8 +45,8 @@
 # Then call functions as needed
 
 plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
-    plot.tokens=TRUE, pch.tokens=NULL, cex.tokens=NULL,
-    plot.means=FALSE, pch.means=NULL, cex.means=NULL,
+    plot.tokens=TRUE, pch.tokens=NULL, cex.tokens=NULL, alpha.tokens=NULL,
+    plot.means=FALSE, pch.means=NULL, cex.means=NULL, alpha.means=NULL,
     hull.line=FALSE, hull.fill=FALSE, hull.col=NULL,
     poly.line=FALSE, poly.fill=FALSE, poly.col=NULL, poly.order=NA,
     ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.3173,
@@ -329,6 +329,14 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     } else {                    poly.fill.col <- NA[col.by] }
 
     # # # # # # # # # # # # # # #
+    # TOKEN / MEAN TRANSPARENCY #
+    # # # # # # # # # # # # # # #
+    if (!is.null(alpha.tokens)) col.tokens <- makeTransparent(exargs$col, alpha.tokens)
+    else                        col.tokens <- exargs$col
+    if (!is.null(alpha.means))   col.means <- makeTransparent(exargs$col, alpha.means)
+    else                         col.means <- exargs$col
+
+    # # # # # # # # # # # # # # #
     # INITIALIZE OUTPUT DEVICES #
     # # # # # # # # # # # # # # #
     if      (output=='pdf') do.call(cairo_pdf, file.args)
@@ -353,7 +361,12 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # # # # # #
     # COLLECT INTO DATAFRAMES #
     # # # # # # # # # # # # # #
+
+    # TODO: propogate new args col.tokens and col.means throughout, then
+    # document alpha.tokens and alpha.means
+
     d <- data.frame(v=v, gf=factor(gf), m=rep(plot.means, l),
+                    col.tokens=col.tokens, col.means=col.means,
                     color=exargs$col, style=style.by,
                     ellipse.fill.col=ellipse.fill.col,
                     ellipse.line.col=ellipse.line.col,
@@ -394,6 +407,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         with(i, data.frame(f2=mean(f2, na.rm=TRUE),
                            f1=mean(f1, na.rm=TRUE),
                            v=unique(v), gf=unique(gf), m=unique(m),
+                           col.tokens=unique(col.tokens),
+                           col.means=unique(col.means),
                            color=color[1], style=style[1],
                            poly.fill.col=poly.fill.col[1],
                            poly.line.col=poly.line.col[1],
@@ -586,7 +601,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                                    t(f1d)[line.range],
                                                    pch=pch.tokens,
                                                    cex=cex.tokens,
-                                                   col=color),
+                                                   col=col.tokens),
                                               diph.args.tokens)))
                 })
                 # plot arrowheads
@@ -596,13 +611,13 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                                        y0=t(f1d)[timepts-1],
                                                        x1=t(f2d)[timepts],
                                                        y1=t(f1d)[timepts],
-                                                       col=color),
+                                                       col=col.tokens),
                                                   diph.arrow.tokens)
                         ))
                     })
                     # plot only first point
                     if (!is.null(pch.tokens)) {
-                        with(d, text(f2, f1, labels=pch.tokens, col=color,
+                        with(d, text(f2, f1, labels=pch.tokens, col=col.tokens,
                                      cex=cex.tokens))
                 }   }
             # diphthong smoothing spline
@@ -623,7 +638,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                                         y0=f1[end-1],
                                                         x1=f2[end],
                                                         y1=f1[end],
-                                                        col=i$color),
+                                                        col=i$col.tokens),
                                                    diph.arrow.tokens)))
                         } else {
                             curve.range <- 1:end
@@ -636,13 +651,13 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                         message(paste(e, ""))
                         if (diph.arrows) {
                             end <- nrow(i)
-                            with(i, points(f2[1:end-1], f1[1:end-1], col=color,
+                            with(i, points(f2[1:end-1], f1[1:end-1], col=col.tokens,
                                            pch=pch.tokens, cex=cex.tokens, type="o"))
                             with(i, do.call(arrows, c(list(x0=f2[end-1], y0=f1[end-1],
                                                            x1=f2[end], y1=f1[end],
-                                                           col=color), diph.arrow.args)))
+                                                           col=col.tokens), diph.arrow.args)))
                         } else {
-                            with(i, points(f2, f1, col=color, pch=pch.tokens, cex=cex.tokens, type="o"))
+                            with(i, points(f2, f1, col=col.tokens, pch=pch.tokens, cex=cex.tokens, type="o"))
                         }
                     },
                     warning=function(w) message(w),
@@ -653,9 +668,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         } else {  # !diphthong
             if (is.null(pch.tokens)) {
                 pch.tokens <- as.numeric(d$gf)
-                with(d, points(f2, f1, pch=pch.tokens, cex=cex.tokens, col=color))
+                with(d, points(f2, f1, pch=pch.tokens, cex=cex.tokens, col=col.tokens))
             } else {
-                with(d, text(f2, f1, labels=pch.tokens, cex=cex.tokens, col=color))
+                with(d, text(f2, f1, labels=pch.tokens, cex=cex.tokens, col=col.tokens))
     }   }   }
 
     # # # # # # # #
@@ -674,7 +689,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                                t(f1d)[line.range],
                                                pch=pch.means,
                                                cex=cex.means,
-                                               col=color),
+                                               col=col.means),
                                           diph.args.means)))
             })
             # plot arrowheads
@@ -684,22 +699,22 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                                    y0=t(f1d)[timepts-1],
                                                    x1=t(f2d)[timepts],
                                                    y1=t(f1d)[timepts],
-                                                   col=color),
+                                                   col=col.means),
                                               diph.arrow.means)
                     ))
                 })
                 # plot only first point
                 if (!is.null(pch.means)) {
-                    with(m, text(f2, f1, labels=pch.means, col=color,
+                    with(m, text(f2, f1, labels=pch.means, col=col.means,
                                  cex=cex.means))
                 }
             }
         } else {
             if (is.null(pch.means)) {
                 pch.means <- m$gfn
-                with(m, points(f2, f1, col=color, pch=pch.means, cex=cex.means))
+                with(m, points(f2, f1, col=col.means, pch=pch.means, cex=cex.means))
             } else {
-                with(m, text(f2, f1, labels=pch.means, col=color, cex=cex.means))
+                with(m, text(f2, f1, labels=pch.means, col=col.means, cex=cex.means))
             }
         }
     }
@@ -715,7 +730,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         if (hull.line | poly.line | ellipse.line) {
             legend.args <- append(legend.args, list(lty=unique(m$style),
                                                     pch=unique(m$pch.means),
-                                                    col=unique(m$color)))
+                                                    col=unique(m$col.means)))
         }
         # legend boxes
         if (hull.fill | poly.fill | ellipse.fill) {
