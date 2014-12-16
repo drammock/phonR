@@ -1,9 +1,6 @@
 # Directories
-extraManFiles
-futureFunctionality
+extras
 oldVersions
-testing
-phonR.Rcheck
 
 # Files
 buildInstructions.txt
