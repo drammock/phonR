@@ -4,10 +4,13 @@ oldVersions
 
 # Files
 buildInstructions.txt
+installingCairo.txt
+.Rproj.user
+.Rhistory
+
+# File types
 *.aux
 *.bbl
 *.blg
 *.log
 *.gz
-*.Rhistory
-.Rproj.user
