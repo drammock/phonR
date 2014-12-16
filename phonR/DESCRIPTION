@@ -6,11 +6,11 @@ Date: 2014-12-14
 Author: Daniel R. McCloy
 Maintainer: Daniel R. McCloy <drmccloy@uw.edu>
 Depends: R (>= 2.10), splancs, deldir, plotrix
+Suggests: knitr
+VignetteBuilder: knitr
 Description: Tools for phoneticians and phonologists, including functions for normalization and plotting of vowels.
 License: GPL-3
 URL: https://github.com/drammock/phonR
 BugReports: https://github.com/drammock/phonR/issues 
 LazyLoad: yes
 LazyData: yes
-Suggests: knitr
-VignetteBuilder: knitr
