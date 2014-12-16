@@ -1,13 +1,14 @@
 # Directories
 extras
 oldVersions
+.Rproj.user
 
 # Files
 buildInstructions.txt
 installingCairo.txt
 phonR.Rproj
-.Rproj.user
 .Rhistory
+vignettes/phonR.html
 
 # File types
 *.aux
