@@ -1,9 +1,12 @@
 # Directories
-phonR.Rcheck
-oldVersions
+extraManFiles
 futureFunctionality
+oldVersions
+testing
+phonR.Rcheck
 
 # Files
+buildInstructions.txt
 *.aux
 *.bbl
 *.blg
