@@ -38,12 +38,7 @@
 # added (11 total now).
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# USAGE: source("phonR.r")
-# --or-- from command line (replace Xs with version number):
-# R CMD install phonR_X.X-X.tar.gz
-# Then library(phonR)
-# Then call functions as needed
-
+#' @export
 plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     plot.tokens=TRUE, pch.tokens=NULL, cex.tokens=NULL, alpha.tokens=NULL,
     plot.means=FALSE, pch.means=NULL, cex.means=NULL, alpha.means=NULL,
@@ -517,7 +512,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             xl <- force.legend[1:2]
             yl <- force.legend[3:4]
         }
-        forceHeatmapLegend(xl, yl, colormap=force.colmap)
+        repulsiveForceHeatmapLegend(xl, yl, colormap=force.colmap)
         if (!is.null(force.labels)) {
             text(xl, yl, labels=force.labels, pos=force.label.pos, xpd=TRUE)
     }   }
@@ -761,6 +756,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # OMNIBUS NORMALIZATION FUNCTION (convenience function) #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#' @export
 normVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
                     vowel=NULL, group=NULL, ...) {
     m <- tolower(method)
@@ -787,6 +783,7 @@ normVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
 
 
 # INDIVIDUAL NORMALIZATION FUNCTIONS
+#' @export
 normBark <- function(f) {
     bark <- 26.81 * f / (1960 + f) - 0.53
     bark[bark < 2] <- bark[bark < 2] + 0.15 * (2 - bark[bark < 2])
@@ -794,22 +791,22 @@ normBark <- function(f) {
 	return(bark)
 }
 
-
+#' @export
 normLog <- function(f) {
     log10(f)
 }
 
-
+#' @export
 normMel <- function(f) {
     2595*log10(1+f/700)
 }
 
-
+#' @export
 normErb <- function(f) {
     21.4*log10(1+0.00437*f)
 }
 
-
+#' @export
 normLobanov <- function(f, group=NULL) {
     if (is.null(group)) {
         return(scale(f))
@@ -820,7 +817,7 @@ normLobanov <- function(f, group=NULL) {
         return(unsplit(scaled, group))
 }	}
 
-
+#' @export
 normLogmean <- function(f, group=NULL, ...) {
     if (is.null(group)) {
         return(log(f) - rep(colMeans(log(f), ...), each=nrow(f)))
@@ -833,7 +830,7 @@ normLogmean <- function(f, group=NULL, ...) {
         return(unsplit(logmeans, group))
 }	}
 
-
+#' @export
 normNearey <- function(f, group=NULL, ...) {
     if (ncol(f) != 4) {
         stop("Missing values: normalization method 'norm.nearey' ",
@@ -848,7 +845,7 @@ normNearey <- function(f, group=NULL, ...) {
         return(unsplit(logmeans, group))
 }	}
 
-
+#' @export
 normWattFabricius <- function(f, vowel, group=NULL) {
     if (ncol(f) != 2) {
         warning("Wrong dimensions: s-centroid normalization requires ",
@@ -860,7 +857,6 @@ normWattFabricius <- function(f, vowel, group=NULL) {
                                                     data.frame(I(c(f1=NA, f2=NA))),
                                                     data.frame(I(colMeans(i))))
                         ), nrow=nrow(subsets), dimnames=dimnames(subsets))
-    # TODO: check whether this works with diphthongs
     minima <- do.call(rbind, apply(means, 2, function(i) data.frame(t(apply(do.call(rbind, i), 2, min, na.rm=TRUE)))))
     maxima <- do.call(rbind, apply(means, 2, function(i) data.frame(t(apply(do.call(rbind, i), 2, max, na.rm=TRUE)))))
     min.id <- apply(means, 2, function(i) apply(do.call(rbind, i), 2, which.min))
@@ -885,41 +881,34 @@ normWattFabricius <- function(f, vowel, group=NULL) {
     lowvowf2 <- do.call(rbind, means[unique(max.id['f1',]),])[,'f2']
     centroids <- t(rbind(f1=(2*minima$f1 + maxima$f1) / 3,
     				     f2=(minima$f2 + maxima$f2 + lowvowf2) / 3))
-    #rnames <- rep(rownames(subsets), times=ncol(subsets))
-    #cnames <- rep(colnames(subsets), each=nrow(subsets))
     f / centroids[group,]
 }
 
 
-prettyTicks <- function(lim) {
-    axrange <- abs(diff(lim))
-    step <- 10^(floor(log(axrange,10)))
-    coef <- ifelse(axrange/step < 1, 0.1,
-    			   ifelse(axrange/step < 2, 0.2,
-    			   		  ifelse(axrange/step < 5, 0.5, 1)))
-    step <- step*coef
-    lims <- c(ceiling(max(lim)/step)*step, floor(min(lim)/step)*step)
-    if (diff(lims) < 0) {step <- -step}
-    seq(lims[1],lims[2],step)
-}
+# # # # # # # # # # # # # # # # #
+# SECONDARY ANALYSIS FUNCTIONS  #
+# # # # # # # # # # # # # # # # #
 
-
-ellipse <- function(mu, sigma, alpha=0.05, npoints=250, draw=TRUE, ...) {
-    # adapted from the (now-defunct) mixtools package
-    es <- eigen(sigma)
-    e1 <- es$vec %*% diag(sqrt(es$val))
-    r1 <- sqrt(qchisq(1-alpha, 2))
-    theta <- seq(0, 2*pi, len=npoints)
-    v1 <- cbind(r1*cos(theta), r1*sin(theta))
-    pts <- t(mu-(e1 %*% t(v1)))
-    if (draw) {
-        colnames(pts) <- c('x','y')
-        polygon(pts, ...)
+#' @export
+vowelMeansPolygonArea <- function(f1, f2, vowel, poly.order) {
+    if (length(poly.order) != length(unique(poly.order))) {
+        warning("Duplicate entries in 'poly.order' detected; they will be ",
+                "ignored.")
     }
-    invisible(pts)
+    poly.order <- unique(as.character(poly.order)) # as.character in case factor
+    v <- unique(as.character(vowel))
+    if (length(setdiff(poly.order, v)) > 0) {
+        warning("There are vowels in 'poly.order' that are not in ",
+                "'vowel'; they will be ignored.")
+        poly.order <- intersect(poly.order, v)
+    }
+    df <- data.frame(f1=f1, f2=f2, v=factor(vowel, levels=poly.order))
+    df <- df[order(df$v),]
+    area <- areapl(cbind(tapply(df$f2, df$v, mean),
+                         tapply(df$f1, df$v, mean)))
 }
 
-
+#' @export
 convexHullArea <- function(x, y, group=NULL) {
     if (is.null(group))  group <- "all.points"
     df <- data.frame(x=x, y=y, g=group, stringsAsFactors=FALSE)
@@ -928,38 +917,14 @@ convexHullArea <- function(x, y, group=NULL) {
         areapl(as.matrix(data.frame(x=i$x, y=i$y, stringsAsFactors=FALSE)))
 })  }
 
-
+#' @export
 repulsiveForce <- function(x, y, type) {
     dmat <- as.matrix(dist(cbind(x, y)))
     force <- sapply(seq_along(type), function(i) {
         sum(1 / dmat[i, !(type %in% type[i])] ^ 2)
 })  }
 
-
-# pineda's triangle filling algorithm
-fillTriangle <- function(x, y, vertices) {
-    x0 <- vertices[1,1]
-    x1 <- vertices[2,1]
-    x2 <- vertices[3,1]
-    y0 <- vertices[1,2]
-    y1 <- vertices[2,2]
-    y2 <- vertices[3,2]
-    z0 <- vertices[1,3]
-    z1 <- vertices[2,3]
-    z2 <- vertices[3,3]
-    e0xy <- (x-x0)*(y1-y0)-(y-y0)*(x1-x0)
-    e1xy <- (x-x1)*(y2-y1)-(y-y1)*(x2-x1)
-    e2xy <- (x-x2)*(y0-y2)-(y-y2)*(x0-x2)
-    e0x2 <- (x2-x0)*(y1-y0)-(y2-y0)*(x1-x0)
-    e1x0 <- (x0-x1)*(y2-y1)-(y0-y1)*(x2-x1)
-    e2x1 <- (x1-x2)*(y0-y2)-(y1-y2)*(x0-x2)
-    f0 <- e0xy / e0x2
-    f1 <- e1xy / e1x0
-    f2 <- e2xy / e2x1
-    z <- f0*z2 + f1*z0 + f2*z1
-}
-
-
+#' @export
 repulsiveForceHeatmap <- function(x, y, type=NULL, resolution=50,
                                     colormap=NULL, method="default", ...) {
     # default to grayscale
@@ -1018,8 +983,8 @@ repulsiveForceHeatmap <- function(x, y, type=NULL, resolution=50,
               col=colormap, ...)
 }	}
 
-
-forceHeatmapLegend <- function (x, y, smoothness=50, colormap=NULL, lend=2,
+#' @export
+repulsiveForceHeatmapLegend <- function (x, y, smoothness=50, colormap=NULL, lend=2,
                                 lwd=6, ...) {
     if (is.null(colormap)) {  # default to grayscale
         colormap <- color.scale(x=0:100, cs1=0, cs2=0, cs3=c(0,100),
@@ -1032,6 +997,35 @@ forceHeatmapLegend <- function (x, y, smoothness=50, colormap=NULL, lend=2,
 }
 
 
+# # # # # # # # # # # # # # # # # #
+# UTILITY FUNCTIONS: NOT EXPORTED #
+# # # # # # # # # # # # # # # # # #
+prettyTicks <- function(lim) {
+    axrange <- abs(diff(lim))
+    step <- 10^(floor(log(axrange,10)))
+    coef <- ifelse(axrange/step < 1, 0.1,
+                   ifelse(axrange/step < 2, 0.2,
+                          ifelse(axrange/step < 5, 0.5, 1)))
+    step <- step*coef
+    lims <- c(ceiling(max(lim)/step)*step, floor(min(lim)/step)*step)
+    if (diff(lims) < 0) {step <- -step}
+    seq(lims[1],lims[2],step)
+}
+
+ellipse <- function(mu, sigma, alpha=0.05, npoints=250, draw=TRUE, ...) {
+    # adapted from the (now-defunct) mixtools package
+    es <- eigen(sigma)
+    e1 <- es$vec %*% diag(sqrt(es$val))
+    r1 <- sqrt(qchisq(1-alpha, 2))
+    theta <- seq(0, 2*pi, len=npoints)
+    v1 <- cbind(r1*cos(theta), r1*sin(theta))
+    pts <- t(mu-(e1 %*% t(v1)))
+    if (draw) {
+        colnames(pts) <- c('x','y')
+        polygon(pts, ...)
+    }
+    invisible(pts)
+}
 makeTransparent <- function (color, opacity) {
     rgba <- t(col2rgb(color, alpha=TRUE))
     rgba[,4] <- round(255 * opacity)
@@ -1039,21 +1033,25 @@ makeTransparent <- function (color, opacity) {
     trans.color <- do.call(rgb, c(as.data.frame(rgba), maxColorValue=255))
 }
 
-
-vowelMeansPolygonArea <- function(f1, f2, vowel, poly.order) {
-    if (length(poly.order) != length(unique(poly.order))) {
-        warning("Duplicate entries in 'poly.order' detected; they will be ",
-                "ignored.")
-    }
-    poly.order <- unique(as.character(poly.order)) # as.character in case factor
-    v <- unique(as.character(vowel))
-    if (length(setdiff(poly.order, v)) > 0) {
-        warning("There are vowels in 'poly.order' that are not in ",
-                "'vowel'; they will be ignored.")
-        poly.order <- intersect(poly.order, v)
-    }
-    df <- data.frame(f1=f1, f2=f2, v=factor(vowel, levels=poly.order))
-    df <- df[order(df$v),]
-    area <- areapl(cbind(tapply(df$f2, df$v, mean),
-                         tapply(df$f1, df$v, mean)))
+# pineda's triangle filling algorithm
+fillTriangle <- function(x, y, vertices) {
+    x0 <- vertices[1,1]
+    x1 <- vertices[2,1]
+    x2 <- vertices[3,1]
+    y0 <- vertices[1,2]
+    y1 <- vertices[2,2]
+    y2 <- vertices[3,2]
+    z0 <- vertices[1,3]
+    z1 <- vertices[2,3]
+    z2 <- vertices[3,3]
+    e0xy <- (x-x0)*(y1-y0)-(y-y0)*(x1-x0)
+    e1xy <- (x-x1)*(y2-y1)-(y-y1)*(x2-x1)
+    e2xy <- (x-x2)*(y0-y2)-(y-y2)*(x0-x2)
+    e0x2 <- (x2-x0)*(y1-y0)-(y2-y0)*(x1-x0)
+    e1x0 <- (x0-x1)*(y2-y1)-(y0-y1)*(x2-x1)
+    e2x1 <- (x1-x2)*(y0-y2)-(y1-y2)*(x0-x2)
+    f0 <- e0xy / e0x2
+    f1 <- e1xy / e1x0
+    f2 <- e2xy / e2x1
+    z <- f0*z2 + f1*z0 + f2*z1
 }
