@@ -118,11 +118,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     names(sub.args) <- gsub(".sub", "", names(sub.args))
     names(lab.args) <- gsub(".lab", "", names(lab.args))
     if ("xlab" %in% names(exargs)) xlab <- exargs$xlab
-    #else if (pretty)              xlab <- "F2"
-    else                           xlab <- ""
+    else                           xlab <- "F2"
     if ("ylab" %in% names(exargs)) ylab <- exargs$ylab
-    #else if (pretty)              ylab <- "F1"
-    else                           ylab <- ""
+    else                           ylab <- "F1"
     if ("main" %in% names(exargs)) main <- exargs$main
     #else if (pretty)              main <- "Vowels"
     else                           main <- ""
