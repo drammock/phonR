@@ -382,21 +382,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     }
     if (is.null(vowel) && is.null(group))  byd <- list(d=d)
     else                                   byd <- by(d, d[c('v','gf')], identity)
-    # MEANS & COVARIANCES FOR ELLIPSE DRAWING
-    mu <- lapply(byd, function(i) { if (!is.null(i)) {
-            with(i, list(colMeans(cbind(f2, f1), na.rm=TRUE)))
-        }})
-    mu <- do.call(rbind, mu)
-    sigma <- lapply(byd, function(i) { if (!(is.null(i))) {
-        with(i[!(is.na(i$f2)) && !(is.na(i$f1)),],
-             list(cov(cbind(f2, f1))))
-        }})
-    # the covariance calculation above still may yield some NA cov. matrices,
-    # due to some vowels having only 1 token, so we fix that here:
-    sigma <- lapply(sigma, function(i) {
-                    ifelse(is.na(i[[1]][1]), matrix(c(0,0,0,0), nrow=2), i)
-                    })
-    sigma <- do.call(rbind, sigma)
     # DATAFRAME OF MEANS
     m <- lapply(byd, function(i) { if (!is.null(i)) {
         with(i, data.frame(f2=mean(f2, na.rm=TRUE),
@@ -414,13 +399,30 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         }})
     m <- do.call(rbind, m)
     m$gfn <- as.numeric(factor(m$gf))
-    m$mu <- mu
-    m$sigma <- sigma
     if (diphthong) {
         m$f2d <- do.call(rbind, lapply(byd, function(i) if (!is.null(i))
             with(i, list(colMeans(do.call(rbind, f2d))))))
         m$f1d <- do.call(rbind, lapply(byd, function(i) if (!is.null(i))
             with(i, list(colMeans(do.call(rbind, f1d))))))
+    }
+    # MEANS & COVARIANCES FOR ELLIPSE DRAWING
+    if (ellipse.fill || ellipse.line) {
+        mu <- lapply(byd, function(i) { if (!is.null(i)) {
+            with(i, list(colMeans(cbind(f2, f1), na.rm=TRUE)))
+        }})
+        mu <- do.call(rbind, mu)
+        sigma <- lapply(byd, function(i) { if (!(is.null(i))) {
+            with(i[!(is.na(i$f2)) && !(is.na(i$f1)),],
+                 list(cov(cbind(f2, f1))))
+        }})
+        # the covariance calculation above still may yield some NA cov. matrices,
+        # due to some vowels having only 1 token, so we fix that here:
+        sigma <- lapply(sigma, function(i) {
+            ifelse(is.na(i[[1]][1]), matrix(c(0,0,0,0), nrow=2), i)
+        })
+        sigma <- do.call(rbind, sigma)
+        m$mu <- mu
+        m$sigma <- sigma
     }
 
     # # # # # # # # # # # # #
@@ -431,7 +433,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                         range(f1d, finite=TRUE))
     else           plot.bounds <- apply(d[,c('f2','f1')], 2, range, finite=TRUE)
     # ELLIPSE EXTREMA
-    if (!(is.null(ellipse.fill) && is.null(ellipse.line))) {
+    if (ellipse.fill || ellipse.line) {
         ellipse.args <- apply(m, 1, function(i) list('mu'=i$mu,
                         'sigma'=i$sigma, 'alpha'=ellipse.conf,
                         'draw'=FALSE))
