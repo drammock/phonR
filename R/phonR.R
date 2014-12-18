@@ -257,16 +257,16 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         hue <- seq(0,  360, length.out=1+num.col)[-1]
         chr <- seq(60, 100, length.out=num.col)
         lum <- seq(60,  40, length.out=num.col)
-        pretty.col <- hcl(hue, chr, lum, alpha=1)[col.by]
+        pretty.col <- hcl(hue, chr, lum, alpha=1)
         # PCH: filled / open {circ,tri,squ,diam}, plus, x, inverted open tri
         pretty.pch <- rep(c(16,1,17,2,15,0,18,5,3,4,6), length.out=l)[style.by]
         # LTY: custom linetypes more readily distinguishable
         pretty.lty <- c('solid', '44', 'F4', '4313', 'F3131313', '23F3',
-                        '232923', '23258385', '282823B3', '13', '82')[style.by]
+                        '232923', '23258385', '282823B3', '13', '82')
         pretty.args <- list(mgp=c(2,0.5,0), xaxs='i', yaxs='i', axes=FALSE,
-                            fg=hcl(0,0,40), tcl=-0.25, xpd=NA, # asp=1,
+                            fg=hcl(0,0,40), tcl=-0.25, xpd=NA,
                             pch=pretty.pch, lty=pretty.lty, col=pretty.col)
-        pretty.par.args <- list(mar=c(1,1,5,5), las=1)  # oma=rep(0.5, 4)
+        pretty.par.args <- list(mar=c(1,1,5,5), las=1)
         # LET USER-SPECIFIED ARGS OVERRIDE "PRETTY" DEFAULTS
         pretty.args[names(exargs)] <- exargs
         pretty.par.args[names(par.args)] <- par.args
@@ -279,15 +279,18 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # OTHER DEFAULTS  #
     # # # # # # # # # #
     # colors: use default pallete if none specified and pretty=FALSE
-    if (!'col' %in% names(exargs)) exargs$col <- palette()[col.by]
+    if (!'col' %in% names(exargs)) exargs$col <- palette()
+    exargs$col <- exargs$col[col.by]
     # linetypes
-    if (!'lty' %in% names(exargs)) exargs$lty <- style.by
+    if (!'lty' %in% names(exargs)) exargs$lty <- seq_len(length(style.by))
+    exargs$lty <- exargs$lty[style.by]
     # plotting characters
-    if (!'pch' %in% names(exargs)) exargs$pch <- style.by
+    if (!'pch' %in% names(exargs)) exargs$pch <- seq_len(length(style.by))
     if (is.null(pch.tokens)) pcht <- exargs$pch
     else                     pcht <- pch.tokens
     if (is.null(pch.means))  pchm <- exargs$pch
     else                     pchm <- pch.means
+    exargs$pch <- exargs$pch[style.by]
     # transparency
     trans.col <- makeTransparent(exargs$col, fill.opacity)
     trans.fg <- makeTransparent(par('fg'), fill.opacity)
