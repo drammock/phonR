@@ -467,7 +467,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     } else {
         x.args <- list(side=1, line=par("mgp")[1])
         y.args <- list(side=2, line=par("mgp")[1])
-        t.args <- list(side=3, line=1, outer=TRUE)
+        t.args <- list(side=3, line=1, outer=FALSE)
         s.args <- list(side=4, line=par("mgp")[1] + 1)
     }
 
