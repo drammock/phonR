@@ -189,9 +189,6 @@
                \code{plotVowels}.}
 }
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
-\references{
-McCloy, D. R. 2012 \dQuote{Normalizing and plotting vowels with the phonR package.} \emph{Technical Reports of the UW Linguistic Phonetics Laboratory}. \url{http://depts.washington.edu/phonlab/pubs/McCloy2012_phonR.pdf}
-}
 \seealso{\code{\link{normVowels}}}
 \examples{
     data(indoVowels)
