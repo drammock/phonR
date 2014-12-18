@@ -504,7 +504,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                                  cs3=c(25, 100), alpha=0.5,
                                                  color.spec='hcl')
         }
-        with(d, repulsiveForceHeatmap(f2, f1, type=v,
+        force <- with(d, repulsiveForce(f2, f1, v))
+        with(d, repulsiveForceHeatmap(f2, f1, z=force, type=v,
                                       resolution=force.res,
                                       colormap=force.colmap,
                                       method=force.method, add=TRUE))
@@ -928,14 +929,14 @@ repulsiveForce <- function(x, y, type) {
 })  }
 
 #' @export
-repulsiveForceHeatmap <- function(x, y, type=NULL, resolution=50,
+repulsiveForceHeatmap <- function(x, y, z=NULL, type=NULL, resolution=50,
                                     colormap=NULL, method="default", ...) {
     # default to grayscale
     if (is.null(colormap)) colormap <- plotrix::color.scale(x=0:100, cs1=0, cs2=0,
                                                             cs3=c(25,100), alpha=1,
                                                             color.spec="hcl")
     # create grid encompassing vowel space
-    vertices <- data.frame(x=x, y=y, v=type)  # z=z,
+    vertices <- data.frame(x=x, y=y, z=z, v=type)
     vertices <- vertices[!is.na(vertices$x) & !is.na(vertices$y),]
     bounding.rect <- apply(vertices[c("x", "y")], 2, range, na.rm=TRUE)
     xr <- abs(diff(bounding.rect[,"x"]))
@@ -953,10 +954,11 @@ repulsiveForceHeatmap <- function(x, y, type=NULL, resolution=50,
                  length.out=yres)
     grid <- expand.grid(x=xgrid, y=ygrid)
     grid$z <- NA
-    # create delaunay triangulation of vowels
-    triangs <- with(vertices, deldir::triMat(deldir::deldir(x, y, suppressMsge=TRUE)))
+    # create Delaunay triangulation of vowels
+    triangs <- with(vertices, deldir::triMat(deldir::deldir(x, y, z=z, suppressMsge=TRUE)))
     triangs <- apply(triangs, 1, function(i) data.frame(x=vertices$x[i],
-                                                        y=vertices$y[i]))
+                                                        y=vertices$y[i],
+                                                        z=vertices$z[i]))
     # which grid points are inside the vowel space?
     grid.indices <- lapply(triangs, function(i) splancs::inpip(grid, i, bound=FALSE))
     if (method == "pineda") {
