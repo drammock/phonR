@@ -47,7 +47,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.3173,
     diph.smooth=FALSE, diph.arrows=FALSE, diph.args.tokens=NULL, diph.args.means=NULL,
     force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default',
-    force.legend=NULL,  force.labels=NULL, force.label.pos=c(1, 3),
+    force.legend.pos=NULL,  force.legend.labels=NULL, force.label.pos=c(1, 3),
     col.by=NA, style.by=NA,  fill.opacity=0.3, legend.kwd=NULL, label.las=NULL,
     pretty=FALSE, output='screen', ...)
 {
@@ -500,24 +500,24 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # #
     if (force.heatmap) {
         if (pretty & is.null(force.colmap)) {
-            force.colmap <- color.scale(x=0:100, cs1=c(0, 180), cs2=100,
-                                        cs3=c(25, 100), alpha=0.5,
-                                        color.spec='hcl')
+            force.colmap <- plotrix::color.scale(x=0:100, cs1=c(0, 180), cs2=100,
+                                                 cs3=c(25, 100), alpha=0.5,
+                                                 color.spec='hcl')
         }
         with(d, repulsiveForceHeatmap(f2, f1, type=v,
-                                        resolution=force.res,
-                                        colormap=force.colmap,
-                                        method=force.method, add=TRUE))
-        if (is.null(force.legend)) {
+                                      resolution=force.res,
+                                      colormap=force.colmap,
+                                      method=force.method, add=TRUE))
+        if (is.null(force.legend.pos)) {
             xl <- rep(exargs$xlim[1], 2)
             yl <- exargs$ylim - c(0, diff(exargs$ylim) / 2)
-        } else if (!is.na(force.legend)) {
-            xl <- force.legend[1:2]
-            yl <- force.legend[3:4]
+        } else if (!is.na(force.legend.pos)) {
+            xl <- force.legend.pos[1:2]
+            yl <- force.legend.pos[3:4]
         }
         repulsiveForceHeatmapLegend(xl, yl, colormap=force.colmap)
-        if (!is.null(force.labels)) {
-            text(xl, yl, labels=force.labels, pos=force.label.pos, xpd=TRUE)
+        if (!is.null(force.legend.labels)) {
+            text(xl, yl, labels=force.legend.labels, pos=force.label.pos, xpd=TRUE)
     }   }
 
     # # # # # # #
@@ -931,8 +931,9 @@ repulsiveForce <- function(x, y, type) {
 repulsiveForceHeatmap <- function(x, y, type=NULL, resolution=50,
                                     colormap=NULL, method="default", ...) {
     # default to grayscale
-    if (is.null(colormap)) colormap <- color.scale(x=0:100, cs1=0, cs2=0,
-                                    cs3=c(25,100), alpha=1, color.spec="hcl")
+    if (is.null(colormap)) colormap <- plotrix::color.scale(x=0:100, cs1=0, cs2=0,
+                                                            cs3=c(25,100), alpha=1,
+                                                            color.spec="hcl")
     # create grid encompassing vowel space
     vertices <- data.frame(x=x, y=y, v=type)  # z=z,
     vertices <- vertices[!is.na(vertices$x) & !is.na(vertices$y),]
@@ -953,11 +954,11 @@ repulsiveForceHeatmap <- function(x, y, type=NULL, resolution=50,
     grid <- expand.grid(x=xgrid, y=ygrid)
     grid$z <- NA
     # create delaunay triangulation of vowels
-    triangs <- with(vertices, triMat(deldir(x, y, suppressMsge=TRUE)))
+    triangs <- with(vertices, deldir::triMat(deldir::deldir(x, y, suppressMsge=TRUE)))
     triangs <- apply(triangs, 1, function(i) data.frame(x=vertices$x[i],
                                                         y=vertices$y[i]))
     # which grid points are inside the vowel space?
-    grid.indices <- lapply(triangs, function(i) inpip(grid, i, bound=FALSE))
+    grid.indices <- lapply(triangs, function(i) splancs::inpip(grid, i, bound=FALSE))
     if (method == "pineda") {
         grid.values <- lapply(seq_along(triangs),
                               function(i) fillTriangle(grid[grid.indices[[i]],1],
@@ -971,7 +972,7 @@ repulsiveForceHeatmap <- function(x, y, type=NULL, resolution=50,
         if (is.null(type)) stop("Default method requires non-null values for 'type'.")
         grid.force <- rep(NA, nrow(grid))
         hull <- vertices[chull(vertices),]  # polygon of hull
-        subgrid <- grid[inpip(grid[,1:2], hull),]
+        subgrid <- grid[splancs::inpip(grid[,1:2], hull),]
         # which vowel is closest to each grid point?
         dist.matrix <- apply(subgrid, 1,
                              function(i) apply(as.matrix(vertices[c('x','y')]), 1,
@@ -981,7 +982,7 @@ repulsiveForceHeatmap <- function(x, y, type=NULL, resolution=50,
         subgrid.nearest.vowel <- vertices$v[indices]
         subgrid.force <- sapply(seq_along(subgrid.nearest.vowel),
                                 function(i) sum(1/dist.matrix[!(vertices$v %in% subgrid.nearest.vowel[i]),i]^2))
-        grid.force[inpip(grid[,1:2], hull)] <- log10(subgrid.force)
+        grid.force[splancs::inpip(grid[,1:2], hull)] <- log10(subgrid.force)
         image(xgrid, ygrid, matrix(grid.force, nrow=length(xgrid)),
               col=colormap, ...)
 }	}
@@ -990,13 +991,13 @@ repulsiveForceHeatmap <- function(x, y, type=NULL, resolution=50,
 repulsiveForceHeatmapLegend <- function (x, y, smoothness=50, colormap=NULL, lend=2,
                                 lwd=6, ...) {
     if (is.null(colormap)) {  # default to grayscale
-        colormap <- color.scale(x=0:100, cs1=0, cs2=0, cs3=c(0,100),
-                                alpha=1, color.spec='hcl')
+        colormap <- plotrix::color.scale(x=0:100, cs1=0, cs2=0, cs3=c(0,100),
+                                         alpha=1, color.spec='hcl')
     }
     xvals <- seq(x[1], x[2], length.out=smoothness)
     yvals <- seq(y[1], y[2], length.out=smoothness)
-    invisible(color.scale.lines(xvals, yvals, col=colormap, lend=lend, lwd=lwd,
-                                ...))
+    invisible(plotrix::color.scale.lines(xvals, yvals, col=colormap, lend=lend,
+                                         lwd=lwd, ...))
 }
 
 
