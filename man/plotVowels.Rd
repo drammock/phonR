@@ -6,30 +6,30 @@
              direct-to-file using built-in R file output methods (PDF, SVG, JPG,
              PNG, TIFF, or BMP).}
 \usage{
-    plotVowels(f1, f2, vowel=NULL, group=NULL, 
-    		   plot.tokens=TRUE, pch.tokens=NULL, 
+    plotVowels(f1, f2, vowel=NULL, group=NULL,
+    		   plot.tokens=TRUE, pch.tokens=NULL,
     		   cex.tokens=NULL, alpha.tokens=NULL,
-               plot.means=FALSE, pch.means=NULL, 
-               cex.means=NULL, alpha.means=NULL, 
-               hull.line=FALSE, hull.fill=FALSE, 
-               hull.col=NULL, poly.line=FALSE, 
-               poly.fill=FALSE, poly.col=NULL, 
-               poly.order=NA, ellipse.line=FALSE, 
+               plot.means=FALSE, pch.means=NULL,
+               cex.means=NULL, alpha.means=NULL,
+               hull.line=FALSE, hull.fill=FALSE,
+               hull.col=NULL, poly.line=FALSE,
+               poly.fill=FALSE, poly.col=NULL,
+               poly.order=NA, ellipse.line=FALSE,
                ellipse.fill=FALSE, ellipse.conf=0.3173,
-               diph.smooth=FALSE, diph.arrows=FALSE, 
-               diph.args.tokens=NULL, diph.args.means=NULL, 
+               diph.smooth=FALSE, diph.arrows=FALSE,
+               diph.args.tokens=NULL, diph.args.means=NULL,
                force.heatmap=FALSE, force.colmap=NULL,
-               force.res=50, force.method='default', 
-               force.legend=NULL, force.labels=NULL, 
-               force.label.pos=c(1, 3), col.by=NA, 
-               style.by=NA,  fill.opacity=0.3, 
+               force.res=50, force.method='default',
+               force.legend=NULL, force.labels=NULL,
+               force.label.pos=c(1, 3), col.by=NA,
+               style.by=NA,  fill.opacity=0.3,
                legend.kwd=NULL, label.las=NULL,
                pretty=FALSE, output='screen', ...)
 }
 \arguments{
-    \item{f1,f2}{Vector or matrix of formant frequency values. To plot multiple 
-    			 timepoints for each vowel, \code{f1} and \code{f2} should be 
-    			 matrices with vowel tokens varying along the rows and 
+    \item{f1,f2}{Vector or matrix of formant frequency values. To plot multiple
+    			 timepoints for each vowel, \code{f1} and \code{f2} should be
+    			 matrices with vowel tokens varying along the rows and
     			 timepoints varying across the columns.}
     \item{vowel}{Vector of vowel symbols/labels.}
     \item{group}{Vector or factor that determines the groups used in calculating
@@ -42,7 +42,7 @@
                       \code{\link[graphics]{points}}).}
     \item{cex.tokens}{Numeric; size of individual vowel points relative to
                       \code{par("cex")}.}
-    \item{alpha.tokens}{Numeric in range [0,1], indicating opacity of plotted 
+    \item{alpha.tokens}{Numeric in range [0,1], indicating opacity of plotted
     					vowel tokens.}
     \item{plot.means}{Logical; should individual vowel tokens be plotted?}
     \item{pch.means}{Vector of strings or integers; the symbol(s) to use when
@@ -50,7 +50,7 @@
                      R \code{pch} values (see
                      \code{\link[graphics]{points}}).}
     \item{cex.means}{Size of vowel means relative to \code{par("cex")}.}
-    \item{alpha.means}{Numeric in range [0,1], indicating opacity of plotted 
+    \item{alpha.means}{Numeric in range [0,1], indicating opacity of plotted
     				   vowel means.}
     \item{hull.line}{Logical; should a line be drawn tracing the convex hull
                      encompassing all tokens (separately for each level of
@@ -99,19 +99,19 @@
                        tokens, not means.}
     \item{diph.arrows}{Logical; should the last timepoint of each vowel be
                        marked with an arrowhead?}
-    \item{diph.args.tokens,diph.args.means}{List of named arguments to be passed 
-          to \code{\link[graphics]{points}} and/or \code{\link[graphics]{arrows}} 
-          when plotting tokens or means (ignored if \code{f1} and \code{f2} are 
+    \item{diph.args.tokens,diph.args.means}{List of named arguments to be passed
+          to \code{\link[graphics]{points}} and/or \code{\link[graphics]{arrows}}
+          when plotting tokens or means (ignored if \code{f1} and \code{f2} are
           1-dimensional). Default is to plot bare lines (\code{type="l"}) when
-          \code{pch.tokens} is \code{NULL}, to draw points and lines overplotted 
-          (\code{type="o"}) when \code{diph.arrows=FALSE}, and to plot bare 
-          lines with the first timepoint of each diphthong plotted when 
-          \code{diph.arrows=TRUE}. When \code{pretty=TRUE} and 
-          \code{diph.arrows=TRUE}, additional default settings are 
-          \code{length=0.1} and \code{angle=20}. For \code{diph.args.means}, 
-          \code{lwd} defaults to \code{2 * par("lwd")} when \code{pretty=TRUE}. 
-          All of these defaults are overridden by values passed to 
-          \code{diph.args.tokens} or \code{diph.args.means} in the function 
+          \code{pch.tokens} is \code{NULL}, to draw points and lines overplotted
+          (\code{type="o"}) when \code{diph.arrows=FALSE}, and to plot bare
+          lines with the first timepoint of each diphthong plotted when
+          \code{diph.arrows=TRUE}. When \code{pretty=TRUE} and
+          \code{diph.arrows=TRUE}, additional default settings are
+          \code{length=0.1} and \code{angle=20}. For \code{diph.args.means},
+          \code{lwd} defaults to \code{2 * par("lwd")} when \code{pretty=TRUE}.
+          All of these defaults are overridden by values passed to
+          \code{diph.args.tokens} or \code{diph.args.means} in the function
           call.}
     \item{force.heatmap}{Logical; should a repulsive force heatmap be drawn?}
     \item{force.colmap}{Colormap to use when drawing the heatmap (see
@@ -142,17 +142,17 @@
                         \dQuote{pineda}; \dQuote{pineda} is considered
                         experimental and not currently supported. See
                         \code{\link{repulsiveForceHeatmap}} for details.}
-    \item{force.legend}{Location for plotting a color bar showing the range of
-                        force heatmap values. Possible values are: a vector
-                        \code{c(x1, x2, y1, y2)} defining the endpoints of a
-                        line; \code{NA} to suppress plotting a color bar; and
-                        \code{NULL} (the default) to plot it along the left side
-                        of the graph, spanning from the bottom edge to halfway
-                        up the left side of the plotting area.}
-    \item{force.labels}{Vector of strings (length 2); the labels to write at
-                        each end of the force legend color bar. Ignored if
-                        \code{force.heatmap} is \code{FALSE} or
-                        \code{force.legend} is \code{NA}.}
+    \item{force.legend.pos}{Location for plotting a color bar showing the range of
+                            force heatmap values. Possible values are: a vector
+                            \code{c(x1, x2, y1, y2)} defining the endpoints of a
+                            line; \code{NA} to suppress plotting a color bar; and
+                            \code{NULL} (the default) to plot it along the left side
+                            of the graph, spanning from the bottom edge to halfway
+                            up the left side of the plotting area.}
+    \item{force.legend.labels}{Vector of strings (length 2); the labels to write at
+                               each end of the force legend color bar. Ignored if
+                               \code{force.heatmap} is \code{FALSE} or
+                               \code{force.legend.pos} is \code{NA}.}
     \item{force.label.pos}{Vector of integers (length 2); position codes for the
                            colorbar labels. See the \code{pos} argument of
                            \code{\link[graphics]{text}} for explanation.}
@@ -171,7 +171,7 @@
                      line (independently from the axis tick numbers). Possible
                      values are integers 0-4 (see \code{\link[graphics]{par}}),
                      or \code{NULL} (to use the default value of \code{par("las")},
-                     or a value passed to \code{plotVowels} as \code{las} if 
+                     or a value passed to \code{plotVowels} as \code{las} if
                      available).}
     \item{pretty}{Logical; a switch that sets various graphical parameters:
                   \code{mar}, \code{las}, \code{mgp}, \code{xpd}, \code{fg}, and
@@ -205,7 +205,7 @@ McCloy, D. R. 2012 \dQuote{Normalizing and plotting vowels with the phonR packag
         f1b <- f1 + sample(c(-30:-5,5:30), length(f1), replace=TRUE)
         f2b <- f2 + sample(c(-50:-10,10:50), length(f2), replace=TRUE)
         })
-	with(indo_d, plotVowels(f1=cbind(f1, f1b), f2=cbind(f2, f2b), vowel, 
+	with(indo_d, plotVowels(f1=cbind(f1, f1b), f2=cbind(f2, f2b), vowel,
                           group=subj, diph.arrows=TRUE, pretty=TRUE))
 }
 \keyword{device}
