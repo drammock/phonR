@@ -7,8 +7,8 @@
              PNG, TIFF, or BMP).}
 \usage{
     plotVowels(f1, f2, vowel=NULL, group=NULL,
-    		   plot.tokens=TRUE, pch.tokens=NULL,
-    		   cex.tokens=NULL, alpha.tokens=NULL,
+               plot.tokens=TRUE, pch.tokens=NULL,
+               cex.tokens=NULL, alpha.tokens=NULL,
                plot.means=FALSE, pch.means=NULL,
                cex.means=NULL, alpha.means=NULL,
                hull.line=FALSE, hull.fill=FALSE,
@@ -28,9 +28,9 @@
 }
 \arguments{
     \item{f1,f2}{Vector or matrix of formant frequency values. To plot multiple
-    			 timepoints for each vowel, \code{f1} and \code{f2} should be
-    			 matrices with vowel tokens varying along the rows and
-    			 timepoints varying across the columns.}
+                 timepoints for each vowel, \code{f1} and \code{f2} should be
+                 matrices with vowel tokens varying along the rows and
+                 timepoints varying across the columns.}
     \item{vowel}{Vector of vowel symbols/labels.}
     \item{group}{Vector or factor that determines the groups used in calculating
                  vowel means, e.g., a factor indicating \dQuote{gender},
@@ -43,15 +43,14 @@
     \item{cex.tokens}{Numeric; size of individual vowel points relative to
                       \code{par("cex")}.}
     \item{alpha.tokens}{Numeric in range [0,1], indicating opacity of plotted
-    					vowel tokens.}
+                        vowel tokens.}
     \item{plot.means}{Logical; should individual vowel tokens be plotted?}
     \item{pch.means}{Vector of strings or integers; the symbol(s) to use when
                      plotting vowel means. Integers are interpreted as standard
-                     R \code{pch} values (see
-                     \code{\link[graphics]{points}}).}
+                     R \code{pch} values (see \code{\link[graphics]{points}}).}
     \item{cex.means}{Size of vowel means relative to \code{par("cex")}.}
     \item{alpha.means}{Numeric in range [0,1], indicating opacity of plotted
-    				   vowel means.}
+                       vowel means.}
     \item{hull.line}{Logical; should a line be drawn tracing the convex hull
                      encompassing all tokens (separately for each level of
                      \code{group})?}
@@ -100,19 +99,19 @@
     \item{diph.arrows}{Logical; should the last timepoint of each vowel be
                        marked with an arrowhead?}
     \item{diph.args.tokens,diph.args.means}{List of named arguments to be passed
-          to \code{\link[graphics]{points}} and/or \code{\link[graphics]{arrows}}
-          when plotting tokens or means (ignored if \code{f1} and \code{f2} are
-          1-dimensional). Default is to plot bare lines (\code{type="l"}) when
-          \code{pch.tokens} is \code{NULL}, to draw points and lines overplotted
-          (\code{type="o"}) when \code{diph.arrows=FALSE}, and to plot bare
-          lines with the first timepoint of each diphthong plotted when
-          \code{diph.arrows=TRUE}. When \code{pretty=TRUE} and
-          \code{diph.arrows=TRUE}, additional default settings are
-          \code{length=0.1} and \code{angle=20}. For \code{diph.args.means},
-          \code{lwd} defaults to \code{2 * par("lwd")} when \code{pretty=TRUE}.
-          All of these defaults are overridden by values passed to
-          \code{diph.args.tokens} or \code{diph.args.means} in the function
-          call.}
+        to \code{\link[graphics]{points}} and/or \code{\link[graphics]{arrows}}
+        when plotting tokens or means (ignored if \code{f1} and \code{f2} are
+        1-dimensional). Default is to plot bare lines (\code{type="l"}) when
+        \code{pch.tokens} is \code{NULL}, to draw points and lines overplotted
+        (\code{type="o"}) when \code{diph.arrows=FALSE}, and to plot bare
+        lines with the first timepoint of each diphthong plotted when
+        \code{diph.arrows=TRUE}. When \code{pretty=TRUE} and
+        \code{diph.arrows=TRUE}, additional default settings are
+        \code{length=0.1} and \code{angle=20}. For \code{diph.args.means},
+        \code{lwd} defaults to \code{2 * par("lwd")} when \code{pretty=TRUE}.
+        All of these defaults are overridden by values passed to
+        \code{diph.args.tokens} or \code{diph.args.means} in the function
+        call.}
     \item{force.heatmap}{Logical; should a repulsive force heatmap be drawn?}
     \item{force.colmap}{Colormap to use when drawing the heatmap (see
                         \code{\link[plotrix]{color.scale}}. Note that the
@@ -157,7 +156,7 @@
                            colorbar labels. See the \code{pos} argument of
                            \code{\link[graphics]{text}} for explanation.}
     \item{col.by}{Vector or factor indicating the dimension along which to vary
-                  color.}
+                   color.}
     \item{style.by}{Vector or factor indicating the dimension along which to
                     vary linetype and plotting symbol.}
     \item{fill.opacity}{Number in the range [0, 1] indicating the opacity of
@@ -195,18 +194,18 @@ McCloy, D. R. 2012 \dQuote{Normalizing and plotting vowels with the phonR packag
 }
 \seealso{\code{\link{normVowels}}}
 \examples{
-	data(indoVowels)
-  with(indo, plotVowels(f1, f2, vowel, group=gender, plot.means=TRUE,
-                        pch.means=vowel, ellipse.line=TRUE, poly.line=TRUE,
-                        poly.order=c('i','e','a','o','u'), col.by=vowel,
-                        style.by=gender, pretty=TRUE))
-	# simulate some diphthongs
-  indo_d <- within(indo, {
+    data(indoVowels)
+with(indo, plotVowels(f1, f2, vowel, group=gender, plot.means=TRUE,
+                      pch.means=vowel, ellipse.line=TRUE, poly.line=TRUE,
+                      poly.order=c('i','e','a','o','u'), col.by=vowel,
+                      style.by=gender, pretty=TRUE))
+    # simulate some diphthongs
+indo_d <- within(indo, {
         f1b <- f1 + sample(c(-30:-5,5:30), length(f1), replace=TRUE)
         f2b <- f2 + sample(c(-50:-10,10:50), length(f2), replace=TRUE)
         })
-	with(indo_d, plotVowels(f1=cbind(f1, f1b), f2=cbind(f2, f2b), vowel,
-                          group=subj, diph.arrows=TRUE, pretty=TRUE))
+    with(indo_d, plotVowels(f1=cbind(f1, f1b), f2=cbind(f2, f2b), vowel,
+                        group=subj, diph.arrows=TRUE, pretty=TRUE))
 }
 \keyword{device}
 \keyword{hplot}
