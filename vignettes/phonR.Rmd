@@ -148,35 +148,48 @@ with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, alpha.token
 One of the more unique aspects of `phonR` is its ability to calculate and plot the repulsive force of a vowel space. This is controlled by the argument `force.heatmap`, and its resolution by `force.res`. The colormap used to draw the heatmap defaults to grayscale if `pretty=FALSE` or to a warm palette if `pretty=TRUE`, but can be specified by passing a vector of color values as the `force.colmap` argument. See the `color.scale` function in the `plotrix` package for an easy way to create your own colormaps.
 
 
-```{r, fig.cap="Convex hulls of increasing resolution"}
+```{r, fig.cap="Repulsive force heatmaps of increasing resolution"}
 coolcolors <- plotrix::color.scale(x=0:100, cs1=c(180, 360), cs2=c(25, 75), cs3=c(50, 100),
                                    alpha=1, color.spec='hcl')
+indo$force <- with(indo, repulsiveForce(f2, f1, vowel))
 par(mfrow=c(2, 2))
+with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.4,
+                      force.heatmap=TRUE, force.colmap=coolcolors, force.res=10, 
+                      col="white", pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.4,
+                      force.heatmap=TRUE, force.colmap=coolcolors, force.res=20, 
+                      col="white", pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.4,
+                      force.heatmap=TRUE, force.colmap=coolcolors, force.res=40, 
+                      col="white", pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.4,
+                      force.heatmap=TRUE, force.colmap=coolcolors, force.res=80, 
+                      col="white", pretty=TRUE))
+```
+
+TODO: color tokens by force value in above plots; after fixing pineda method, increase resolution on below plots.
+
+```{r, fig.cap="Comparison of `force.method` options. Left: deafult. Right: pineda."}
+par(mfrow=c(1, 2))
 with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.4,
                       force.heatmap=TRUE, force.colmap=coolcolors, force.res=10, 
                       pretty=TRUE))
 with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.4,
-                      force.heatmap=TRUE, force.colmap=coolcolors, force.res=20, 
-                      pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.4,
-                      force.heatmap=TRUE, force.colmap=coolcolors, force.res=40, 
-                      pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.4,
-                      force.heatmap=TRUE, force.colmap=coolcolors, force.res=80, 
-                      pretty=TRUE))
+                      force.heatmap=TRUE, force.colmap=coolcolors, force.res=10, 
+                      force.method="pineda", pretty=TRUE))
 ```
 
 ### Legends
-To do.
+TODO
 
 ## Diphthongs
-To do.
+TODO
 
 ### Arrows
-To do.
+TODO
 
 ### Smoothing
-To do.
+TODO
 
 # Vowel normalization with `phonR`
 `phonR` implements eight different vowel formant frequency normalization function algorithms as separate functions, and additionally provides a convenience function `normalizeVowels` that wraps to the individual functions, specified by a `method` argument. The algorithms implemented are listed in Table 1. Most of the normalization functions accept a vector or matrix of $f_0$ or formant frequencies, and return a vector or matrix of the same dimensions.
@@ -185,14 +198,14 @@ To do.
 
 | **Normalization method**               | **Function name**   | **Source**           | **Formula**                                           |
 |:---------------------------------------|:--------------------|:---------------------|:------------------------------------------------------|
-| Bark                                   | `normBark`          | [@traunmuller1990]   | $ \frac {26.81 \times F_n}{1960+F_n} - 0.53 $         |
-| Equivalent Rectangular Bandwidth (ERB) | `normErb`           | [@glasbergMoore1990] | $ 21.4 \times \log_{10} (1 + F_n \times 0.00437) $    |
-| Mel                                    | `normMel`           | [@mel]               | $ 2595 \times \log_{10} (1 + \frac{F_n}{700}) $       |
-| Log                                    | `normLog`           | n/a                  | $ \log_{10}(F_n) $                                    |
-| Lobanov (z‑score)                      | `normLobanov`       | [@lobanov1971]       | $ \frac{F_n - \mu(F_n)}{\sigma(F_n)} $                |
-| Watt-Fabricius (s‑centroid)[^wf]       | `normWattFabricius` | [@wattFabricius2002] | $ \frac{F_n}{centroid} $                              |
-| Nearey‑1 (logmean)                     | `normLogmean`       | [@nearey1977]        | $ \log_{e} (F_n) - \mu(\log_{e}(F_n)) $               |
-| Nearey‑2 (nearey)                      | `normNearey`        | [@nearey1977]        | $ \log_{e}(F_n) - \sum_{n=0}^{3} \mu(\log_{e}(F_n)) $ |
+| Bark                                   | `normBark`          | [@traunmuller1990]   | $$ \frac {26.81 \times F_n}{1960+F_n} - 0.53 $$         |
+| Equivalent Rectangular Bandwidth (ERB) | `normErb`           | [@glasbergMoore1990] | $$ 21.4 \times \log_{10} (1 + F_n \times 0.00437) $$    |
+| Mel                                    | `normMel`           | [@mel]               | $$ 2595 \times \log_{10} (1 + \frac{F_n}{700}) $$       |
+| Log                                    | `normLog`           | n/a                  | $$ \log_{10}(F_n) $$                                    |
+| Lobanov (z‑score)                      | `normLobanov`       | [@lobanov1971]       | $$ \frac{F_n - \mu(F_n)}{\sigma(F_n)} $$                |
+| Watt-Fabricius (s‑centroid)[^wf]       | `normWattFabricius` | [@wattFabricius2002] | $$ \frac{F_n}{centroid} $$                              |
+| Nearey‑1 (logmean)                     | `normLogmean`       | [@nearey1977]        | $$ \log_{e} (F_n) - \mu(\log_{e}(F_n)) $$               |
+| Nearey‑2 (nearey)                      | `normNearey`        | [@nearey1977]        | $$ \log_{e}(F_n) - \sum_{n=0}^{3} \mu(\log_{e}(F_n)) $$ |
 
 \caption{Normalization methods available via `phonR` \texttt{normalizeVowels} function}
 
