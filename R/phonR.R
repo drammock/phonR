@@ -259,7 +259,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         lum <- seq(60,  40, length.out=num.col)
         pretty.col <- hcl(hue, chr, lum, alpha=1)
         # PCH: filled / open {circ,tri,squ,diam}, plus, x, inverted open tri
-        pretty.pch <- rep(c(16,1,17,2,15,0,18,5,3,4,6), length.out=l)[style.by]
+        pretty.pch <- rep(c(16,1,17,2,15,0,18,5,3,4,6), length.out=num.sty)
         # LTY: custom linetypes more readily distinguishable
         pretty.lty <- c('solid', '44', 'F4', '4313', 'F3131313', '23F3',
                         '232923', '23258385', '282823B3', '13', '82')
@@ -282,15 +282,15 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (!'col' %in% names(exargs)) exargs$col <- palette()
     exargs$col <- exargs$col[col.by]
     # linetypes
-    if (!'lty' %in% names(exargs)) exargs$lty <- seq_len(length(unique(style.by)))
+    if (!'lty' %in% names(exargs)) exargs$lty <- seq_len(num.sty)
     exargs$lty <- exargs$lty[style.by]
     # plotting characters
-    if (!'pch' %in% names(exargs)) exargs$pch <- seq_len(length(unique(style.by)))
+    if (!'pch' %in% names(exargs)) exargs$pch <- seq_len(num.sty)
+    exargs$pch <- exargs$pch[style.by]
     if (is.null(pch.tokens)) pcht <- exargs$pch
     else                     pcht <- pch.tokens
     if (is.null(pch.means))  pchm <- exargs$pch
     else                     pchm <- pch.means
-    exargs$pch <- exargs$pch[style.by]
     # transparency
     trans.col <- makeTransparent(exargs$col, fill.opacity)
     trans.fg <- makeTransparent(par('fg'), fill.opacity)
