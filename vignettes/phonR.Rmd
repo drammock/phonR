@@ -38,14 +38,14 @@ Using the included `indo` vowel data, the default behavior of `plotVowels` is no
 ```{r, fig.cap="A near-minimal plotVowels call"}
 library(phonR)
 data(indoVowels)  # provides dataframe "indo"
-with(indo, plotVowels(f1, f2, xlab="F2 (Hertz)", ylab="F1 (Hertz)"))
+with(indo, plotVowels(f1, f2))
 ```
 
 ### The arguments `vowel`, `group`, `col.by` and `style.by`
 Of course, there is little point in plotting all the vowels with the same symbol, and without further information, `plotVowels` doesn't know which F1 and F2 values belong to which vowel and which talker or group. It also doesn't know how you want them plotted, which is why the next plot looks just like the previous one: even though we have *semantically* distinguished the data points by telling `plotVowels` which formant values belong to which vowel / talker, we haven't specified any way of *visually* distinguishing the points on the plot.
 
 ```{r, fig.cap="Specifying `group` doesn't automatically change the appearance!"}
-with(indo, plotVowels(f1, f2, vowel, group=gender, xlab="F2 (Hertz)", ylab="F1 (Hertz)"))
+with(indo, plotVowels(f1, f2, vowel, group=gender))
 ```
 
 The next plot solves this problem by specifying various ways to assign colors and styles to the plot. On the top left, both color and symbol redundantly encode vowel identity. On the top right, color encodes the gender of the talker, and symbol type again encodes vowel identity. On the bottom left, color varies by talker and symbol varies by gender; on the bottom right, color varies by talker, and symbol again varies by gender.
@@ -54,14 +54,10 @@ Notice that in none of these plots are we making use of the `group` argument; as
 
 ```{r, fig.cap="Four different combinations of col.by and style.by"}
 par(mfrow=c(2, 2))
-with(indo, plotVowels(f1, f2, col.by=vowel, style.by=vowel, 
-                      xlab="F2 (Hertz)", ylab="F1 (Hertz)"))
-with(indo, plotVowels(f1, f2, col.by=gender, style.by=vowel, 
-                      xlab="F2 (Hertz)", ylab="F1 (Hertz)"))
-with(indo, plotVowels(f1, f2, col.by=vowel, style.by=subj, 
-                      xlab="F2 (Hertz)", ylab="F1 (Hertz)"))
-with(indo, plotVowels(f1, f2, col.by=subj, style.by=gender, 
-                      xlab="F2 (Hertz)", ylab="F1 (Hertz)"))
+with(indo, plotVowels(f1, f2, col.by=vowel, style.by=vowel))
+with(indo, plotVowels(f1, f2, col.by=gender, style.by=vowel))
+with(indo, plotVowels(f1, f2, col.by=vowel, style.by=subj))
+with(indo, plotVowels(f1, f2, col.by=subj, style.by=gender))
 ```
 
 ### The `pretty` argument
@@ -69,10 +65,8 @@ By now you will have noticed that the default colors and symbols are ugly, and t
 
 ```{r, fig.width=7.5, fig.height=3.75, fig.cap="Default appearance with pretty=TRUE"}
 par(mfrow=c(1, 2))
-with(indo, plotVowels(f1, f2, col.by=vowel, style.by=vowel, 
-                      xlab="F2 (Hertz)", ylab="F1 (Hertz)", pretty=TRUE))
-with(indo, plotVowels(f1, f2, col.by=gender, style.by=vowel, 
-                      xlab="F2 (Hertz)", ylab="F1 (Hertz)", pretty=TRUE))
+with(indo, plotVowels(f1, f2, col.by=vowel, style.by=vowel, pretty=TRUE))
+with(indo, plotVowels(f1, f2, col.by=gender, style.by=vowel, pretty=TRUE))
 ```
 
 Don’t worry if you don’t love the colors, or want different symbols or a different size: anything that `pretty` changes can be overridden by explicitly including extra graphical arguments in the `plotVowels` function call, while leaving the remaining `pretty` options in place. The only thing you can’t undo is the axis placement on the top and right instead of bottom and left — that one is hard-wired. We’ll be leaving `pretty=TRUE` from now on, so you’ll see how it affects other aspects of the plots as we proceed.
@@ -82,10 +76,11 @@ As we have seen, the default for `plotVowels` is to plot each individual vowel t
 
 ```{r, fig.show='hold', fig.cap=""}
 with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, 
+                      plot.means=TRUE, col.by=gender, style.by=vowel,
+                      pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, 
                       plot.means=TRUE, col.by=gender, style.by=vowel, 
-                      pretty=TRUE, xlab="F2 (Hertz)", ylab="F1 (Hertz)", 
-                      main=""))
-with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE, col.by=gender, style.by=vowel, pretty=TRUE))
+                      pretty=TRUE))
 ```
 
 ### Plotting with IPA glyphs

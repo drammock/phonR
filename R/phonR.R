@@ -282,10 +282,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (!'col' %in% names(exargs)) exargs$col <- palette()
     exargs$col <- exargs$col[col.by]
     # linetypes
-    if (!'lty' %in% names(exargs)) exargs$lty <- seq_len(length(style.by))
+    if (!'lty' %in% names(exargs)) exargs$lty <- seq_len(length(unique(style.by)))
     exargs$lty <- exargs$lty[style.by]
     # plotting characters
-    if (!'pch' %in% names(exargs)) exargs$pch <- seq_len(length(style.by))
+    if (!'pch' %in% names(exargs)) exargs$pch <- seq_len(length(unique(style.by)))
     if (is.null(pch.tokens)) pcht <- exargs$pch
     else                     pcht <- pch.tokens
     if (is.null(pch.means))  pchm <- exargs$pch
