@@ -195,9 +195,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         f2d <- f2
         f1 <- f1d[,1]
         f2 <- f2d[,1]
-        timepts <- ncol(f2d)  # TODO: delete this and next line?
-        tokens <- nrow(f2d)
-        l <- nrow(f1)
+        l <- nrow(f1d)
     }
 
     # # # # # # # # # # # # # #
