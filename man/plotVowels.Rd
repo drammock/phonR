@@ -12,12 +12,14 @@
                plot.means=FALSE, pch.means=NULL,
                cex.means=NULL, alpha.means=NULL,
                hull.line=FALSE, hull.fill=FALSE,
-               hull.col=NULL, poly.line=FALSE,
-               poly.fill=FALSE, poly.col=NULL,
+               hull.args=NULL, poly.line=FALSE,
+               poly.fill=FALSE, poly.args=NULL,
                poly.order=NA, ellipse.line=FALSE,
                ellipse.fill=FALSE, ellipse.conf=0.3173,
-               diph.smooth=FALSE, diph.arrows=FALSE,
+               ellipse.args=NULL, diph.arrows=FALSE,
                diph.args.tokens=NULL, diph.args.means=NULL,
+               diph.label.first.only=TRUE,
+               diph.mean.timept=1, diph.smooth=FALSE,
                force.heatmap=FALSE, force.colmap=NULL,
                force.res=50, force.method='default',
                force.legend=NULL, force.labels=NULL,
@@ -55,27 +57,16 @@
                      encompassing all tokens (separately for each level of
                      \code{group})?}
     \item{hull.fill}{Logical; should the convex hull(s) have a color fill?}
-    \item{hull.col}{Vector of colors to use when drawing the convex hulls
-                    (recycled if necessary). If \code{NULL}, defaults to the
-                    values in \code{palette()}, with opacity for fills set by
-                    \code{fill.opacity}. If \code{pretty==TRUE}, equally-spaced
-                    hues of HCL colors are used instead of \code{palette()}. If
-                    \code{NULL} and \code{col.by==vowel}, hull lines are drawn
-                    in black, and fills are drawn black with appropriate
-                    \code{fill.opacity}.}
+    \item{hull.args,poly.args,ellipse.args}{Named list of arguments to be passed
+                                            to \code{\link{polygon}}. Useful for
+                                            controlling line width, etc. See
+                                            Details for notes about color
+                                            handling.}
     \item{poly.line}{Logical; should a line be drawn tracing the polygon
                      connecting the mean values for each vowel (separately for
                      each level of \code{group})?}
     \item{poly.fill}{Logical; should the polygon(s) connecting mean values for
                      each vowel have a color fill?}
-    \item{poly.col}{Vector of colors to use when drawing the polygons connecting
-                    vowel means (recycled if necessary). If \code{NULL},
-                    defaults to the values in \code{palette()}, with opacity for
-                    fills set by \code{fill.opacity}. If \code{pretty==TRUE},
-                    equally-spaced hues of HCL colors are used instead of
-                    \code{palette()}. If \code{NULL} and \code{col.by==vowel},
-                    polygon lines are drawn in black, and fills are drawn black
-                    with appropriate \code{fill.opacity}.}
     \item{poly.order}{Vector or factor indicating the order in which the polygon
                       vertices should be connected. Should match the levels of
                       \code{factor(vowel)}. If there are values of \code{vowel}
@@ -91,11 +82,6 @@
                         1 sample standard deviation). Note that because this is
                         an alpha level, \emph{higher} numbers yield
                         \emph{smaller} ellipses.}
-    \item{diph.smooth}{Logical; should a smoothing spline be drawn instead of
-                       segments connecting individual timepoints? This feature
-                       is under development, unstable, unsupported, and to the
-                       extent that it is implemented, it is only implemented for
-                       tokens, not means.}
     \item{diph.arrows}{Logical; should the last timepoint of each vowel be
                        marked with an arrowhead?}
     \item{diph.args.tokens,diph.args.means}{List of named arguments to be passed
@@ -112,6 +98,25 @@
         All of these defaults are overridden by values passed to
         \code{diph.args.tokens} or \code{diph.args.means} in the function
         call.}
+    \item{diph.label.first.only}{Logical; if plotting diphthongs, should a symbol
+                                 or label be drawn only at the first timepoint?
+                                 Note that if plotting means, the label or symbol
+                                 may not correspond to the \emph{first} timepoint;
+                                 it depends on the value of \code{diph.mean.timept}.}
+    \item{diph.mean.timept}{A strictly positive integer indicating which timepoint
+                            of the diphthongs should be used to calculate means,
+                            ellipses, and polygons. For example, if the \code{f1}
+                            and \code{f2} arguments are N-by-5 matrices where the
+                            3rd column of each represents the formant measurement
+                            at the vowel midpoint (with the other columns providing
+                            2 onglide and 2 offglide measurements), you can plot the
+                            means, ellipses, and polygons based on the midpoint
+                            measures by specifying \code{diph.mean.timept=3}.}
+    \item{diph.smooth}{Logical; should a smoothing spline be drawn instead of
+                       segments connecting individual timepoints? This feature
+                       is under development, unstable, unsupported, and to the
+                       extent that it is implemented, it is only implemented for
+                       tokens, not means.}
     \item{force.heatmap}{Logical; should a repulsive force heatmap be drawn?}
     \item{force.colmap}{Colormap to use when drawing the heatmap (see
                         \code{\link[plotrix]{color.scale}}. Note that the
@@ -187,6 +192,16 @@
                \code{xlab}, \code{main}, etc. Two arguments of \code{plot}:
                \code{ann} and \code{type}, are always silently overridden by
                \code{plotVowels}.}
+}
+\details{\emph{Notes on color handling}. If no \code{col} or \code{border}
+         arguments are passed to \code{ellipse.args}, \code{poly.args}, or
+         \code{hull.args}, then color is handled as follows: if
+         \code{pretty=FALSE}, colors default to the values in \code{palette()},
+         with opacity for fills set by \code{fill.opacity}. If \code{pretty=TRUE},
+         equally-spaced hues of HCL colors are used instead of \code{palette()}.
+         If the values passed to \code{col.by} and \code{vowel} are identical,
+         hull and polygon lines are drawn in black, and fills are drawn black
+         with appropriate \code{fill.opacity}.
 }
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
 \seealso{\code{\link{normVowels}}}
