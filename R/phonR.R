@@ -42,10 +42,11 @@
 plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     plot.tokens=TRUE, pch.tokens=NULL, cex.tokens=NULL, alpha.tokens=NULL,
     plot.means=FALSE, pch.means=NULL, cex.means=NULL, alpha.means=NULL,
-    hull.line=FALSE, hull.fill=FALSE, hull.col=NULL,
-    poly.line=FALSE, poly.fill=FALSE, poly.col=NULL, poly.order=NA,
-    ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.3173,
-    diph.smooth=FALSE, diph.arrows=FALSE, diph.args.tokens=NULL, diph.args.means=NULL,
+    hull.line=FALSE, hull.fill=FALSE, hull.args=NULL,
+    poly.line=FALSE, poly.fill=FALSE, poly.args=NULL, poly.order=NA,
+    ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.3173, ellipse.args=NULL,
+    diph.arrows=FALSE, diph.args.tokens=NULL, diph.args.means=NULL,
+    diph.label.first.only=TRUE, diph.mean.timept=1, diph.smooth=FALSE,
     force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default',
     force.legend.pos=NULL,  force.legend.labels=NULL, force.label.pos=c(1, 3),
     col.by=NA, style.by=NA,  fill.opacity=0.3, legend.kwd=NULL, label.las=NULL,
@@ -193,8 +194,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     } else {
         f1d <- f1
         f2d <- f2
-        f1 <- f1d[,1]
-        f2 <- f2d[,1]
+        f1 <- f1d[,diph.mean.timept]
+        f2 <- f2d[,diph.mean.timept]
         l <- nrow(f1d)
     }
 
@@ -293,34 +294,39 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     trans.col <- makeTransparent(exargs$col, fill.opacity)
     trans.fg <- makeTransparent(par('fg'), fill.opacity)
     # ellipse colors
-    if (ellipse.line) ellipse.line.col <- exargs$col
-    else              ellipse.line.col <- NA[col.by]
-    if (ellipse.fill) ellipse.fill.col <- trans.col
-    else              ellipse.fill.col <- NA[col.by]
+    if (ellipse.line) {
+        if ("border" %in% names(ellipse.args)) {
+            ellipse.args$border <- rep(ellipse.args$border, length.out=num.col)
+            ellipse.line.col <- ellipse.args$border[col.by]
+        }
+        else                                   ellipse.line.col <- exargs$col
+    } else                                     ellipse.line.col <- NA[col.by]
+    if (ellipse.fill) {
+        if ("col" %in% names(ellipse.args)) ellipse.fill.col <- ellipse.args$col[col.by]
+        else                                ellipse.fill.col <- trans.col
+    } else                                  ellipse.fill.col <- NA[col.by]
     # hull colors
     if (hull.line) {
-        if (!is.null(hull.col)) hull.line.col <- hull.col[col.by]
-        else if (col.by.vowel)  hull.line.col <- par("fg")
-        else                    hull.line.col <- exargs$col
-    } else {                    hull.line.col <- NA[col.by] }
+        if ("border" %in% names(hull.args)) hull.line.col <- hull.args$border[col.by]
+        else if (col.by.vowel)              hull.line.col <- par("fg")
+        else                                hull.line.col <- exargs$col
+    } else                                  hull.line.col <- NA[col.by]
     if (hull.fill) {
-        if (!is.null(hull.col)) hull.fill.col <- makeTransparent(hull.col[col.by],
-                                                                fill.opacity)
-        else if (col.by.vowel)  hull.fill.col <- trans.fg
-        else                    hull.fill.col <- trans.col
-    } else {                    hull.fill.col <- NA[col.by] }
+        if ("col" %in% names(hull.args)) hull.fill.col <- hull.args$col[col.by]
+        else if (col.by.vowel)         hull.fill.col <- trans.fg
+        else                           hull.fill.col <- trans.col
+    } else                             hull.fill.col <- NA[col.by]
     # polygon colors
     if (poly.line) {
-        if (!is.null(poly.col)) poly.line.col <- poly.col[col.by]
-        else if (col.by.vowel)  poly.line.col <- par("fg")
-        else                    poly.line.col <- exargs$col
-    } else {                    poly.line.col <- NA[col.by] }
+        if ("border" %in% names(poly.args)) poly.line.col <- poly.args$border[col.by]
+        else if (col.by.vowel)              poly.line.col <- par("fg")
+        else                                poly.line.col <- exargs$col
+    } else                                  poly.line.col <- NA[col.by]
     if (poly.fill) {
-        if (!is.null(poly.col)) poly.fill.col <- makeTransparent(poly.col[col.by],
-                                                                fill.opacity)
-        else if (col.by.vowel)  poly.fill.col <- trans.fg
-        else                    poly.fill.col <- trans.col
-    } else {                    poly.fill.col <- NA[col.by] }
+        if ("col" %in% names(poly.args)) poly.fill.col <- poly.args$col[col.by]
+        else if (col.by.vowel)           poly.fill.col <- trans.fg
+        else                             poly.fill.col <- trans.col
+    } else                               poly.fill.col <- NA[col.by]
 
     # # # # # # # # # # # # # # #
     # TOKEN / MEAN TRANSPARENCY #
@@ -355,11 +361,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # # # # # #
     # COLLECT INTO DATAFRAMES #
     # # # # # # # # # # # # # #
-
-    # TODO: propogate new args col.tokens and col.means throughout, then
-    # document alpha.tokens and alpha.means
-
-    d <- data.frame(v=v, gf=factor(gf), m=rep(plot.means, l),
+    d <- data.frame(f1=f1, f2=f2, v=v, gf=factor(gf), m=rep(plot.means, l),
                     col.tokens=col.tokens, col.means=col.means,
                     color=exargs$col, style=style.by,
                     ellipse.fill.col=ellipse.fill.col,
@@ -371,13 +373,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     pch.means=pchm, pch.tokens=pcht,
                     stringsAsFactors=FALSE)
     if (diphthong) {
-        d$f2 <- f2d[,1]
-        d$f1 <- f1d[,1]
         d$f2d <- lapply(apply(f2d, 1, list), unlist, recursive=TRUE, use.names=FALSE)
         d$f1d <- lapply(apply(f1d, 1, list), unlist, recursive=TRUE, use.names=FALSE)
-    } else {
-        d$f2 <- f2
-        d$f1 <- f1
     }
     if (is.null(vowel) && is.null(group))  byd <- list(d=d)
     else                                   byd <- by(d, d[c('v','gf')], identity)
@@ -433,17 +430,18 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     else           plot.bounds <- apply(d[,c('f2','f1')], 2, range, finite=TRUE)
     # ELLIPSE EXTREMA
     if (ellipse.fill || ellipse.line) {
-        ellipse.args <- apply(m, 1, function(i) list('mu'=i$mu,
-                        'sigma'=i$sigma, 'alpha'=ellipse.conf,
-                        'draw'=FALSE))
-        ellipse.points <- lapply(ellipse.args,
-                        function(i) do.call(ellipse, i))
+        ellipse.param <- apply(m, 1, function(i) list('mu'=i$mu,
+                                                      'sigma'=i$sigma,
+                                                      'alpha'=ellipse.conf,
+                                                      'draw'=FALSE))
+        ellipse.points <- lapply(ellipse.param,
+                                 function(i) do.call(ellipse, i))
         ellipse.bounds <- lapply(ellipse.points,
-                        function(i) apply(i, 2, range, finite=TRUE))
+                                 function(i) apply(i, 2, range, finite=TRUE))
         ellipse.bounds <- apply(do.call(rbind, ellipse.bounds), 2,
-                        range, finite=TRUE)
+                                range, finite=TRUE)
         plot.bounds <- apply(rbind(plot.bounds, ellipse.bounds), 2,
-                    range, finite=TRUE)
+                             range, finite=TRUE)
     }
     if (!'xlim' %in% names(exargs)) exargs$xlim <- rev(plot.bounds[,1])
     if (!'ylim' %in% names(exargs)) exargs$ylim <- rev(plot.bounds[,2])
@@ -523,23 +521,33 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # PLOT HULL #
     # # # # # # #
     if (hull.fill || hull.line) {
+        # TODO: if diphthong, hull should ignore diph.mean.timept
         hh <- by(d, d$gf, function(i) i[!is.na(i$f2) & !is.na(i$f1),])
         hulls <- lapply(hh, function(i) with(i, i[chull(f2, f1),
-                        c('f2', 'f1', 'color', 'hull.fill.col', 'hull.line.col',
+                        c('f2', 'f1', 'hull.fill.col', 'hull.line.col',
                         'style')]))
-        lapply(hulls, function(i) with(i, polygon(cbind(f2, f1),
-                                                col=hull.fill.col,
-                                                border=hull.line.col,
-                                                lty=style)))
+        lapply(hulls, function(i) {
+            hull.args$border <- i$hull.line.col
+            hull.args$col    <- i$hull.fill.col
+            if (!"lty" %in% names(hull.args))  hull.args$lty <- i$style
+            hull.args$x      <- cbind(i$f2, i$f1)
+            with(i, do.call(polygon, hull.args))
+            })
     }
 
     # # # # # # # # #
     # PLOT ELLIPSES #
     # # # # # # # # #
     if (ellipse.fill || ellipse.line) {
-        lapply(seq_along(ellipse.points),
-            function(i) polygon(ellipse.points[[i]], col=m$ellipse.fill.col[i],
-                                border=m$ellipse.line.col[i], lty=m$style[i]))
+        invisible(lapply(seq_along(ellipse.points),
+                         function(i) {
+                             ellipse.args$border <- m$ellipse.line.col[i]
+                             ellipse.args$col    <- m$ellipse.fill.col[i]
+                             if (!"lty" %in% names(ellipse.args)) {
+                                 ellipse.args$lty <- m$style[i]
+                             }
+                             do.call(polygon, c(list(x=ellipse.points[[i]]), ellipse.args))
+                             }))
     }
 
     # # # # # # # # #
@@ -563,18 +571,27 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         pp <- split(pp, pp$gf)
         if (poly.fill) {
             bigenough <- sapply(pp, function(i) nrow(i) > 2)
-            lapply(pp[bigenough], function(i) with(i, polygon(cbind(f2, f1),
-                                                            col=poly.fill.col,
-                                                            border=NA)))
+            lapply(pp[bigenough], function(i) {
+                pargs <- poly.args
+                pargs$x <- cbind(i$f2, i$f1)
+                pargs$col <- i$poly.fill.col
+                pargs$border <- NA
+                with(i, do.call(polygon, pargs))
+            })
         }
         if (poly.line) {
             if (plot.means) type <- 'c'
             else type <- 'l'
             bigenough <- sapply(pp, function(i) nrow(i) > 1)
             invisible(lapply(pp[bigenough], function(i) {
-                with(i[i$v %in% poly.order,], points(f2, f1, col=poly.line.col,
-                                                     type=type, lty=style,
-                                                     cex=1.25*cex.means))
+                pargs <- poly.args
+                pargs$x <- i$f2
+                pargs$y <- i$f1
+                pargs$type <- type
+                pargs$cex <- 1.2 * cex.means
+                pargs$col <- i$poly.line.col
+                if (!"lty" %in% names(pargs)) pargs$lty <- i$style
+                with(i[i$v %in% poly.order,], do.call(points, pargs))
                 }))
     }   }
 
@@ -592,15 +609,27 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 if (diph.smooth) warning("Cannot smooth diphthong traces with ",
                                          "fewer than 4 timepoints. Plotting ",
                                          "connecting segments instead.")
+                # plot first point
+                if (diph.label.first.only) {
+                    if (!is.null(pch.tokens)) {
+                        with(d, text(f2, f1, labels=pch.tokens, col=col.tokens,
+                                     cex=cex.tokens))
+                    } else {
+                        with(d, points(f2, f1, pch=pch.tokens, col=col.tokens,
+                                       cex=cex.tokens))
+                    }
+                    diph.args.tokens$type <- "l"
+                }
                 # plot lines
                 apply(d, 1, function(i) {
+                    # if diph.label.first.only, cex and pch will get ignored
                     with(i, do.call(points, c(list(t(f2d)[line.range],
                                                    t(f1d)[line.range],
                                                    pch=pch.tokens,
                                                    cex=cex.tokens,
                                                    col=col.tokens),
                                               diph.args.tokens)))
-                })
+                    })
                 # plot arrowheads
                 if (diph.arrows) {
                     apply(d, 1, function(i) {
@@ -612,11 +641,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                                   diph.arrow.tokens)
                         ))
                     })
-                    # plot only first point
-                    if (!is.null(pch.tokens)) {
-                        with(d, text(f2, f1, labels=pch.tokens, col=col.tokens,
-                                     cex=cex.tokens))
-                }   }
+                }
             # diphthong smoothing spline
             } else if (diph.smooth) {  # timepts > 3
                 apply(d, 1, function(i) {
@@ -680,8 +705,21 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             timepts <- length(m$f2d[[1]])
             if (diph.arrows) line.range <- 1:(timepts-1)
             else             line.range <- 1:timepts
+
+            # plot first point
+            if (diph.label.first.only) {
+                if (!is.null(pch.means)) {
+                    with(m, text(f2, f1, labels=pch.means, col=col.means,
+                                 cex=cex.means))
+                } else {
+                    with(m, points(f2, f1, pch=pch.means, col=col.means,
+                                   cex=cex.means))
+                }
+                diph.args.means$type <- "l"
+            }
             # plot lines
             apply(m, 1, function(i) {
+                # if diph.label.first.only, cex and pch will get ignored
                 with(i, do.call(points, c(list(t(f2d)[line.range],
                                                t(f1d)[line.range],
                                                pch=pch.means,
@@ -700,11 +738,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                               diph.arrow.means)
                     ))
                 })
-                # plot only first point
-                if (!is.null(pch.means)) {
-                    with(m, text(f2, f1, labels=pch.means, col=col.means,
-                                 cex=cex.means))
-                }
             }
         } else {
             if (is.null(pch.means)) {
