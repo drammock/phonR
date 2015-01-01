@@ -521,11 +521,23 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # PLOT HULL #
     # # # # # # #
     if (hull.fill || hull.line) {
-        # TODO: if diphthong, hull should ignore diph.mean.timept
+        hull.columns <- c('f2', 'f1', 'hull.fill.col', 'hull.line.col', 'style')
         hh <- by(d, d$gf, function(i) i[!is.na(i$f2) & !is.na(i$f1),])
-        hulls <- lapply(hh, function(i) with(i, i[chull(f2, f1),
-                        c('f2', 'f1', 'hull.fill.col', 'hull.line.col',
-                        'style')]))
+        if (diphthong) {
+            # if diphthong, hull should ignore diph.mean.timept
+            hulls <- lapply(hh, function(i) {
+                ipts <- with(i, data.frame(f2=do.call(c, f2d),
+                                           f1=do.call(c, f1d)))
+                hull <- ipts[chull(ipts),]
+                hull$hull.fill.col <- unique(i$hull.fill.col)
+                hull$hull.line.col <- unique(i$hull.line.col)
+                hull$style <- unique(i$style)
+                return (hull)
+            })
+        } else {
+            hulls <- lapply(hh, function(i) with(i, i[chull(f2, f1),
+                            hull.columns]))
+        }
         lapply(hulls, function(i) {
             hull.args$border <- i$hull.line.col
             hull.args$col    <- i$hull.fill.col
