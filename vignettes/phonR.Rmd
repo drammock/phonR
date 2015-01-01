@@ -203,11 +203,10 @@ indo <- within(indo, {
 
 remapping <- c(i="ɪʏ̯", e="ɛœ̰ɚ", a="ɒɐ˞", o="ɤɞ̆", u="ɯʊ̥")
 with(indo, plotVowels(cbind(f1, f1a, f1b, f1c, f1d), cbind(f2, f2a, f2b, f2c, f2d), 
-                      vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.1,
-                      plot.means=TRUE, pch.means=remapping[as.character(vowel)], 
-                      cex.means=2, col.by=vowel, family="Charis SIL",
-                      ellipse.line=TRUE, pretty=TRUE, diph.arrows=TRUE, 
-                      diph.args.tokens=list(lwd=0.5)))
+                      vowel, plot.tokens=TRUE, pch.tokens=NA, alpha.tokens=0.2,
+                      plot.means=TRUE, pch.means=vowel, cex.means=2, col.by=vowel,
+                      pretty=TRUE,  diph.arrows=TRUE, diph.args.tokens=list(lwd=0.75),
+                      diph.args.means=list(lwd=4)))
 ```
 
 ### Arrows
