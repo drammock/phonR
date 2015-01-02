@@ -99,13 +99,13 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         if ("las" %in% names(par.args)) label.las <- par.args$las
         else                            label.las <- par("las")
     }
-    # split out arguments for annotations. axes get drawn separately from plot()
-    # if "pretty"; other annotation gets drawn in separate mtext() calls whether
+    # split out arguments for annotations. If "pretty", axes get drawn separately
+    # from plot(); other annotation gets drawn in separate mtext() calls whether
     # "pretty" or not.
     if (pretty) {
         axis.only <- c("cex.axis", "col.axis", "font.axis")
         axis.args <- exargs[names(exargs) %in% axis.only]
-        names(axis.args) <- gsub(".axis", "", names(axis.args))
+        #names(axis.args) <- gsub(".axis", "", names(axis.args))
     } else {
         axis.only <- c()
     }
