@@ -49,8 +49,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     diph.label.first.only=TRUE, diph.mean.timept=1, diph.smooth=FALSE,
     force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default',
     force.legend.pos=NULL,  force.legend.labels=NULL, force.label.pos=c(1, 3),
-    col.by=NA, style.by=NA,  fill.opacity=0.3, legend.kwd=NULL, label.las=NULL,
-    pretty=FALSE, output='screen', ...)
+    var.col.by=NA, var.style.by=NA,  fill.opacity=0.3, legend.kwd=NULL,
+    label.las=NULL, pretty=FALSE, output='screen', ...)
 {
     # # # # # # # # # # #
     # HANDLE EXTRA ARGS #
@@ -234,15 +234,15 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (is.null(group)) gf <- rep('gf', l)
     else 			    gf <- factor(group)
     # used later to set default polygon color when color varies by vowel
-    if (identical(col.by, vowel)) col.by.vowel <- TRUE
-    else                          col.by.vowel <- FALSE
-    # color.by & style.by
-    if (is.na(col.by[1]))     col.by <- rep(1, l)  # default to black
-    else					  col.by <- as.numeric(factor(col.by))
-    if (is.na(style.by[1]))	style.by <- rep(1, l)  # default to solid
-    else					style.by <- as.numeric(factor(style.by))
-    num.col <- length(unique(col.by))
-    num.sty <- length(unique(style.by))
+    if (identical(var.col.by, vowel)) col.by.vowel <- TRUE
+    else                              col.by.vowel <- FALSE
+    # var.col.by & var.style.by
+    if (is.na(var.col.by[1]))   var.col.by <- rep(1, l)  # default to black
+    else                        var.col.by <- as.numeric(factor(var.col.by))
+    if (is.na(var.style.by[1])) var.style.by <- rep(1, l)  # default to solid
+    else                        var.style.by <- as.numeric(factor(var.style.by))
+    num.col <- length(unique(var.col.by))
+    num.sty <- length(unique(var.style.by))
     # misc. plotting defaults
     if (is.null(cex.tokens))    cex.tokens <- par('cex')
     if (is.null(cex.means))      cex.means <- par('cex')
@@ -279,13 +279,13 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # #
     # colors: use default pallete if none specified and pretty=FALSE
     if (!'col' %in% names(exargs)) exargs$col <- palette()
-    exargs$col <- exargs$col[col.by]
+    exargs$col <- exargs$col[var.col.by]
     # linetypes
     if (!'lty' %in% names(exargs)) exargs$lty <- seq_len(num.sty)
-    exargs$lty <- exargs$lty[style.by]
+    exargs$lty <- exargs$lty[var.style.by]
     # plotting characters
     if (!'pch' %in% names(exargs)) exargs$pch <- seq_len(num.sty)
-    exargs$pch <- exargs$pch[style.by]
+    exargs$pch <- exargs$pch[var.style.by]
     if (is.null(pch.tokens)) pcht <- exargs$pch
     else                     pcht <- pch.tokens
     if (is.null(pch.means))  pchm <- exargs$pch
@@ -297,36 +297,36 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (ellipse.line) {
         if ("border" %in% names(ellipse.args)) {
             ellipse.args$border <- rep(ellipse.args$border, length.out=num.col)
-            ellipse.line.col <- ellipse.args$border[col.by]
+            ellipse.line.col <- ellipse.args$border[var.col.by]
         }
         else                                   ellipse.line.col <- exargs$col
-    } else                                     ellipse.line.col <- NA[col.by]
+    } else                                     ellipse.line.col <- NA[var.col.by]
     if (ellipse.fill) {
-        if ("col" %in% names(ellipse.args)) ellipse.fill.col <- ellipse.args$col[col.by]
+        if ("col" %in% names(ellipse.args)) ellipse.fill.col <- ellipse.args$col[var.col.by]
         else                                ellipse.fill.col <- trans.col
-    } else                                  ellipse.fill.col <- NA[col.by]
+    } else                                  ellipse.fill.col <- NA[var.col.by]
     # hull colors
     if (hull.line) {
-        if ("border" %in% names(hull.args)) hull.line.col <- hull.args$border[col.by]
+        if ("border" %in% names(hull.args)) hull.line.col <- hull.args$border[var.col.by]
         else if (col.by.vowel)              hull.line.col <- par("fg")
         else                                hull.line.col <- exargs$col
-    } else                                  hull.line.col <- NA[col.by]
+    } else                                  hull.line.col <- NA[var.col.by]
     if (hull.fill) {
-        if ("col" %in% names(hull.args)) hull.fill.col <- hull.args$col[col.by]
+        if ("col" %in% names(hull.args)) hull.fill.col <- hull.args$col[var.col.by]
         else if (col.by.vowel)         hull.fill.col <- trans.fg
         else                           hull.fill.col <- trans.col
-    } else                             hull.fill.col <- NA[col.by]
+    } else                             hull.fill.col <- NA[var.col.by]
     # polygon colors
     if (poly.line) {
-        if ("border" %in% names(poly.args)) poly.line.col <- poly.args$border[col.by]
+        if ("border" %in% names(poly.args)) poly.line.col <- poly.args$border[var.col.by]
         else if (col.by.vowel)              poly.line.col <- par("fg")
         else                                poly.line.col <- exargs$col
-    } else                                  poly.line.col <- NA[col.by]
+    } else                                  poly.line.col <- NA[var.col.by]
     if (poly.fill) {
-        if ("col" %in% names(poly.args)) poly.fill.col <- poly.args$col[col.by]
+        if ("col" %in% names(poly.args)) poly.fill.col <- poly.args$col[var.col.by]
         else if (col.by.vowel)           poly.fill.col <- trans.fg
         else                             poly.fill.col <- trans.col
-    } else                               poly.fill.col <- NA[col.by]
+    } else                               poly.fill.col <- NA[var.col.by]
 
     # # # # # # # # # # # # # # #
     # TOKEN / MEAN TRANSPARENCY #
@@ -363,7 +363,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # # # # # #
     d <- data.frame(f1=f1, f2=f2, v=v, gf=factor(gf), m=rep(plot.means, l),
                     col.tokens=col.tokens, col.means=col.means,
-                    color=exargs$col, style=style.by,
+                    color=exargs$col, style=var.style.by,
                     ellipse.fill.col=ellipse.fill.col,
                     ellipse.line.col=ellipse.line.col,
                     poly.fill.col=poly.fill.col,
