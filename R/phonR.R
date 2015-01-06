@@ -965,11 +965,12 @@ convexHullArea <- function(x, y, group=NULL) {
 })  }
 
 #' @export
-repulsiveForce <- function(x, y, type) {
+repulsiveForce <- function(x, y, type, exclude.inf=TRUE) {
     dmat <- as.matrix(dist(cbind(x, y)))
+    if (exclude.inf) dmat[dmat == 0] <- min(dmat) / 2
     force <- sapply(seq_along(type), function(i) {
         sum(1 / dmat[i, !(type %in% type[i])] ^ 2)
-})  }
+    })  }
 
 #' @export
 repulsiveForceHeatmap <- function(x, y, z=NULL, type=NULL, resolution=50,
