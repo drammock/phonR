@@ -23,8 +23,8 @@
                force.heatmap=FALSE, force.colmap=NULL,
                force.res=50, force.method='default',
                force.legend=NULL, force.labels=NULL,
-               force.label.pos=c(1, 3), col.by=NA,
-               style.by=NA,  fill.opacity=0.3,
+               force.label.pos=c(1, 3), var.col.by=NA,
+               var.style.by=NA,  fill.opacity=0.3,
                legend.kwd=NULL, label.las=NULL,
                pretty=FALSE, output='screen', ...)
 }
@@ -160,9 +160,9 @@
     \item{force.label.pos}{Vector of integers (length 2); position codes for the
                            colorbar labels. See the \code{pos} argument of
                            \code{\link[graphics]{text}} for explanation.}
-    \item{col.by}{Vector or factor indicating the dimension along which to vary
+    \item{var.col.by}{Vector or factor indicating the dimension along which to vary
                    color.}
-    \item{style.by}{Vector or factor indicating the dimension along which to
+    \item{var.style.by}{Vector or factor indicating the dimension along which to
                     vary linetype and plotting symbol.}
     \item{fill.opacity}{Number in the range [0, 1] indicating the opacity of
                         color fills for ellipses, hulls, and polygons (if drawn).
@@ -199,7 +199,7 @@
          \code{pretty=FALSE}, colors default to the values in \code{palette()},
          with opacity for fills set by \code{fill.opacity}. If \code{pretty=TRUE},
          equally-spaced hues of HCL colors are used instead of \code{palette()}.
-         If the values passed to \code{col.by} and \code{vowel} are identical,
+         If the values passed to \code{var.col.by} and \code{vowel} are identical,
          hull and polygon lines are drawn in black, and fills are drawn black
          with appropriate \code{fill.opacity}.
 }
@@ -209,8 +209,8 @@
     data(indoVowels)
 with(indo, plotVowels(f1, f2, vowel, group=gender, plot.means=TRUE,
                       pch.means=vowel, ellipse.line=TRUE, poly.line=TRUE,
-                      poly.order=c('i','e','a','o','u'), col.by=vowel,
-                      style.by=gender, pretty=TRUE))
+                      poly.order=c('i','e','a','o','u'), var.col.by=vowel,
+                      var.style.by=gender, pretty=TRUE))
     # simulate some diphthongs
 indo_d <- within(indo, {
         f1b <- f1 + sample(c(-30:-5,5:30), length(f1), replace=TRUE)
