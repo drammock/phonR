@@ -44,7 +44,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     plot.means=FALSE, pch.means=NULL, cex.means=NULL, alpha.means=NULL,
     hull.line=FALSE, hull.fill=FALSE, hull.args=NULL,
     poly.line=FALSE, poly.fill=FALSE, poly.args=NULL, poly.order=NA,
-    ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.3173, ellipse.args=NULL,
+    ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.6827, ellipse.args=NULL,
     diph.arrows=FALSE, diph.args.tokens=NULL, diph.args.means=NULL,
     diph.label.first.only=TRUE, diph.mean.timept=1, diph.smooth=FALSE,
     force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default',
@@ -444,7 +444,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (ellipse.fill || ellipse.line) {
         ellipse.param <- apply(m, 1, function(i) list('mu'=i$mu,
                                                       'sigma'=i$sigma,
-                                                      'alpha'=ellipse.conf,
+                                                      'alpha'=1 - ellipse.conf,
                                                       'draw'=FALSE))
         ellipse.points <- lapply(ellipse.param,
                                  function(i) do.call(ellipse, i))
