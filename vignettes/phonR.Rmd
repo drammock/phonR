@@ -128,13 +128,13 @@ with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.t
                       ellipse.line=TRUE, ellipse.conf=0.95, pretty=TRUE))
 with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE,
                       pch.means=vowel, cex.means=2, var.col.by=vowel, ellipse.fill=TRUE,
-                      fill.opacity=0.5, pretty=TRUE))
+                      pretty=TRUE))
 with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE,
                       pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=subj,
                       ellipse.line=TRUE, ellipse.fill=TRUE, fill.opacity=0.1, pretty=TRUE))
 ```
 
-In the lower-left plot above, we know from the function call that the two sets of ellipses correspond to talker gender, but it is not clear which ellipses “go together”. We can regain this information by passing arguments `ellipse.line=TRUE, var.style.by=gender`, but we can achieve the same thing by drawing connecting lines between the vowel means:
+In the lower-left plot above, we know from the function call that the two sets of ellipses correspond to talker gender, but it is not clear which ellipses “go together” (especially in the high back region). We can regain this information by passing arguments `ellipse.line=TRUE, var.style.by=gender`, but we can achieve the same thing by drawing connecting lines between the vowel means:
 
 ```{r, fig.cap="The “vowel means” polygon"}
 with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE,
@@ -143,7 +143,7 @@ with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means
                       poly.order=c("i", "e", "a", "o", "u"), pretty=TRUE))
 ```
 
-The vowel polygon lines (and also convex hulls, seen below) are drawn in black color if the `var.col.by` argument is `vowel` (because the polygonal boundary line is a property of the entire *vowel space*, not of any one vowel). If `var.col.by` is something else (like gender or talker) then the polygonal or hull line follows the color coding of the tokens and means. Just like ellipses (and hulls), vowel polygons may also have lines, fills, or both (controlled by the boolean `poly.line` and `poly.fill` arguments).
+The vowel polygon lines above (and also convex hulls, seen below) are drawn in black color if the `var.col.by` argument is `vowel` (because the polygonal boundary line is a property of the entire *vowel space*, not of any one vowel). If `var.col.by` is something else (like gender or talker) then the polygonal or hull line follows the color coding of the tokens and means. Just like ellipses (and hulls), vowel polygons may also have lines, fills, or both (controlled by the boolean `poly.line` and `poly.fill` arguments).
 
 ```{r, fig.height=3.75, fig.cap="Convex hulls with different values for the `color.by` argument"}
 par(mfrow=c(1, 2))
@@ -157,22 +157,28 @@ with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, alpha.token
                       pretty=TRUE))
 ```
 
-### Repulsive force heatmaps
-One of the more unique aspects of `phonR` is its ability to calculate and plot the repulsive force of a vowel space. This is controlled by the argument `force.heatmap`, and its resolution by `force.res`. The colormap used to draw the heatmap defaults to grayscale if `pretty=FALSE` or to a warm palette if `pretty=TRUE`, but can be specified by passing a vector of color values as the `force.colmap` argument. See the `color.scale` function in the `plotrix` package for an easy way to create your own colormaps.
+## Vowel heatmaps and repulsive force
+One of the more unique aspects of `phonR` is its ability to calculate and plot the repulsive force of a vowel space. The next plot shows vowels color-coded by their repulsive force (i.e., the degree of encroachment or overlap between vowel categories), and a heatmap of the same information using the same color scale.
 
+```{r, fig.cap="Color-coding repulsive force using individual tokens, versus plotting a heatmap"}
+force <- with(indo, repulsiveForce(f2, f1, vowel))
+force.col <- plotrix::color.scale(force, cs1=c(150, 330), cs2=c(25, 75),
+                                  cs3=c(60, 90), color.spec='hcl')
+coolcolors <- plotrix::color.scale(x=0:100, cs1=c(150, 330), cs2=c(25, 75),
+                                   cs3=c(60, 90), color.spec='hcl')
+par(mfrow=c(1, 2))
+with(indo, plotVowels(f1, f2, vowel, pch.tokens=vowel, col=force.col, var.col.by=NA,
+                      pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, plot.tokens=FALSE, force.heatmap=TRUE,
+                      force.colmap=coolcolors, force.res=10, pretty=TRUE))
+```
+
+This is controlled by the argument `force.heatmap`, and its resolution by `force.res`. The colormap used to draw the heatmap defaults to grayscale if `pretty=FALSE` or to a warm palette if `pretty=TRUE`, but can be specified by passing a vector of color values as the `force.colmap` argument. See the `color.scale` function in the `plotrix` package for an easy way to create your own colormaps.
 
 ```{r, fig.cap="Repulsive force heatmaps of increasing resolution"}
-indo$force <- with(indo, repulsiveForce(f2, f1, vowel))
-#indo$force[!is.finite(indo$force)] <- with(indo, max(is.finite(force)))
-#indo$force <- plotrix::rescale(log(indo$force), c(0, 100))
-coolcolors <- plotrix::color.scale(x=0:100, cs1=c(180, 360), cs2=c(25, 75),
-                                   cs3=c(50, 100), alpha=1, color.spec='hcl')
-indo$force.col <- plotrix::color.scale(indo$force, cs1=c(180, 360), cs2=c(25, 75),
-                                       cs3=c(25, 75), alpha=0.75, color.spec='hcl')
-par(mfrow=c(2, 2))
 with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.4,
                       force.heatmap=TRUE, force.colmap=coolcolors, force.res=10, 
-                      col=force.col, pretty=TRUE, var.col.by=NA))
+                      col="white", pretty=TRUE))
 with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.4,
                       force.heatmap=TRUE, force.colmap=coolcolors, force.res=20, 
                       col="white", pretty=TRUE))
