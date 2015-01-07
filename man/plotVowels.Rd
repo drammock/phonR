@@ -15,7 +15,7 @@
                hull.args=NULL, poly.line=FALSE,
                poly.fill=FALSE, poly.args=NULL,
                poly.order=NA, ellipse.line=FALSE,
-               ellipse.fill=FALSE, ellipse.conf=0.3173,
+               ellipse.fill=FALSE, ellipse.conf=0.6827,
                ellipse.args=NULL, diph.arrows=FALSE,
                diph.args.tokens=NULL, diph.args.means=NULL,
                diph.label.first.only=TRUE,
@@ -75,13 +75,10 @@
     \item{ellipse.line}{Logical; should vowel density ellipses be drawn with an
                         outer line?}
     \item{ellipse.fill}{Logical; should vowel density ellipses be filled?}
-    \item{ellipse.conf}{Size of the ellipse (0,1] expressed as an alpha-level
-                        (i.e., 0.05 gives a 95\% confidence ellipse).  Defaults
-                        to alpha level of 0.3173 (an ellipse encompassing
-                        68.27\% of the data points, equivalent to plus-or-minus
-                        1 sample standard deviation). Note that because this is
-                        an alpha level, \emph{higher} numbers yield
-                        \emph{smaller} ellipses.}
+    \item{ellipse.conf}{Size of the ellipse (0,1] expressed as a confidence level
+                        (i.e., 0.95 gives a 95\% confidence ellipse).  Defaults
+                        to a confidence level of 0.6827 (equivalent to 
+                        plus-or-minus 1 sample standard deviation).}
     \item{diph.arrows}{Logical; should the last timepoint of each vowel be
                        marked with an arrowhead?}
     \item{diph.args.tokens,diph.args.means}{List of named arguments to be passed
