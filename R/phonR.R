@@ -47,8 +47,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.6827, ellipse.args=NULL,
     diph.arrows=FALSE, diph.args.tokens=NULL, diph.args.means=NULL,
     diph.label.first.only=TRUE, diph.mean.timept=1, diph.smooth=FALSE,
-    force.heatmap=FALSE, force.colmap=NULL, force.res=50, force.method='default',
-    force.legend.pos=NULL, force.legend.labels=NULL, force.label.pos=c(1, 3),
+    force.heatmap=FALSE, force.args=NULL, force.legend=FALSE, force.legend.args=NULL,
     var.col.by=NULL, var.style.by=NULL, fill.opacity=0.3, legend.kwd=NULL,
     label.las=NULL, pretty=FALSE, output='screen', ...)
 {
@@ -507,27 +506,25 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # PLOT HEATMAP  #
     # # # # # # # # #
     if (force.heatmap) {
-        if (pretty & is.null(force.colmap)) {
-            force.colmap <- plotrix::color.scale(x=0:100, cs1=c(0, 180), cs2=100,
-                                                 cs3=c(25, 100), alpha=0.5,
-                                                 color.spec='hcl')
+        if (pretty & !"colormap" %in% names(force.args)) {
+            force.args$colormap <- plotrix::color.scale(x=0:100, cs1=c(0, 180),
+                                                        cs2=100, cs3=c(25, 100),
+                                                        color.spec='hcl')
         }
-        #force <- with(d, repulsiveForce(f2, f1, v))
-        with(d, repulsiveForceHeatmap(f2, f1, type=v,  #z=force,
-                                      resolution=force.res,
-                                      colormap=force.colmap,
-                                      method=force.method, add=TRUE))
-        if (is.null(force.legend.pos)) {
-            xl <- rep(exargs$xlim[1], 2)
-            yl <- exargs$ylim - c(0, diff(exargs$ylim) / 2)
-        } else if (!is.na(force.legend.pos)) {
-            xl <- force.legend.pos[1:2]
-            yl <- force.legend.pos[3:4]
+        if (!"add" %in% names(force.args)) force.args$add <- TRUE
+        with(d, do.call(repulsiveForceHeatmap, c(list(f2, f1, type=v),
+                                                 force.args)))
+    }
+    if (force.legend) {
+        if (!"x" %in% names(force.legend.args)) {
+            force.legend.args$x <- rep(exargs$xlim[1], 2)
+            force.legend.args$y <- exargs$ylim - c(0, diff(exargs$ylim) / 2)
         }
-        repulsiveForceHeatmapLegend(xl, yl, colormap=force.colmap)
-        if (!is.null(force.legend.labels)) {
-            text(xl, yl, labels=force.legend.labels, pos=force.label.pos, xpd=TRUE)
-    }   }
+        if (!"colormap" %in% force.legend.args) {
+            force.legend.args$colormap <- force.args$colormap
+        }
+        do.call(repulsiveForceHeatmapLegend, force.legend.args)
+    }
 
     # # # # # # #
     # PLOT HULL #
@@ -1050,16 +1047,21 @@ repulsiveForceHeatmap <- function(x, y, type=NULL, xform=log, exclude.inf=TRUE,
 }
 
 #' @export
-repulsiveForceHeatmapLegend <- function (x, y, smoothness=50, colormap=NULL, lend=2,
-                                lwd=6, ...) {
+repulsiveForceHeatmapLegend <- function (x, y, labels=c("low", "hi"), pos=c(1, 3),
+                                         colormap=NULL, smoothness=50, lend=2,
+                                         lwd=12, ...) {
     if (is.null(colormap)) {  # default to grayscale
         colormap <- plotrix::color.scale(x=0:100, cs1=0, cs2=0, cs3=c(0,100),
                                          alpha=1, color.spec='hcl')
     }
     xvals <- seq(x[1], x[2], length.out=smoothness)
     yvals <- seq(y[1], y[2], length.out=smoothness)
-    invisible(plotrix::color.scale.lines(xvals, yvals, col=colormap, lend=lend,
+    cols <- colormap[round(seq(1, length(colormap), length.out=smoothness))]
+    invisible(plotrix::color.scale.lines(xvals, yvals, col=cols, lend=lend,
                                          lwd=lwd, ...))
+    if (!is.null(labels)) {
+        text(x, y, labels=labels, pos=pos, xpd=TRUE)
+    }
 }
 
 
