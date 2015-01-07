@@ -512,8 +512,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                                  cs3=c(25, 100), alpha=0.5,
                                                  color.spec='hcl')
         }
-        force <- with(d, repulsiveForce(f2, f1, v))
-        with(d, repulsiveForceHeatmap(f2, f1, z=force, type=v,
+        #force <- with(d, repulsiveForce(f2, f1, v))
+        with(d, repulsiveForceHeatmap(f2, f1, type=v,  #z=force,
                                       resolution=force.res,
                                       colormap=force.colmap,
                                       method=force.method, add=TRUE))
@@ -988,66 +988,66 @@ repulsiveForce <- function(x, y, type, xform=log, exclude.inf=TRUE) {
 }
 
 #' @export
-repulsiveForceHeatmap <- function(x, y, z=NULL, type=NULL, resolution=50,
-                                    colormap=NULL, method="default", fast=FALSE, ...) {
+repulsiveForceHeatmap <- function(x, y, type=NULL, xform=log, exclude.inf=TRUE,
+                                  resolution=50, colormap=NULL, fast=FALSE, ...) {
     # default to grayscale
     if (is.null(colormap)) colormap <- plotrix::color.scale(x=0:100, cs1=0, cs2=0,
                                                             cs3=c(25,100),
                                                             color.spec="hcl")
     # create grid encompassing vowel space
-    # TODO: integrate next 4 lines
     gridlist <- createGrid(x, y, resolution)
     xgrid <- gridlist$x
     ygrid <- gridlist$y
     grid <- gridlist$g
     grid$z <- NA
     grid$v <- NA
-    # if using fast method, z=force instead of z=vowel
-    force <- repulsiveForce(x, y, type)
+    # if using fast method, pre-calculate force of vowel tokens
+    force <- repulsiveForce(x, y, type, xform, exclude.inf)
     if (fast) vertices <- data.frame(x=x, y=y, z=force)[!is.na(x) & !is.na(y),]
     else      vertices <- data.frame(x=x, y=y, z=type)[!is.na(x) & !is.na(y),]
-    # segregate grid points based on Delaunay triangulation of vowel space
-    triang.obj <- with(vertices, deldir::deldir(x, y, z=z, suppressMsge=TRUE))
-    triangs <- deldir::triang.list(triang.obj)
-    subgrid.indices <- lapply(triangs, function(i) splancs::inpip(grid,
-                                                                  i[c("x", "y")],
-                                                                  bound=TRUE))
-    subgrids <- lapply(subgrid.indices, function(i) grid[i,])
-    # ignore triangles too small to contain any grid points
-    vacant <- sapply(subgrids, function(i) dim(i)[1] == 0)
-    triangs <- triangs[!vacant]
-    subgrids <- subgrids[!vacant]
-    subgrid.indices <- subgrid.indices[!vacant]
-    # assign a force value to each grid point
-    if (method == "pineda") {
-        grid.values <- lapply(seq_along(triangs),
-                              function(i) fillTriangle(grid[subgrid.indices[[i]],1],
-                                                       grid[subgrid.indices[[i]],2],
-                                                       triangs[[i]]))
-        subgrid.indices <- do.call(c, subgrid.indices)
-        grid.values <- do.call(c, grid.values)
-        grid$z[subgrid.indices] <- grid.values
-        image(xgrid, ygrid, matrix(grid$z, nrow=length(xgrid)), col=colormap, ...)
+    if (fast) {
+        # segregate grid points based on Delaunay triangulation of vowel space
+        triang.obj <- with(vertices, deldir::deldir(x, y, z=z, suppressMsge=TRUE))
+        triangs <- deldir::triang.list(triang.obj)
+        sg.idxs <- lapply(triangs, function(i) splancs::inpip(grid, i[c("x", "y")],
+                                                              bound=TRUE))
+        subgrids <- lapply(sg.idxs, function(i) grid[i,])
+        # ignore triangles too small to contain any grid points
+        vacant <- sapply(subgrids, function(i) dim(i)[1] == 0)
+        triangs <- triangs[!vacant]
+        subgrids <- subgrids[!vacant]
+        sg.idxs <- sg.idxs[!vacant]
+        # assign a force value to each grid point
+        sg.force <- mapply(function(i, j) fillTriangle(i[,1], i[,2], j),
+                                subgrids, triangs, SIMPLIFY=FALSE)
+        grid[do.call(c, sg.idxs), "z"] <- do.call(c, sg.force)
     } else {
-        if (is.null(type)) stop("Default method requires non-null values for 'type'.")
-        grid.force <- rep(NA, nrow(grid))
+        if (is.null(type)) stop("More accurate force calculation method (fast=FALSE) ",
+                                "requires non-null values for 'type'.")
         hull <- vertices[chull(vertices),]  # polygon of hull
-        subgrid <- grid[splancs::inpip(grid[,1:2], hull),]
+        sg.idxs <- splancs::inpip(grid[,1:2], hull)
+        subgrid <- grid[sg.idxs,]
         # which vowel is closest to each grid point?
-        dist.matrix <- apply(subgrid, 1,
-                             function(i) apply(as.matrix(vertices[c('x','y')]), 1,
-                                               function(j) sqrt(sum((j[1:2] - i[1:2])^2))))
-        indices <- apply(dist.matrix, 2, function(i) which(i == min(i)))
-        indices <- sapply(indices, function(i) i[1])  # if there is a tie of which vowel is closest, pick first one (arbitrarily)
-        subgrid.nearest.vowel <- vertices$z[indices]
-        subgrid.force <- sapply(seq_along(subgrid.nearest.vowel),
-                                function(i) sum(1/dist.matrix[!(vertices$z %in% subgrid.nearest.vowel[i]),i]^2))
-        grid.force[splancs::inpip(grid[,1:2], hull)] <- log(subgrid.force)
-        # TODO: prev. 2 lines should use the repulsiveForce function
-        # (and its xform argument for the log).
-        image(xgrid, ygrid, matrix(grid.force, nrow=length(xgrid)),
-              col=colormap, ...)
-}	}
+        dmat <- apply(subgrid, 1, function(i) apply(as.matrix(vertices[c('x','y')]),
+                                                    1, function(j) dist(rbind(i, j))))
+        # still need to exclude inf, in case duplicate pts have diff vowels
+        if (exclude.inf) dmat[dmat == 0] <- min(dmat[dmat>0]) / 2
+        # if there is a tie of which vowel is closest, pick first one (arbitrarily)
+        which.min <- apply(dmat, 2, function(i) which(i == min(i))[1])
+        # TODO: sensible way to do tiebreaker?
+        #how.many.min <- apply(dmat, 2, function(i) length(which(i == min(i))))
+        # wherever how.many.min > 1, look at next closest vowel iteratively until
+        # you find one that matches one of the vowels tied as closest...
+        # that could get ugly.
+        sg.vowel <- vertices$z[which.min]
+        sg.force <- sapply(seq_along(sg.vowel),
+                           function(i) sum(1/dmat[!(vertices$z %in% sg.vowel[i]), i] ^ 2))
+        if (!is.null(xform)) sg.force <- xform(sg.force)
+        grid[sg.idxs, "z"] <- sg.force
+    }
+    image(xgrid, ygrid, matrix(grid$z, nrow=length(xgrid)),
+          col=colormap, ...)
+}
 
 #' @export
 repulsiveForceHeatmapLegend <- function (x, y, smoothness=50, colormap=NULL, lend=2,
@@ -1092,6 +1092,7 @@ ellipse <- function(mu, sigma, alpha=0.05, npoints=250, draw=TRUE, ...) {
     }
     invisible(pts)
 }
+
 makeTransparent <- function (color, opacity) {
     rgba <- t(col2rgb(color, alpha=TRUE))
     rgba[,4] <- round(255 * opacity)
