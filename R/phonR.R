@@ -977,12 +977,15 @@ convexHullArea <- function(x, y, group=NULL) {
 })  }
 
 #' @export
-repulsiveForce <- function(x, y, type, exclude.inf=TRUE) {
+repulsiveForce <- function(x, y, type, xform=log, exclude.inf=TRUE) {
     dmat <- as.matrix(dist(cbind(x, y)))
-    if (exclude.inf) dmat[dmat == 0] <- min(dmat) / 2
+    if (exclude.inf) dmat[dmat == 0] <- min(dmat[dmat>0]) / 2
     force <- sapply(seq_along(type), function(i) {
         sum(1 / dmat[i, !(type %in% type[i])] ^ 2)
-    })  }
+    })
+    if (!is.null(xform)) force <- xform(force)
+    force
+}
 
 #' @export
 repulsiveForceHeatmap <- function(x, y, z=NULL, type=NULL, resolution=50,
@@ -1040,7 +1043,9 @@ repulsiveForceHeatmap <- function(x, y, z=NULL, type=NULL, resolution=50,
         subgrid.nearest.vowel <- vertices$v[indices]
         subgrid.force <- sapply(seq_along(subgrid.nearest.vowel),
                                 function(i) sum(1/dist.matrix[!(vertices$v %in% subgrid.nearest.vowel[i]),i]^2))
-        grid.force[splancs::inpip(grid[,1:2], hull)] <- log10(subgrid.force)
+        grid.force[splancs::inpip(grid[,1:2], hull)] <- log(subgrid.force)
+        # TODO: prev. 2 lines should use the repulsiveForce function
+        # (and its xform argument for the log).
         image(xgrid, ygrid, matrix(grid.force, nrow=length(xgrid)),
               col=colormap, ...)
 }	}
