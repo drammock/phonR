@@ -989,10 +989,10 @@ repulsiveForce <- function(x, y, type, xform=log, exclude.inf=TRUE) {
 
 #' @export
 repulsiveForceHeatmap <- function(x, y, z=NULL, type=NULL, resolution=50,
-                                    colormap=NULL, method="default", ...) {
+                                    colormap=NULL, method="default", fast=FALSE, ...) {
     # default to grayscale
     if (is.null(colormap)) colormap <- plotrix::color.scale(x=0:100, cs1=0, cs2=0,
-                                                            cs3=c(25,100), alpha=1,
+                                                            cs3=c(25,100),
                                                             color.spec="hcl")
     # create grid encompassing vowel space
     # TODO: integrate next 4 lines
