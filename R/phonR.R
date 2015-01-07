@@ -47,7 +47,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.6827, ellipse.args=NULL,
     diph.arrows=FALSE, diph.args.tokens=NULL, diph.args.means=NULL,
     diph.label.first.only=TRUE, diph.mean.timept=1, diph.smooth=FALSE,
-    force.heatmap=FALSE, force.args=NULL, force.legend=FALSE, force.legend.args=NULL,
+    force.heatmap=FALSE, heatmap.args=NULL, 
+    heatmap.legend=FALSE, heatmap.legend.args=NULL,
     var.col.by=NULL, var.style.by=NULL, fill.opacity=0.3, legend.kwd=NULL,
     label.las=NULL, pretty=FALSE, output='screen', ...)
 {
@@ -506,24 +507,24 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # PLOT HEATMAP  #
     # # # # # # # # #
     if (force.heatmap) {
-        if (pretty & !"colormap" %in% names(force.args)) {
-            force.args$colormap <- plotrix::color.scale(x=0:100, cs1=c(0, 180),
-                                                        cs2=100, cs3=c(25, 100),
-                                                        color.spec='hcl')
+        if (pretty & !"colormap" %in% names(heatmap.args)) {
+            heatmap.args$colormap <- plotrix::color.scale(x=0:100, cs1=c(0, 180),
+                                                          cs2=100, cs3=c(25, 100),
+                                                          color.spec='hcl')
         }
-        if (!"add" %in% names(force.args)) force.args$add <- TRUE
+        if (!"add" %in% names(heatmap.args)) heatmap.args$add <- TRUE
         with(d, do.call(repulsiveForceHeatmap, c(list(f2, f1, type=v),
-                                                 force.args)))
+                                                 heatmap.args)))
     }
-    if (force.legend) {
-        if (!"x" %in% names(force.legend.args)) {
-            force.legend.args$x <- rep(exargs$xlim[1], 2)
-            force.legend.args$y <- exargs$ylim - c(0, diff(exargs$ylim) / 2)
+    if (heatmap.legend) {
+        if (!"x" %in% names(heatmap.legend.args)) {
+            heatmap.legend.args$x <- rep(exargs$xlim[1], 2)
+            heatmap.legend.args$y <- exargs$ylim - c(0, diff(exargs$ylim) / 2)
         }
-        if (!"colormap" %in% force.legend.args) {
-            force.legend.args$colormap <- force.args$colormap
+        if (!"colormap" %in% heatmap.legend.args) {
+            heatmap.legend.args$colormap <- heatmap.args$colormap
         }
-        do.call(repulsiveForceHeatmapLegend, force.legend.args)
+        do.call(repulsiveForceHeatmapLegend, heatmap.legend.args)
     }
 
     # # # # # # #
@@ -986,7 +987,7 @@ repulsiveForce <- function(x, y, type, xform=log, exclude.inf=TRUE) {
 
 #' @export
 repulsiveForceHeatmap <- function(x, y, type=NULL, xform=log, exclude.inf=TRUE,
-                                  resolution=50, colormap=NULL, fast=FALSE, ...) {
+                                  resolution=10, colormap=NULL, fast=FALSE, ...) {
     # default to grayscale
     if (is.null(colormap)) colormap <- plotrix::color.scale(x=0:100, cs1=0, cs2=0,
                                                             cs3=c(25,100),
@@ -1015,8 +1016,9 @@ repulsiveForceHeatmap <- function(x, y, type=NULL, xform=log, exclude.inf=TRUE,
         subgrids <- subgrids[!vacant]
         sg.idxs <- sg.idxs[!vacant]
         # assign a force value to each grid point
-        sg.force <- mapply(function(i, j) fillTriangle(i[,1], i[,2], j),
-                                subgrids, triangs, SIMPLIFY=FALSE)
+        sg.force <- mapply(function(i, j) fillTriangle(i[,"x"], i[,"y"],
+                                                       j[, c("x", "y", "z")]),
+                           subgrids, triangs, SIMPLIFY=FALSE)
         grid[do.call(c, sg.idxs), "z"] <- do.call(c, sg.force)
     } else {
         if (is.null(type)) stop("More accurate force calculation method (fast=FALSE) ",
