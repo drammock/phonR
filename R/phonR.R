@@ -996,29 +996,15 @@ repulsiveForceHeatmap <- function(x, y, z=NULL, type=NULL, resolution=50,
                                                             color.spec="hcl")
     # create grid encompassing vowel space
     # TODO: integrate next 4 lines
-    #gridlist <- createGrid(x, y, resolution)
-    #grid <- gridlist$g
-    #grid$z <- NA
-    #grid$v <- NA
+    gridlist <- createGrid(x, y, resolution)
+    xgrid <- gridlist$x
+    ygrid <- gridlist$y
+    grid <- gridlist$g
+    grid$z <- NA
+    grid$v <- NA
     # create grid encompassing vowel space
     vertices <- data.frame(x=x, y=y, z=z, v=type)
     vertices <- vertices[!is.na(vertices$x) & !is.na(vertices$y),]
-    bounding.rect <- apply(vertices[c("x", "y")], 2, range, na.rm=TRUE)
-    xr <- abs(diff(bounding.rect[,"x"]))
-    yr <- abs(diff(bounding.rect[,"y"]))
-    if (xr > yr) {
-        xres <- round(resolution * xr / yr)
-        yres <- resolution
-    } else {
-        xres <- resolution
-        yres <- round(resolution * yr / xr)
-    }
-    xgrid <- seq(floor(bounding.rect[1,1]), ceiling(bounding.rect[2,1]),
-                 length.out=xres)
-    ygrid <- seq(floor(bounding.rect[1,2]), ceiling(bounding.rect[2,2]),
-                 length.out=yres)
-    grid <- expand.grid(x=xgrid, y=ygrid)
-    grid$z <- NA
     # create Delaunay triangulation of vowels
     triangs <- with(vertices, deldir::triMat(deldir::deldir(x, y, z=z, suppressMsge=TRUE)))
     triangs <- apply(triangs, 1, function(i) data.frame(x=vertices$x[i],
