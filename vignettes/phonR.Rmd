@@ -170,36 +170,39 @@ par(mfrow=c(1, 2))
 with(indo, plotVowels(f1, f2, vowel, pch.tokens=vowel, col=force.col, var.col.by=NA,
                       pretty=TRUE))
 with(indo, plotVowels(f1, f2, vowel, plot.tokens=FALSE, force.heatmap=TRUE,
-                      force.colmap=coolcolors, force.res=10, pretty=TRUE))
+                      heatmap.args=list(colormap=coolcolors, resolution=10), 
+                      force.legend=TRUE, pretty=TRUE))
+                      #force.colmap=coolcolors, force.res=10, pretty=TRUE))
 ```
 
-This is controlled by the argument `force.heatmap`, and its resolution by `force.res`. The colormap used to draw the heatmap defaults to grayscale if `pretty=FALSE` or to a warm palette if `pretty=TRUE`, but can be specified by passing a vector of color values as the `force.colmap` argument. See the `color.scale` function in the `plotrix` package for an easy way to create your own colormaps.
+The resolution of the heatmap is controlled by the `resolution` argument, which must be passed as part of the named list `heatmap.args`. The colormap used to draw the heatmap defaults to grayscale if `pretty=FALSE` or to a cool palette if `pretty=TRUE`, but can be specified by passing a vector of color values as the `colormap` item in `heatmap.args`. The plots below illustrate the effect of increasing `resolution` using just one subject's vowels. 
 
 ```{r, fig.cap="Repulsive force heatmaps of increasing resolution"}
-with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.4,
-                      force.heatmap=TRUE, force.colmap=coolcolors, force.res=10, 
-                      col="white", pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.4,
-                      force.heatmap=TRUE, force.colmap=coolcolors, force.res=20, 
-                      col="white", pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.4,
-                      force.heatmap=TRUE, force.colmap=coolcolors, force.res=40, 
-                      col="white", pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.4,
-                      force.heatmap=TRUE, force.colmap=coolcolors, force.res=80, 
-                      col="white", pretty=TRUE))
+par(mfrow=c(2, 2))
+female2 <- indo[indo$subj %in% "F02",]
+force <- with(female2, repulsiveForce(f2, f1, vowel))
+force.col <- plotrix::color.scale(force, cs1=c(150, 330), cs2=c(25, 75),
+                                  cs3=c(60, 90), color.spec='hcl')
+with(female2, plotVowels(f1, f2, vowel, pch.tokens=vowel, col=force.col, 
+                         var.col.by=NA, pretty=TRUE))
+for (res in c(20, 40, 60)) {
+    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, force.heatmap=TRUE,
+                             heatmap.args=list(colormap=coolcolors, resolution=res),
+                             pretty=TRUE))
+}
 ```
 
-TODO: color tokens by force value in above plots; after fixing pineda method, increase resolution on below plots.
+These plots show that the boundary between the vowels [e] and [a] for this speaker is somewhat crowded, as is the boundary between [o] and [u], and to a lesser extent so is the boundary between [i] and [e]. The plots also show that there can be a “sweet spot” when choosing resolution that makes these characteristics most readily visible; making the resolution too high shrinks the size of the pixels and thereby makes the regions of high force smaller and harder to see.
 
-```{r, fig.cap="Comparison of `force.method` options. Left: deafult. Right: pineda."}
+In theory, resolution can go as high as you want, but the heatmaps are somewhat computationally expensive to generate so it is often best to keep the resolution low during “exploratory” plotting, and only increase the resolution when you are ready to generate plots for use in finished documents. Alternatively, you can pass `fast=TRUE` as part of the `heatmap.args` list, which will use an interpolation algorithm to assign force values to the pixels, rather than calculating the actual force value at that pixel as if there were a vowel there.
+
+```{r, fig.cap="Comparison of `fast` options for heatmaps. Left: TRUE. Right: FALSE."}
 par(mfrow=c(1, 2))
-with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.4,
-                      force.heatmap=TRUE, force.colmap=coolcolors, force.res=10, 
-                      pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.4,
-                      force.heatmap=TRUE, force.colmap=coolcolors, force.res=10, 
-                      force.method="pineda", pretty=TRUE))
+for (speed in c(TRUE, FALSE)) {
+    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, force.heatmap=TRUE,
+                             heatmap.args=list(colormap=coolcolors, resolution=60,
+                                             fast=speed), pretty=TRUE))
+}
 ```
 
 ### Legends
