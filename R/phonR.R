@@ -995,6 +995,12 @@ repulsiveForceHeatmap <- function(x, y, z=NULL, type=NULL, resolution=50,
                                                             cs3=c(25,100), alpha=1,
                                                             color.spec="hcl")
     # create grid encompassing vowel space
+    # TODO: integrate next 4 lines
+    #gridlist <- createGrid(x, y, resolution)
+    #grid <- gridlist$g
+    #grid$z <- NA
+    #grid$v <- NA
+    # create grid encompassing vowel space
     vertices <- data.frame(x=x, y=y, z=z, v=type)
     vertices <- vertices[!is.na(vertices$x) & !is.na(vertices$y),]
     bounding.rect <- apply(vertices[c("x", "y")], 2, range, na.rm=TRUE)
@@ -1121,4 +1127,26 @@ fillTriangle <- function(x, y, vertices) {
     f1 <- e1xy / e1x0
     f2 <- e2xy / e2x1
     z <- f0*z2 + f1*z0 + f2*z1
+}
+
+# create grid encompassing all pts (x, y) with `resolution` pts along short dimension
+createGrid <- function(x, y, resolution) {
+    vertices <- data.frame(x=x, y=y)
+    vertices <- vertices[!is.na(vertices$x) & !is.na(vertices$y),]
+    bounding.rect <- apply(vertices[c("x", "y")], 2, range, na.rm=TRUE)
+    xr <- abs(diff(bounding.rect[,"x"]))
+    yr <- abs(diff(bounding.rect[,"y"]))
+    if (xr > yr) {
+        xres <- round(resolution * xr / yr)
+        yres <- resolution
+    } else {
+        xres <- resolution
+        yres <- round(resolution * yr / xr)
+    }
+    xgrid <- seq(floor(bounding.rect[1, 1]), ceiling(bounding.rect[2, 1]),
+                 length.out=xres)
+    ygrid <- seq(floor(bounding.rect[1, 2]), ceiling(bounding.rect[2, 2]),
+                 length.out=yres)
+    grid <- expand.grid(x=xgrid, y=ygrid)
+    list(g=grid, x=xgrid, y=ygrid)
 }
