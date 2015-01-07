@@ -1002,24 +1002,31 @@ repulsiveForceHeatmap <- function(x, y, z=NULL, type=NULL, resolution=50,
     grid <- gridlist$g
     grid$z <- NA
     grid$v <- NA
-    # create grid encompassing vowel space
-    vertices <- data.frame(x=x, y=y, z=z, v=type)
-    vertices <- vertices[!is.na(vertices$x) & !is.na(vertices$y),]
-    # create Delaunay triangulation of vowels
-    triangs <- with(vertices, deldir::triMat(deldir::deldir(x, y, z=z, suppressMsge=TRUE)))
-    triangs <- apply(triangs, 1, function(i) data.frame(x=vertices$x[i],
-                                                        y=vertices$y[i],
-                                                        z=vertices$z[i]))
-    # which grid points are inside the vowel space?
-    grid.indices <- lapply(triangs, function(i) splancs::inpip(grid, i, bound=FALSE))
+    # if using fast method, z=force instead of z=vowel
+    force <- repulsiveForce(x, y, type)
+    if (fast) vertices <- data.frame(x=x, y=y, z=force)[!is.na(x) & !is.na(y),]
+    else      vertices <- data.frame(x=x, y=y, z=type)[!is.na(x) & !is.na(y),]
+    # segregate grid points based on Delaunay triangulation of vowel space
+    triang.obj <- with(vertices, deldir::deldir(x, y, z=z, suppressMsge=TRUE))
+    triangs <- deldir::triang.list(triang.obj)
+    subgrid.indices <- lapply(triangs, function(i) splancs::inpip(grid,
+                                                                  i[c("x", "y")],
+                                                                  bound=TRUE))
+    subgrids <- lapply(subgrid.indices, function(i) grid[i,])
+    # ignore triangles too small to contain any grid points
+    vacant <- sapply(subgrids, function(i) dim(i)[1] == 0)
+    triangs <- triangs[!vacant]
+    subgrids <- subgrids[!vacant]
+    subgrid.indices <- subgrid.indices[!vacant]
+    # assign a force value to each grid point
     if (method == "pineda") {
         grid.values <- lapply(seq_along(triangs),
-                              function(i) fillTriangle(grid[grid.indices[[i]],1],
-                                                       grid[grid.indices[[i]],2],
+                              function(i) fillTriangle(grid[subgrid.indices[[i]],1],
+                                                       grid[subgrid.indices[[i]],2],
                                                        triangs[[i]]))
-        grid.indices <- do.call(c, grid.indices)
+        subgrid.indices <- do.call(c, subgrid.indices)
         grid.values <- do.call(c, grid.values)
-        grid$z[grid.indices] <- grid.values
+        grid$z[subgrid.indices] <- grid.values
         image(xgrid, ygrid, matrix(grid$z, nrow=length(xgrid)), col=colormap, ...)
     } else {
         if (is.null(type)) stop("Default method requires non-null values for 'type'.")
@@ -1032,9 +1039,9 @@ repulsiveForceHeatmap <- function(x, y, z=NULL, type=NULL, resolution=50,
                                                function(j) sqrt(sum((j[1:2] - i[1:2])^2))))
         indices <- apply(dist.matrix, 2, function(i) which(i == min(i)))
         indices <- sapply(indices, function(i) i[1])  # if there is a tie of which vowel is closest, pick first one (arbitrarily)
-        subgrid.nearest.vowel <- vertices$v[indices]
+        subgrid.nearest.vowel <- vertices$z[indices]
         subgrid.force <- sapply(seq_along(subgrid.nearest.vowel),
-                                function(i) sum(1/dist.matrix[!(vertices$v %in% subgrid.nearest.vowel[i]),i]^2))
+                                function(i) sum(1/dist.matrix[!(vertices$z %in% subgrid.nearest.vowel[i]),i]^2))
         grid.force[splancs::inpip(grid[,1:2], hull)] <- log(subgrid.force)
         # TODO: prev. 2 lines should use the repulsiveForce function
         # (and its xform argument for the log).
