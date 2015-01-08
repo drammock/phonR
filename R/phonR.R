@@ -48,7 +48,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     diph.label.first.only=TRUE, diph.mean.timept=1, diph.smooth=FALSE,
     force.heatmap=FALSE, heatmap.args=NULL,
     heatmap.legend=FALSE, heatmap.legend.args=NULL,
-    var.col.by=NULL, var.style.by=NULL, fill.opacity=0.3, legend.kwd=NULL,
+    var.col.by=NULL, var.style.by=NULL, fill.opacity=0.3, legend.kwd="bottomleft",
     label.las=NULL, pretty=FALSE, output='screen', ...)
 {
     # # # # # # # # # # #
@@ -792,73 +792,75 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     "are both NULL or NA. You will have to use the legend() function.")
         } else {
             # legend pch
+            legend.pch <- NULL
             if (length(legend.style.lab)) {
                 if (plot.means && all(grepl("[[:digit:]]", pch.means))) {
                     legend.pch <- unique(m$pch.means)
                 } else if (plot.tokens && all(grepl("[[:digit:]]", pch.tokens))) {
                     legend.pch <- unique(d$pch.tokens)
-                } else {
-                    legend.pch <- NULL
-                }
-            } else {
-                legend.pch <- NULL
-            }
-            # legend linteype & border color
-            if (hull.line | poly.line | ellipse.line) {
-                legend.lty <- unique(m$style)
-                if (!is.na(m$ellipse.line.col[1])) {
-                    legend.brd <- unique(m$ellipse.line.col)
-                } else if (!is.na(m$poly.line.col[1])) {
-                    legend.brd <- unique(m$poly.line.col)
-                } else {
-                    legend.brd <- unique(hull.line.col)
-                }
-            } else {
-                legend.lty <- NULL
-                legend.brd <- NULL
-            }
+            }   }
             # legend col
+            legend.col <- NULL
             if (length(legend.col.lab)) {
                 if (plot.means)       legend.col <- unique(m$col.means)
                 else if (plot.tokens) legend.col <- unique(d$col.tokens)
-                else                  legend.col <- NULL
-            } else {
-                legend.col <- NULL
             }
             # legend background fill
+            legend.bgf <- NULL
             if (hull.fill || poly.fill || ellipse.fill) {
-                if (!is.na(m$ellipse.fill.col[1])) {
-                    legend.bgf <- unique(m$ellipse.fill.col)
-                } else if (!is.na(m$poly.fill.col[1])) {
-                    legend.bgf <- unique(m$poly.fill.col)
-                } else {
-                    legend.bgf <- unique(hull.fill.col)
-                }
-            } else {
-                legend.bgf <- NULL
+                if (!is.na(m$ellipse.fill.col[1]))   legend.bgf <- unique(m$ellipse.fill.col)
+                else if (!is.na(m$poly.fill.col[1])) legend.bgf <- unique(m$poly.fill.col)
+                else                                 legend.bgf <- unique(hull.fill.col)
             }
+            # legend linteype & border color
+            legend.lty <- NULL
+            legend.brd <- NULL
+            if (hull.line | poly.line | ellipse.line) {
+                legend.lty <- unique(m$style)
+                if (!is.na(m$ellipse.line.col[1]))   legend.brd <- unique(m$ellipse.line.col)
+                else if (!is.na(m$poly.line.col[1])) legend.brd <- unique(m$poly.line.col)
+                else                                 legend.brd <- unique(hull.line.col)
+                if (length(legend.brd) != length(legend.bgf)) legend.brd <- NULL
+            }
+            # handle lty specially; needed for both style & color
+            if (!is.null(legend.lty)) {
+                if (!length(legend.style.lab)) {
+                    legend.lty <- rep(legend.lty, length.out=length(legend.col.lab))
+                } else if (length(legend.col.lab)) {
+                    legend.lty <- c(legend.lty, rep(NA, length(legend.col.lab)))
+                }
+            }
+            # handle case where no lines / fills / pchs for color
+
+
             # reconcile
             if (identical(legend.style.lab, legend.col.lab)) {
                 legend.lab <- legend.col.lab
+            } else if (length(legend.col.lab) && is.null(legend.bgf) && is.null(legend.brd)
+                       && is.null(legend.lty)) {
+                legend.lab <- c(legend.style.lab, legend.col.lab)
+                legend.pch <- c(legend.pch, rep(NA, length(legend.col.lab)))
+                legend.bgf <- c(rep(NA, length(legend.style.lab)), legend.col)
+                legend.brd <- legend.bgf
+                legend.col <- c(rep(par("fg"), length(legend.style.lab)), legend.col)
             } else if (length(legend.col.lab) || length(legend.style.lab)) {
                 legend.lab <- c(legend.style.lab, legend.col.lab)
-                # lty serves dual purpose; color & linestyle.
-                legend.lty <- c(rep(legend.lty, length.out=length(legend.style.lab)),
-                                rep(legend.lty, length.out=length(legend.col.lab)))
-                #legend.lty <- c(legend.lty, rep(NA, length(legend.col.lab)))
-                legend.pch <- c(legend.pch, rep(NA, length(legend.col.lab)))
                 legend.col <- c(rep(par("fg"), length(legend.style.lab)), legend.col)
+                legend.pch <- c(legend.pch, rep(NA, length(legend.col.lab)))
                 legend.bgf <- c(rep(NA, length(legend.style.lab)), legend.bgf)
                 legend.brd <- c(rep(NA, length(legend.style.lab)), legend.brd)
-                if (all(is.na(unique(legend.lty)))) legend.lty <- NULL
-                if (all(is.na(unique(legend.pch)))) legend.pch <- NULL
-                if (identical(legend.bgf, logical(0))) legend.bgf <- NULL
-                if (identical(legend.brd, logical(0))) legend.brd <- legend.bgf
-                if (is.null(legend.bgf)) legend.brd <- NULL
             }
+            # eliminate vacuous args
+            if (all(is.na(unique(legend.pch)))) legend.pch <- NULL
+            if (identical(legend.bgf, logical(0))) legend.bgf <- NULL
+            if (identical(legend.brd, logical(0))) legend.brd <- legend.bgf
+            #if (is.null(legend.bgf)) legend.brd <- NULL
             legend.args <- list(legend.kwd, legend=legend.lab, pch=legend.pch,
-                                col=legend.col, lty=legend.lty, fill=legend.bgf,
-                                border=legend.brd, bty="n", seg.len=1)
+                                col=legend.col, lty=legend.lty, bty="n", seg.len=1)
+            # can't just pass fill=NULL above; it triggers drawing empty boxes :(
+            if (!is.null(legend.bgf)) {
+                legend.args <- append(legend.args, list(fill=legend.bgf, border=legend.brd))
+            }
             # draw legend
             #print(legend.args)
             do.call(legend, legend.args)
