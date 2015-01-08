@@ -54,11 +54,11 @@ The next plot solves this problem by specifying various ways to assign colors an
 
 ```{r, fig.cap="Four different combinations of `var.col.by` and `var.style.by`"}
 par(mfrow=c(2, 2))
-with(indo, plotVowels(f1, f2, var.style.by=vowel, var.col.by=vowel))
-with(indo, plotVowels(f1, f2, var.style.by=vowel, var.col.by=gender))
+rounded <- ifelse(indo$vowel %in% c("o", "u"), "round", "unround")
+with(indo, plotVowels(f1, f2, var.style.by=vowel,  var.col.by=vowel))
+with(indo, plotVowels(f1, f2, var.style.by=vowel,  var.col.by=gender))
 with(indo, plotVowels(f1, f2, var.style.by=gender, var.col.by=subj))
-rounded <- ifelse(indo$vowel %in% c("o", "u"), TRUE, FALSE)
-with(indo, plotVowels(f1, f2, var.style.by=subj, var.col.by=rounded))
+with(indo, plotVowels(f1, f2, var.style.by=subj,   var.col.by=rounded))
 ```
 
 Notice that in none of these plots are we making use of the `vowel` and `group` arguments; as we will see later, these are used for the calculation of vowel means and the drawing of ellipses and polygons based on those calculations, but are functionally independent from the way `plotVowels` controls color and style (viz. `var.col.by` and `var.style.by`).
@@ -82,7 +82,6 @@ par(mfrow=c(2, 2))
 with(indo, plotVowels(f1, f2, var.style.by=vowel, var.col.by=vowel, pretty=TRUE))
 with(indo, plotVowels(f1, f2, var.style.by=vowel, var.col.by=gender, pretty=TRUE))
 with(indo, plotVowels(f1, f2, var.style.by=gender, var.col.by=subj, pretty=TRUE))
-rounded <- ifelse(indo$vowel %in% c("o", "u"), TRUE, FALSE)
 with(indo, plotVowels(f1, f2, var.style.by=subj, var.col.by=rounded, pretty=TRUE))
 ```
 
