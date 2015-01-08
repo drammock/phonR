@@ -20,13 +20,12 @@
                diph.args.tokens=NULL, diph.args.means=NULL,
                diph.label.first.only=TRUE,
                diph.mean.timept=1, diph.smooth=FALSE,
-               force.heatmap=FALSE, force.colmap=NULL,
-               force.res=50, force.method='default',
-               force.legend=NULL, force.labels=NULL,
-               force.label.pos=c(1, 3), var.col.by=NA,
-               var.style.by=NA,  fill.opacity=0.3,
-               legend.kwd=NULL, label.las=NULL,
-               pretty=FALSE, output='screen', ...)
+               force.heatmap=FALSE, heatmap.args=NULL,
+               heatmap.legend=NULL, heatmap.legend.args=NULL,
+               var.col.by=NA, var.style.by=NA,
+               fill.opacity=0.3, legend.kwd=NULL,
+               label.las=NULL, pretty=FALSE,
+               output='screen', ...)
 }
 \arguments{
     \item{f1,f2}{Vector or matrix of formant frequency values. To plot multiple
@@ -58,10 +57,10 @@
                      \code{group})?}
     \item{hull.fill}{Logical; should the convex hull(s) have a color fill?}
     \item{hull.args,poly.args,ellipse.args}{Named list of arguments to be passed
-                                            to \code{\link{polygon}}. Useful for
-                                            controlling line width, etc. See
-                                            Details for notes about color
-                                            handling.}
+                                            to \code{\link[graphics]{polygon}}.
+                                            Useful for controlling line width,
+                                            etc. See "Details" for notes about
+                                            color handling.}
     \item{poly.line}{Logical; should a line be drawn tracing the polygon
                      connecting the mean values for each vowel (separately for
                      each level of \code{group})?}
@@ -77,7 +76,7 @@
     \item{ellipse.fill}{Logical; should vowel density ellipses be filled?}
     \item{ellipse.conf}{Size of the ellipse (0,1] expressed as a confidence level
                         (i.e., 0.95 gives a 95\% confidence ellipse).  Defaults
-                        to a confidence level of 0.6827 (equivalent to 
+                        to a confidence level of 0.6827 (equivalent to
                         plus-or-minus 1 sample standard deviation).}
     \item{diph.arrows}{Logical; should the last timepoint of each vowel be
                        marked with an arrowhead?}
@@ -115,52 +114,27 @@
                        extent that it is implemented, it is only implemented for
                        tokens, not means.}
     \item{force.heatmap}{Logical; should a repulsive force heatmap be drawn?}
-    \item{force.colmap}{Colormap to use when drawing the heatmap (see
-                        \code{\link[plotrix]{color.scale}}. Note that the
-                        heatmap may use semi-transparent colors, but this
-                        transparency does not usually translate to the
-                        \code{force.legend} colorbar, due to the way that
-                        \code{\link[plotrix]{color.scale.lines}} works. In
-                        short: the legend colorbar is made of lots of little
-                        segments that don't quite touch when plotted, leaving
-                        thin gaps in the colorbar where the background shows
-                        through. In phonR this has been avoided by adding a
-                        square cap to the line ends of each segment in the
-                        colorbar, causing neighboring segments to overlap. This
-                        overlapping is not noticeable when the
-                        \code{force.colormap} uses fully opaque colors, but
-                        usually yields a colorbar that looks opaque even when
-                        the \code{force.colormap} colors are semi-transparent.
-                        For better results, generate the \code{force.colmap}
-                        with pale, opaque colors instead of intense colors that
-                        are semi-transparent.}
-    \item{force.res}{Resolution to use when drawing the heatmap. Warning: high
-                     values of \code{force.res} can take a long time to
-                     calculate and plot. See
-                     \code{\link{repulsiveForceHeatmap}} for details.}
-    \item{force.method}{String; method to use when assigning colors to the
-                        heatmap. Options are \dQuote{default} and
-                        \dQuote{pineda}; \dQuote{pineda} is considered
-                        experimental and not currently supported. See
-                        \code{\link{repulsiveForceHeatmap}} for details.}
-    \item{force.legend.pos}{Location for plotting a color bar showing the range of
-                            force heatmap values. Possible values are: a vector
-                            \code{c(x1, x2, y1, y2)} defining the endpoints of a
-                            line; \code{NA} to suppress plotting a color bar; and
-                            \code{NULL} (the default) to plot it along the left side
-                            of the graph, spanning from the bottom edge to halfway
-                            up the left side of the plotting area.}
-    \item{force.legend.labels}{Vector of strings (length 2); the labels to write at
-                               each end of the force legend color bar. Ignored if
-                               \code{force.heatmap} is \code{FALSE} or
-                               \code{force.legend.pos} is \code{NA}.}
-    \item{force.label.pos}{Vector of integers (length 2); position codes for the
-                           colorbar labels. See the \code{pos} argument of
-                           \code{\link[graphics]{text}} for explanation.}
+    \item{heatmap.args}{Named list of additional arguments to be passed to
+                        \code{\link{repulsiveForceHeatmap}}. The arguments \code{x},
+                        \code{y}, and \code{type} are passed automatically by
+                        \code{plotVowels}; \code{heatmap.args} is probably most
+                        useful for controlling \code{resolution}, \code{colormap},
+                        and the \code{xform} function.}
+    \item{heatmap.legend}{Logical; should a legend be drawn showing the color scale
+                          used in the repulsive force heatmap?}
+    \item{heatmap.legend.args}{Named list of additional arguments to be passed to
+                               \code{\link{repulsiveForceHeatmapLegend}}. Parameters
+                               likely to be user-specified here are \code{x} and \code{y}
+                               for specifying the endpoints of the colorbar, \code{labels}
+                               for label text at the two ends of the colorbar, and
+                               \code{smoothness} for the number of color steps to display
+                               (limited by the actual number of levels in the color scale
+                               used). See \code{\link{repulsiveForceHeatmapLegend}} for
+                               a more complete description of the available arguments.}
     \item{var.col.by}{Vector or factor indicating the dimension along which to vary
-                   color.}
+                      color.}
     \item{var.style.by}{Vector or factor indicating the dimension along which to
-                    vary linetype and plotting symbol.}
+                        vary linetype and plotting symbol.}
     \item{fill.opacity}{Number in the range [0, 1] indicating the opacity of
                         color fills for ellipses, hulls, and polygons (if drawn).
                         Does not affect \code{force.heatmap} colors, which are
