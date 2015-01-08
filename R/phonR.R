@@ -7,13 +7,12 @@
 # DEVELOPMENT OF THIS PACKAGE WAS FUNDED IN PART BY NIH-R01DC006014
 #
 # CHANGELOG:
-# v1.0: major refactor of the entire codebase. Enhancements: color and
-# style can now be specified either by vowel or by group. Plot dimension
-# override via standard "xlim" / "ylim" arguments. New drawing functions
-# for repulsive force heatmaps and convex hulls. Hulls, polygons, and
-# ellipses can have color fills. Shortcut argument "pretty=TRUE" soothes
-# the senses. Smarter handling of additional graphical arguments passed
-# via "..." to the appropriate function(s). Diphthongs with arrowheads.
+# v1.0: major refactor of the entire codebase. Enhancements: more control
+# over color and style. Support for most standard plot/par arguments (xlim,
+# ylim, cex.axis, etc). New drawing functions for repulsive force heatmaps
+# and convex hulls. Hulls, polygons, and ellipses can have color fills.
+# Shortcut argument "pretty=TRUE" soothes the senses. Diphthongs with
+# arrowheads.
 #
 # v0.4: bugfixes: poly.order now works with arbitrary labels; bug in
 # s-centroid calculation fixed.  Enhancements: added user-override
@@ -47,7 +46,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.6827, ellipse.args=NULL,
     diph.arrows=FALSE, diph.args.tokens=NULL, diph.args.means=NULL,
     diph.label.first.only=TRUE, diph.mean.timept=1, diph.smooth=FALSE,
-    force.heatmap=FALSE, heatmap.args=NULL, 
+    force.heatmap=FALSE, heatmap.args=NULL,
     heatmap.legend=FALSE, heatmap.legend.args=NULL,
     var.col.by=NULL, var.style.by=NULL, fill.opacity=0.3, legend.kwd=NULL,
     label.las=NULL, pretty=FALSE, output='screen', ...)
@@ -159,8 +158,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     "topright", "bottomleft", "bottomright")
     if (!is.null(legend.kwd)) {
         if (!legend.kwd %in% legend.kwds) {
-        warning(paste(c("legend.kwd must be one of '",
-                        paste(legend.kwds, collapse="', '"), "'."), collapse=""))
+            warning(paste(c("legend.kwd must be one of '",
+                            paste(legend.kwds, collapse="', '"), "'."),
+                          collapse=""))
     }   }
 
     # # # # # # # # # # # # # # # # # #
@@ -236,10 +236,22 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (identical(var.col.by, vowel)) col.by.vowel <- TRUE
     else                              col.by.vowel <- FALSE
     # var.col.by & var.style.by
-    if (is.null(var.col.by[1]))     var.col.by <- rep(1, l)  # default to black
-    else                            var.col.by <- as.numeric(factor(var.col.by))
-    if (is.null(var.style.by[1])) var.style.by <- rep(1, l)  # default to solid
-    else                          var.style.by <- as.numeric(factor(var.style.by))
+    if (!is.null(var.col.by[1])) {
+        if (is.na(var.col.by[1])) legend.col.lab <- NULL
+        else                      legend.col.lab <- unique(as.character(var.col.by))
+        var.col.by <- as.numeric(factor(var.col.by))
+    } else {
+        legend.col.lab <- c()
+        var.col.by <- rep(1, l)  # default to black
+    }
+    if (!is.null(var.style.by[1])) {
+        if (is.na(var.style.by[1])) legend.style.lab <- NULL
+        else                        legend.style.lab <- unique(as.character(var.style.by))
+        var.style.by <- as.numeric(factor(var.style.by))
+    } else {
+        legend.style.lab <- c()
+        var.style.by <- rep(1, l)  # default to solid
+    }
     num.col <- length(unique(var.col.by))
     num.sty <- length(unique(var.style.by))
     # misc. plotting defaults
@@ -375,7 +387,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # # # # # #
     d <- data.frame(f1=f1, f2=f2, v=v, gf=factor(gf), m=rep(plot.means, l),
                     col.tokens=col.tokens, col.means=col.means,
-                    color=exargs$col, style=var.style.by,
+                    style=var.style.by,
                     ellipse.fill.col=ellipse.fill.col,
                     ellipse.line.col=ellipse.line.col,
                     poly.fill.col=poly.fill.col,
@@ -397,7 +409,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                            v=unique(v), gf=unique(gf), m=unique(m),
                            col.tokens=unique(col.tokens),
                            col.means=unique(col.means),
-                           color=color[1], style=style[1],
+                           style=style[1],
                            poly.fill.col=poly.fill.col[1],
                            poly.line.col=poly.line.col[1],
                            ellipse.fill.col=ellipse.fill.col[1],
@@ -711,7 +723,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             }
         } else {  # !diphthong
             if (is.null(pch.tokens)) {
-                pch.tokens <- as.numeric(d$gf)
+                # logic uses parent env, points() uses d$pch.tokens
                 with(d, points(f2, f1, pch=pch.tokens, cex=cex.tokens, col=col.tokens))
             } else {
                 with(d, text(f2, f1, labels=pch.tokens, cex=cex.tokens, col=col.tokens))
@@ -763,7 +775,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             }
         } else {
             if (is.null(pch.means)) {
-                pch.means <- m$gfn
+                # logic uses parent env, points() uses m$pch.means
                 with(m, points(f2, f1, col=col.means, pch=pch.means, cex=cex.means))
             } else {
                 with(m, text(f2, f1, labels=pch.means, col=col.means, cex=cex.means))
@@ -775,29 +787,82 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # LEGEND  #
     # # # # # #
     if (!is.null(legend.kwd)) {
-        if (col.by.vowel)  legend.text <- unique(m$v)
-        else               legend.text <- unique(m$gf)
-        legend.args <- list(legend.kwd, legend=legend.text, bty="n", seg.len=1)
-        # legend lines
-        if (hull.line | poly.line | ellipse.line) {
-            legend.args <- append(legend.args, list(lty=unique(m$style),
-                                                    pch=unique(m$pch.means),
-                                                    col=unique(m$col.means)))
+        if (is.null(legend.col.lab) & is.null(legend.style.lab)) {
+            warning("Legend will not be drawn because var.col.by and var.style.by ",
+                    "are both NULL or NA. You will have to use the legend() function.")
+        } else {
+            # legend pch
+            if (length(legend.style.lab)) {
+                if (plot.means && all(grepl("[[:digit:]]", pch.means))) {
+                    legend.pch <- unique(m$pch.means)
+                } else if (plot.tokens && all(grepl("[[:digit:]]", pch.tokens))) {
+                    legend.pch <- unique(d$pch.tokens)
+                } else {
+                    legend.pch <- NULL
+                }
+            } else {
+                legend.pch <- NULL
+            }
+            # legend linteype & border color
+            if (hull.line | poly.line | ellipse.line) {
+                legend.lty <- unique(m$style)
+                if (!is.na(m$ellipse.line.col[1])) {
+                    legend.brd <- unique(m$ellipse.line.col)
+                } else if (!is.na(m$poly.line.col[1])) {
+                    legend.brd <- unique(m$poly.line.col)
+                } else {
+                    legend.brd <- unique(hull.line.col)
+                }
+            } else {
+                legend.lty <- NULL
+                legend.brd <- NULL
+            }
+            # legend col
+            if (length(legend.col.lab)) {
+                if (plot.means)       legend.col <- unique(m$col.means)
+                else if (plot.tokens) legend.col <- unique(d$col.tokens)
+                else                  legend.col <- NULL
+            } else {
+                legend.col <- NULL
+            }
+            # legend background fill
+            if (hull.fill || poly.fill || ellipse.fill) {
+                if (!is.na(m$ellipse.fill.col[1])) {
+                    legend.bgf <- unique(m$ellipse.fill.col)
+                } else if (!is.na(m$poly.fill.col[1])) {
+                    legend.bgf <- unique(m$poly.fill.col)
+                } else {
+                    legend.bgf <- unique(hull.fill.col)
+                }
+            } else {
+                legend.bgf <- NULL
+            }
+            # reconcile
+            if (identical(legend.style.lab, legend.col.lab)) {
+                legend.lab <- legend.col.lab
+            } else if (length(legend.col.lab) || length(legend.style.lab)) {
+                legend.lab <- c(legend.style.lab, legend.col.lab)
+                # lty serves dual purpose; color & linestyle.
+                legend.lty <- c(rep(legend.lty, length.out=length(legend.style.lab)),
+                                rep(legend.lty, length.out=length(legend.col.lab)))
+                #legend.lty <- c(legend.lty, rep(NA, length(legend.col.lab)))
+                legend.pch <- c(legend.pch, rep(NA, length(legend.col.lab)))
+                legend.col <- c(rep(par("fg"), length(legend.style.lab)), legend.col)
+                legend.bgf <- c(rep(NA, length(legend.style.lab)), legend.bgf)
+                legend.brd <- c(rep(NA, length(legend.style.lab)), legend.brd)
+                if (all(is.na(unique(legend.lty)))) legend.lty <- NULL
+                if (all(is.na(unique(legend.pch)))) legend.pch <- NULL
+                if (identical(legend.bgf, logical(0))) legend.bgf <- NULL
+                if (identical(legend.brd, logical(0))) legend.brd <- legend.bgf
+                if (is.null(legend.bgf)) legend.brd <- NULL
+            }
+            legend.args <- list(legend.kwd, legend=legend.lab, pch=legend.pch,
+                                col=legend.col, lty=legend.lty, fill=legend.bgf,
+                                border=legend.brd, bty="n", seg.len=1)
+            # draw legend
+            #print(legend.args)
+            do.call(legend, legend.args)
         }
-        # legend boxes
-        if (hull.fill | poly.fill | ellipse.fill) {
-            if (!is.na(m$ellipse.fill.col[1]))   legend.fill <- unique(m$ellipse.fill.col)
-            else if (!is.na(m$poly.fill.col[1])) legend.fill <- unique(m$poly.fill.col)
-            else legend.fill <- unique(hull.col)
-            legend.args$pch <- 22
-            legend.args <- append(legend.args, list(pt.bg=legend.fill,
-                                                    pt.cex=2.5
-                                                    #fill=legend.fill,
-                                                    #border=unique(m$color)
-                                                    ))
-        }
-        # draw legend
-        do.call(legend, legend.args)
     }
 
     # # # # # #
