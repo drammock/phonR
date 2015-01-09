@@ -48,7 +48,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     diph.label.first.only=TRUE, diph.mean.timept=1, diph.smooth=FALSE,
     force.heatmap=FALSE, heatmap.args=NULL,
     heatmap.legend=FALSE, heatmap.legend.args=NULL,
-    var.col.by=NULL, var.style.by=NULL, fill.opacity=0.3, legend.kwd="bottomleft",
+    var.col.by=NULL, var.style.by=NULL, fill.opacity=0.3, legend.kwd=NULL,
     label.las=NULL, pretty=FALSE, output='screen', ...)
 {
     # # # # # # # # # # #
@@ -791,6 +791,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             warning("Legend will not be drawn because var.col.by and var.style.by ",
                     "are both NULL or NA. You will have to use the legend() function.")
         } else {
+            legend.merge <- TRUE
             # legend pch
             legend.pch <- NULL
             if (length(legend.style.lab)) {
@@ -830,36 +831,47 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     legend.lty <- c(legend.lty, rep(NA, length(legend.col.lab)))
                 }
             }
-            # handle case where no lines / fills / pchs for color
-
-
             # reconcile
             if (identical(legend.style.lab, legend.col.lab)) {
                 legend.lab <- legend.col.lab
-            } else if (length(legend.col.lab) && is.null(legend.bgf) && is.null(legend.brd)
-                       && is.null(legend.lty)) {
+                legend.merge <- FALSE
+            } else {
                 legend.lab <- c(legend.style.lab, legend.col.lab)
                 legend.pch <- c(legend.pch, rep(NA, length(legend.col.lab)))
-                legend.bgf <- c(rep(NA, length(legend.style.lab)), legend.col)
-                legend.brd <- legend.bgf
-                legend.col <- c(rep(par("fg"), length(legend.style.lab)), legend.col)
-            } else if (length(legend.col.lab) || length(legend.style.lab)) {
-                legend.lab <- c(legend.style.lab, legend.col.lab)
-                legend.col <- c(rep(par("fg"), length(legend.style.lab)), legend.col)
-                legend.pch <- c(legend.pch, rep(NA, length(legend.col.lab)))
-                legend.bgf <- c(rep(NA, length(legend.style.lab)), legend.bgf)
-                legend.brd <- c(rep(NA, length(legend.style.lab)), legend.brd)
+                # handle case where no lines / fills / pchs for color
+                if (length(legend.col.lab) && is.null(legend.bgf) &&
+                        is.null(legend.brd) && is.null(legend.lty)) {
+                    legend.bgf <- c(rep(NA, length(legend.style.lab)), legend.col)
+                    legend.brd <- legend.bgf
+                    legend.col <- c(rep(par("fg"), length(legend.style.lab)), legend.col)
+                # handle case where only hulls (only 1 fill col) but col.by.vowel
+                } else if (length(legend.col) != length(legend.bgf) &&
+                               !is.null(legend.bgf)) {
+                    legend.bgf <- c(rep(NA, length(legend.style.lab)), legend.col)
+                    legend.brd <- legend.bgf
+                    legend.col <- c(rep(par("fg"), length(legend.style.lab)), legend.col)
+                # handle other cases
+                } else {
+                    legend.bgf <- c(rep(NA, length(legend.style.lab)), legend.bgf)
+                    legend.brd <- c(rep(NA, length(legend.style.lab)), legend.brd)
+                    legend.col <- c(rep(par("fg"), length(legend.style.lab)), legend.col)
+                }
             }
             # eliminate vacuous args
-            if (all(is.na(unique(legend.pch)))) legend.pch <- NULL
             if (identical(legend.bgf, logical(0))) legend.bgf <- NULL
             if (identical(legend.brd, logical(0))) legend.brd <- legend.bgf
-            #if (is.null(legend.bgf)) legend.brd <- NULL
+            # assemble legend args
             legend.args <- list(legend.kwd, legend=legend.lab, pch=legend.pch,
-                                col=legend.col, lty=legend.lty, bty="n", seg.len=1)
-            # can't just pass fill=NULL above; it triggers drawing empty boxes :(
+                                col=legend.col, lty=legend.lty,
+                                bty="n", seg.len=1)
+            # can't always pass fill because fill=NULL triggers drawing empty boxes
+            # and border=NULL draws black! :(
             if (!is.null(legend.bgf)) {
                 legend.args <- append(legend.args, list(fill=legend.bgf, border=legend.brd))
+            }
+            # avoid warning that merge only works when segments are drawn
+            if (!is.null(legend.lty)) {
+                legend.args <- append(legend.args, list(merge=legend.merge))
             }
             # draw legend
             #print(legend.args)
