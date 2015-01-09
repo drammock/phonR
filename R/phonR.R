@@ -262,6 +262,11 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # DEFAULTS FOR "PRETTY" #
     # # # # # # # # # # # # #
     if (pretty) {
+        # still suppress axes if axes=FALSE
+        draw.axes <- TRUE
+        if ("axes" %in% names(exargs)) {
+            if (!exargs$axes) draw.axes <- FALSE
+        }
         # if no colors specified, use equally spaced HCL values
         # [-1] avoids duplicate hues 0 and 360
         hue <- seq(0,  360, length.out=1+num.col)[-1]
@@ -499,8 +504,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     do.call(mtext, c(ylab, y.args, lab.args))
     do.call(mtext, c(main, t.args, main.args))
     do.call(mtext, c(sub, s.args, sub.args))
-    if (pretty) {
-        # axes
+    if (pretty && draw.axes) {
         x.axis.args <- c(list(side=3, at=xticks), axis.args)
         y.axis.args <- c(list(side=4, at=yticks), axis.args)
         do.call(axis, x.axis.args)
@@ -513,7 +517,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         if (exargs$ylim[2] != par('usr')[4]) {
             axis(4, at=c(exargs$ylim[2], par('usr')[4]), labels=FALSE,
                 col=par('fg'), tcl=0)
-    }   }
+        }
+    }
 
     # # # # # # # # #
     # PLOT HEATMAP  #
