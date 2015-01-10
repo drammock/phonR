@@ -965,30 +965,38 @@ normLobanov <- function(f, group=NULL) {
 
 #' @export
 normLogmean <- function(f, group=NULL, ...) {
+    # AKA "Nearey1", what Adank confusingly calls "SingleLogmean".
+    # Note that Adank et al 2004 (eq. 8) looks more like a shared logmean,
+    # but in text she says it is applied to each formant separately.
+    if (ncol(f) != 4) {
+        stop("Missing values: normalization method 'normLogmean' ",
+            "requires non-null values for f0, f1, f2, and f3).")
+    }
     if (is.null(group)) {
         return(log(f) - rep(colMeans(log(f), ...), each=nrow(f)))
     } else {
         f <- as.data.frame(f)
         groups <- split(f, group)
         logmeans <- lapply(groups,
-                    function(x) log(x) - rep(apply(log(x), 2, mean),
-                    each=nrow(x)))
+                           function(x) log(x) - rep(apply(log(x), 2, mean),
+                                                    each=nrow(x)))
         return(unsplit(logmeans, group))
 }	}
 
 #' @export
-normNearey <- function(f, group=NULL, ...) {
-    if (ncol(f) != 4) {
-        stop("Missing values: normalization method 'norm.nearey' ",
-            "requires non-null values for f0, f1, f2, and f3).")
-    }
+normSharedLogmean <- function(f, group=NULL, ...) {
+    # AKA "Nearey2"
     if (is.null(group)) {
-        return(log(f) - sum(colMeans(log(f), ...)))
+        # this is my implementation of Nearey 1978's CLIH (eq. 3.1.10, page 95)
+        # (cf. eqs. 1 & 2 of Morrison & Nearey 2006)
+        return(log(f) - mean(log(unlist(f)), ...))
+        # NOTE: Adank et al 2004 (eq. 9) would suggest this implementation:
+        # return(log(f) - sum(colMeans(log(f), ...)))
     } else {
         f <- as.data.frame(f)
         groups <- split(f, group)
-        #logmeans <- lapply(groups, function(x) log(x) - sum(colMeans(log(x), ...)))
         logmeans <- lapply(groups, function(x) log(x) - mean(log(unlist(x)), ...))
+        # Adank:    lapply(groups, function(x) log(x) - sum(colMeans(log(x), ...)))
         return(unsplit(logmeans, group))
 }	}
 
