@@ -20,7 +20,7 @@
                diph.args.tokens=NULL, diph.args.means=NULL,
                diph.label.first.only=TRUE,
                diph.mean.timept=1, diph.smooth=FALSE,
-               force.heatmap=FALSE, heatmap.args=NULL,
+               heatmap=FALSE, heatmap.args=NULL,
                heatmap.legend=NULL, heatmap.legend.args=NULL,
                var.col.by=NA, var.style.by=NA,
                fill.opacity=0.3, legend.kwd=NULL,
@@ -113,7 +113,7 @@
                        is under development, unstable, unsupported, and to the
                        extent that it is implemented, it is only implemented for
                        tokens, not means.}
-    \item{force.heatmap}{Logical; should a repulsive force heatmap be drawn?}
+    \item{heatmap}{Logical; should a repulsive force heatmap be drawn?}
     \item{heatmap.args}{Named list of additional arguments to be passed to
                         \code{\link{repulsiveForceHeatmap}}. The arguments \code{x},
                         \code{y}, and \code{type} are passed automatically by
@@ -137,8 +137,8 @@
                         vary linetype and plotting symbol.}
     \item{fill.opacity}{Number in the range [0, 1] indicating the opacity of
                         color fills for ellipses, hulls, and polygons (if drawn).
-                        Does not affect \code{force.heatmap} colors, which are
-                        specified via \code{force.colmap}.}
+                        Does not affect \code{heatmap} colors, which are
+                        specified via the \code{colormap} element of \code{heatmap.args}.}
     \item{legend.kwd}{Keyword indicating legend placement (see
                       \code{\link[graphics]{legend}}). If \code{NULL} (the
                       default), no legend will be printed.}
