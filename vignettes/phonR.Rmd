@@ -193,7 +193,7 @@ coolcolors <- plotrix::color.scale(x=0:100, cs1=c(150, 330), cs2=c(25, 75),
 par(mfrow=c(1, 2))
 with(indo, plotVowels(f1, f2, vowel, pch.tokens=vowel, col=force.col, var.col.by=NA,
                       pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, plot.tokens=FALSE, force.heatmap=TRUE,
+with(indo, plotVowels(f1, f2, vowel, plot.tokens=FALSE, heatmap=TRUE,
                       heatmap.args=list(colormap=coolcolors, resolution=10), 
                       heatmap.legend=TRUE, pretty=TRUE))
 ```
@@ -211,7 +211,7 @@ force.col <- plotrix::color.scale(force, cs1=c(150, 330), cs2=c(25, 75),
 with(female2, plotVowels(f1, f2, vowel, pch.tokens=vowel, cex.tokens=1.2,
                          col=force.col, var.col.by=NA, pretty=TRUE))
 for (res in c(20, 40, 60)) {
-    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, force.heatmap=TRUE,
+    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, heatmap=TRUE,
                              heatmap.args=list(colormap=coolcolors, resolution=res),
                              pretty=TRUE))
 }
@@ -225,7 +225,7 @@ In theory, resolution can go as high as you want, but the heatmaps are somewhat 
 par(mfrow=c(1, 2))
 for (speed in c(TRUE, FALSE)) {
     time.st <- Sys.time()
-    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, force.heatmap=TRUE,
+    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, heatmap=TRUE,
                              heatmap.args=list(colormap=coolcolors, resolution=50,
                                                fast=speed), pretty=TRUE))
     time.nd <- Sys.time()
