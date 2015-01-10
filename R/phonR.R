@@ -907,11 +907,11 @@ normVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
                     vowel=NULL, group=NULL, ...) {
     m <- tolower(method)
     methods <- c('bark', 'mel', 'log', 'erb', 'zscore', 'lobanov',
-                'logmean', 'nearey', 'nearey1', 'nearey2', 'scentroid',
+                'logmean', 'shared', 'nearey1', 'nearey2', 'scentroid',
                 'wattfabricius')
     if (!(m %in% methods)) {
         warning('Method must be one of: bark, mel, log, erb, ',
-                'zscore | lobanov, logmean | nearey1, nearey | nearey2, ',
+                'zscore | lobanov, logmean | nearey1, shared | nearey2, ',
                 'scentroid | wattfabricius.')
     }
     f <- cbind(f0=f0, f1=f1, f2=f2, f3=f3)
@@ -921,7 +921,7 @@ normVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
     else if (m %in% 'erb') return(normErb(f))
     else if (m %in% c('z','zscore','lobanov')) return(normLobanov(f, group))
     else if (m %in% c('logmean','nearey1')) return(normLogmean(f, group, ...))
-    else if (m %in% c('nearey','nearey2')) return(normNearey(f, group, ...))
+    else if (m %in% c('shared','nearey2')) return(normSharedLogmean(f, group, ...))
     else {
         f <- as.matrix(cbind(f1=f1, f2=f2))
         return(normWattFabricius(f, vowel, group))
@@ -964,7 +964,7 @@ normLobanov <- function(f, group=NULL) {
 }	}
 
 #' @export
-normLogmean <- function(f, group=NULL, ...) {
+normLogmean <- function(f, group=NULL, exp=FALSE, ...) {
     # AKA "Nearey1", what Adank confusingly calls "SingleLogmean".
     # Note that Adank et al 2004 (eq. 8) looks more like a shared logmean,
     # but in text she says it is applied to each formant separately.
@@ -973,32 +973,48 @@ normLogmean <- function(f, group=NULL, ...) {
             "requires non-null values for f0, f1, f2, and f3).")
     }
     if (is.null(group)) {
-        return(log(f) - rep(colMeans(log(f), ...), each=nrow(f)))
+        logmeans <- log(f) - rep(colMeans(log(f), ...), each=nrow(f))
+        if (exp) logmeans <- exp(logmeans)
+        return(logmeans)
     } else {
         f <- as.data.frame(f)
         groups <- split(f, group)
         logmeans <- lapply(groups,
                            function(x) log(x) - rep(apply(log(x), 2, mean),
                                                     each=nrow(x)))
+        if (exp) logmeans <- exp(logmeans)
         return(unsplit(logmeans, group))
 }	}
 
 #' @export
-normSharedLogmean <- function(f, group=NULL, ...) {
+normNearey1 <- function(f, group=NULL, ...) {
+    normLogmean(f, group=NULL, ...)
+}
+
+#' @export
+normSharedLogmean <- function(f, group=NULL, exp=FALSE, ...) {
     # AKA "Nearey2"
     if (is.null(group)) {
         # this is my implementation of Nearey 1978's CLIH (eq. 3.1.10, page 95)
         # (cf. eqs. 1 & 2 of Morrison & Nearey 2006)
-        return(log(f) - mean(log(unlist(f)), ...))
+        logmeans <- log(f) - mean(log(unlist(f)), ...)
         # NOTE: Adank et al 2004 (eq. 9) would suggest this implementation:
-        # return(log(f) - sum(colMeans(log(f), ...)))
+        # logmeans <- log(f) - sum(colMeans(log(f), ...))
+        if (exp) logmeans <- exp(logmeans)
+        return(logmeans)
     } else {
         f <- as.data.frame(f)
         groups <- split(f, group)
         logmeans <- lapply(groups, function(x) log(x) - mean(log(unlist(x)), ...))
         # Adank:    lapply(groups, function(x) log(x) - sum(colMeans(log(x), ...)))
+        if (exp) logmeans <- exp(logmeans)
         return(unsplit(logmeans, group))
 }	}
+
+#' @export
+normNearey2 <- function(f, group=NULL, ...) {
+    normSharedLogmean(f, group=NULL, ...)
+}
 
 #' @export
 normWattFabricius <- function(f, vowel, group=NULL) {

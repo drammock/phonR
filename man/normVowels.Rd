@@ -6,7 +6,9 @@
 \alias{normLog}
 \alias{normLogmean}
 \alias{normMel}
-\alias{normNearey}
+\alias{normNearey1}
+\alias{normNearey2}
+\alias{normSharedLogmean}
 \alias{normWattFabricius}
 \title{Normalize formant frequency values using a variety of algorithms}
 \description{Functions for transforming vowel formant frequency data measured in
@@ -21,7 +23,9 @@
     normMel(f)
     normLobanov(f, group=NULL)
     normLogmean(f, group=NULL, ...)
-    normNearey(f, group=NULL, ...)
+    normNearey1(f, group=NULL, ...)
+    normNearey2(f, group=NULL, ...)
+    normSharedLogmean(f, group=NULL, ...)
     normWattFabricius(f, vowel, group=NULL)
     normVowels(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NULL,
                 group=NULL, ...)
@@ -42,6 +46,8 @@
                  normalized together. This is useful for, e.g., calculating
                  talker-intrinsic normalizations when \code{group} encodes
                  talker identity.}
+    \item{exp}{Logical; should the result of the logmeans calculation be passed
+               through the \code{\link[base]{exp}} function before being returned?}
     \item{f0,f1,f2,f3}{Separate vectors of formant or
         fundamental frequency values used in the convenience method
         \code{plotVowels}. All four arguments are required when
@@ -54,7 +60,7 @@
                   \dQuote{nearey}, and \dQuote{wattfabricius}.
                   \dQuote{zscore} is an accepted synonym for \dQuote{lobanov};
                   \dQuote{nearey1} is an accepted synonym for \dQuote{logmean};
-                  \dQuote{nearey2} is an accepted synonym for \dQuote{nearey};
+                  \dQuote{nearey2} is an accepted synonym for \dQuote{shared};
                   and \dQuote{scentroid}, is an accepted synonym for
                   \dQuote{wattfabricius}.}
     \item{...}{Additional arguments passed to \code{\link[base]{colMeans}} by
@@ -62,6 +68,14 @@
                specifying the value of \code{na.rm}).}
 }
 \details{
+    \code{normLogmean} is a synonym for \code{normNearey1}, which is also sometimes
+    confusingly called \dQuote{single logmean}. \code{normSharedLogmean} is a
+    synonym for \code{normNearey2}. The argument \code{exp=TRUE} for these functions
+    will yield values that are consistent with the \code{\link[vowels]{norm.nearey}}
+    implementation, which takes the result of Nearey's original formulae and uses
+    it as the exponent of the base of the natural logarithm (presumably so that
+    the function always yields positive values).
+
     Note that \code{normErb} returns the \dQuote{ERB-rate scale} value (i.e.,
     the number of ERBs below the given frequency), not the ERB of the auditory
     filter centered at the given frequency.
