@@ -987,7 +987,8 @@ normNearey <- function(f, group=NULL, ...) {
     } else {
         f <- as.data.frame(f)
         groups <- split(f, group)
-        logmeans <- lapply(groups, function(x) log(x) - sum(colMeans(log(x), ...)))
+        #logmeans <- lapply(groups, function(x) log(x) - sum(colMeans(log(x), ...)))
+        logmeans <- lapply(groups, function(x) log(x) - mean(log(unlist(x)), ...))
         return(unsplit(logmeans, group))
 }	}
 
