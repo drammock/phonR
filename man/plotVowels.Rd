@@ -23,9 +23,9 @@
                heatmap=FALSE, heatmap.args=NULL,
                heatmap.legend=NULL, heatmap.legend.args=NULL,
                var.col.by=NA, var.style.by=NA,
-               fill.opacity=0.3, legend.kwd=NULL,
-               label.las=NULL, pretty=FALSE,
-               output='screen', ...)
+               fill.opacity=0.3, label.las=NULL,
+               legend.kwd=NULL, legend.args=NULL,
+               pretty=FALSE, output='screen', ...)
 }
 \arguments{
     \item{f1,f2}{Vector or matrix of formant frequency values. To plot multiple
@@ -139,15 +139,18 @@
                         color fills for ellipses, hulls, and polygons (if drawn).
                         Does not affect \code{heatmap} colors, which are
                         specified via the \code{colormap} element of \code{heatmap.args}.}
-    \item{legend.kwd}{Keyword indicating legend placement (see
-                      \code{\link[graphics]{legend}}). If \code{NULL} (the
-                      default), no legend will be printed.}
     \item{label.las}{Controls the orientation of axis labels relative to the axis
                      line (independently from the axis tick numbers). Possible
                      values are integers 0-4 (see \code{\link[graphics]{par}}),
                      or \code{NULL} (to use the default value of \code{par("las")},
                      or a value passed to \code{plotVowels} as \code{las} if
                      available).}
+    \item{legend.kwd}{Keyword indicating legend placement (see
+                      \code{\link[graphics]{legend}}). If \code{NULL} (the
+                      default), no legend will be printed.}
+    \item{legend.args}{Named list of additional arguments to be passed to
+                       \code{\link[graphics]{legend}}, for controlling things
+                       like \code{inset}, \code{ncol}, \code{seg.len}, etc.}
     \item{pretty}{Logical; a switch that sets various graphical parameters:
                   \code{mar}, \code{las}, \code{mgp}, \code{xpd}, \code{fg}, and
                   \code{tcl}, as well as arrow parameters like \code{length} and

@@ -9,6 +9,7 @@ nocite: |
 date: "`r Sys.Date()`"
 output:
   rmarkdown::html_vignette:
+    keep_md: true
     fig_caption: true
     fig_width: 7.5
     fig_height: 7.5
@@ -255,9 +256,7 @@ with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=T
                       legend.kwd="bottomright"))
 ```
 
-Note that the text in the legends is taken from the arguments `var.col.by` and `var.style.by`, so in the upper-right plot above, the legend shows the `unicodevowel` strings instead of the `vowel` strings.
-
-TODO: it is possible to override these strings using the `legend.args` argument, for example: `legend.args=list(legend=c("foo", "bar", "baz", "etc", "etc"))`.
+Note that the text in the legends is taken from the arguments `var.col.by` and `var.style.by`, so in the upper-right plot above, the legend shows the `unicodevowel` strings instead of the `vowel` strings. It is possible to override these strings using the `legend.args` argument, for example: `legend.args=list(legend=c("foo", "bar", "baz", "etc", "etc"))`; elements of `legend.args` are passed to `legend` and can be used to further customize the legend.
 
 ## Diphthongs
 Vowels are not instantaneous phenomena, and all phoneticians know that vowel formants are usually not stationary over time. To accommodate this, `plotVowels` allows you to supply `f1` and `f2` arguments as matrices where the values across a given row are the measurements at different timepoints for the same vowel. The timepoints for the vowels are connected with line segments, and you can add arrowheads to the last segment via the `diph.arrows` argument. Controlling the style of the diphthong lines is achieved through the `diph.args.tokens` and `diph.args.means` arguments, which take named lists of graphical parameters. 

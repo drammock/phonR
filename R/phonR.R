@@ -46,10 +46,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.6827, ellipse.args=NULL,
     diph.arrows=FALSE, diph.args.tokens=NULL, diph.args.means=NULL,
     diph.label.first.only=TRUE, diph.mean.timept=1, diph.smooth=FALSE,
-    heatmap=FALSE, heatmap.args=NULL,
-    heatmap.legend=FALSE, heatmap.legend.args=NULL,
-    var.col.by=NULL, var.style.by=NULL, fill.opacity=0.3, legend.kwd=NULL,
-    label.las=NULL, pretty=FALSE, output='screen', ...)
+    heatmap=FALSE, heatmap.args=NULL, heatmap.legend=FALSE, heatmap.legend.args=NULL,
+    var.col.by=NULL, var.style.by=NULL, fill.opacity=0.3, label.las=NULL,
+    legend.kwd=NULL, legend.args=NULL, pretty=FALSE, output='screen', ...)
 {
     # # # # # # # # # # #
     # HANDLE EXTRA ARGS #
@@ -282,12 +281,16 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                             fg=hcl(0,0,40), tcl=-0.25, xpd=NA,
                             pch=pretty.pch, lty=pretty.lty, col=pretty.col)
         pretty.par.args <- list(mar=c(1,1,5,5), las=1)
+        # legend args
+        pretty.legend.args <- list(bty="n", seg.len=1)
         # LET USER-SPECIFIED ARGS OVERRIDE "PRETTY" DEFAULTS
         pretty.args[names(exargs)] <- exargs
         pretty.par.args[names(par.args)] <- par.args
+        pretty.legend.args[names(legend.args)] <- legend.args
         # RE-UNIFY TO AVOID LATER LOGIC BRANCHING
         exargs <- pretty.args
         par.args <- pretty.par.args
+        legend.args <- pretty.legend.args
     }
 
     # # # # # # # # # #
@@ -866,20 +869,22 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             if (identical(legend.bgf, logical(0))) legend.bgf <- NULL
             if (identical(legend.brd, logical(0))) legend.brd <- legend.bgf
             # assemble legend args
-            legend.args <- list(legend.kwd, legend=legend.lab, pch=legend.pch,
-                                col=legend.col, lty=legend.lty,
-                                bty="n", seg.len=1)
+            new.legend.args <- list(legend.kwd, legend=legend.lab, pch=legend.pch,
+                                    col=legend.col, lty=legend.lty)
+            # user override & recombine
+            new.legend.args[names(legend.args)] <- legend.args
+            legend.args <- new.legend.args
             # can't always pass fill because fill=NULL triggers drawing empty boxes
             # and border=NULL draws black! :(
             if (!is.null(legend.bgf)) {
-                legend.args <- append(legend.args, list(fill=legend.bgf, border=legend.brd))
+                if (!"fill" %in% names(legend.args))   legend.args$fill   <- legend.bgf
+                if (!"border" %in% names(legend.args)) legend.args$border <- legend.brd
             }
             # avoid warning that merge only works when segments are drawn
             if (!is.null(legend.lty)) {
-                legend.args <- append(legend.args, list(merge=legend.merge))
+                if (!"merge" %in% names(legend.args)) legend.args$merge <- legend.merge
             }
             # draw legend
-            #print(legend.args)
             do.call(legend, legend.args)
         }
     }
