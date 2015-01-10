@@ -997,7 +997,7 @@ normWattFabricius <- function(f, vowel, group=NULL) {
         warning("Wrong dimensions: s-centroid normalization requires ",
                 "an Nx2 matrix or data frame of F1 and F2 values.")
     }
-    if (is.null(group)) group <- rep('g', nrow(f))
+    if (is.null(group)) group <- rep("g", nrow(f))
     subsets <- by(f, list(vowel, group), identity)  # 2D list (group x vowel) of lists (f1,f2)
     means <- matrix(sapply(subsets, function(i) ifelse(is.null(i),
                                                     data.frame(I(c(f1=NA, f2=NA))),
@@ -1008,23 +1008,23 @@ normWattFabricius <- function(f, vowel, group=NULL) {
     min.id <- apply(means, 2, function(i) apply(do.call(rbind, i), 2, which.min))
     max.id <- apply(means, 2, function(i) apply(do.call(rbind, i), 2, which.max))
     if (length(unique(min.id['f1',]))>1) {
-        warning('The vowel with the lowest mean F1 value (usually /i/)',
-                ' does not match across all speakers/groups. You\'ll ',
-                'have to calculate s-centroid manually.')
-        print(data.frame(minF1=minima['f1',],
-                vowel=dimnames(means)[[1]][min.id['f1',]],
+        warning("The vowel with the lowest mean F1 value (usually /i/)",
+                "does not match across all speakers/groups. You'll ",
+                "have to calculate s-centroid manually.")
+        print(data.frame(minF1=minima["f1",],
+                vowel=dimnames(means)[[1]][min.id["f1",]],
                 group=dimnames(means)[[2]]))
         stop()
-    } else if (length(unique(max.id['f1',]))>1) {
-        warning('The vowel with the highest mean F1 value (usually /a/)',
-                ' does not match across all speakers/groups. You\'ll ',
-                'have to calculate s-centroid manually.')
-        print(data.frame(maxF1=round(maxima['f1',]),
-                vowel=dimnames(means)[[1]][max.id['f1',]],
+    } else if (length(unique(max.id["f1",]))>1) {
+        warning("The vowel with the highest mean F1 value (usually /a/) ",
+                "does not match across all speakers/groups. You'll ",
+                "have to calculate s-centroid manually.")
+        print(data.frame(maxF1=round(maxima["f1",]),
+                vowel=dimnames(means)[[1]][max.id["f1",]],
                 group=dimnames(means)[[2]]))
         stop()
     }
-    lowvowf2 <- do.call(rbind, means[unique(max.id['f1',]),])[,'f2']
+    lowvowf2 <- do.call(rbind, means[unique(max.id["f1",]),])[,"f2"]
     centroids <- t(rbind(f1=(2*minima$f1 + maxima$f1) / 3,
     				     f2=(minima$f2 + maxima$f2 + lowvowf2) / 3))
     f / centroids[group,]
@@ -1122,11 +1122,10 @@ repulsiveForceHeatmap <- function(x, y, type=NULL, xform=log, exclude.inf=TRUE,
         if (exclude.inf) dmat[dmat == 0] <- min(dmat[dmat>0]) / 2
         # if there is a tie of which vowel is closest, pick first one (arbitrarily)
         which.min <- apply(dmat, 2, function(i) which(i == min(i))[1])
-        # TODO: sensible way to do tiebreaker?
         #how.many.min <- apply(dmat, 2, function(i) length(which(i == min(i))))
-        # wherever how.many.min > 1, look at next closest vowel iteratively until
-        # you find one that matches one of the vowels tied as closest...
-        # that could get ugly.
+        # TODO: sensible way to do tiebreaker? wherever how.many.min > 1, look at
+        # next closest vowel iteratively until you find one that matches one of the
+        # vowels tied as closest... could get ugly.
         sg.vowel <- vertices$z[which.min]
         sg.force <- sapply(seq_along(sg.vowel),
                            function(i) sum(1/dmat[!(vertices$z %in% sg.vowel[i]), i] ^ 2))
@@ -1138,12 +1137,12 @@ repulsiveForceHeatmap <- function(x, y, type=NULL, xform=log, exclude.inf=TRUE,
 }
 
 #' @export
-repulsiveForceHeatmapLegend <- function (x, y, labels=c("low", "hi"), pos=c(1, 3),
+repulsiveForceHeatmapLegend <- function (x, y, labels=c("low", "high"), pos=c(1, 3),
                                          colormap=NULL, smoothness=50, lend=2,
                                          lwd=12, ...) {
     if (is.null(colormap)) {  # default to grayscale
         colormap <- plotrix::color.scale(x=0:100, cs1=0, cs2=0, cs3=c(0,100),
-                                         alpha=1, color.spec='hcl')
+                                         alpha=1, color.spec="hcl")
     }
     xvals <- seq(x[1], x[2], length.out=smoothness)
     yvals <- seq(y[1], y[2], length.out=smoothness)
@@ -1180,7 +1179,7 @@ ellipse <- function(mu, sigma, alpha=0.05, npoints=250, draw=TRUE, ...) {
     v1 <- cbind(r1*cos(theta), r1*sin(theta))
     pts <- t(mu-(e1 %*% t(v1)))
     if (draw) {
-        colnames(pts) <- c('x','y')
+        colnames(pts) <- c("x", "y")
         polygon(pts, ...)
     }
     invisible(pts)
