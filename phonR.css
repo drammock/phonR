@@ -1,0 +1,34 @@
+body, td {
+   font-family: 'M+ 1c', 'Source Sans Pro', 'Droid Sans', 'DejaVu Sans', Calibri, sans-serif;
+}
+
+tt, code, pre {
+   font-family: 'M+ 1m', 'Source Code Pro', 'Droid Sans Mono', 'DejaVu Sans Mono', Consolas, monospace;
+   font-size: 100%;
+}
+
+a:link, a:visited {
+ text-decoration: none;
+ color: #46008C;
+}
+
+a:hover, a:active {
+ text-decoration: underline;
+ color:#ed7700;
+}
+
+p code {
+   background-color: transparent;
+   font-weight: bold;
+   color: #666;
+}
+
+h1 code {
+   background-color: transparent;
+}
+
+h1 {
+	line-height: 100%;
+	margin-top: 1em;
+	margin-bottom: 0.4em;
+}
