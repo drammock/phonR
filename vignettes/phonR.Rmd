@@ -1,25 +1,35 @@
 ---
 title: "Normalizing and plotting vowels with phonR 1.0-0"
 runningtitle: "phonR 1.0-0 vignette"
-author: "Daniel R. McCloy"
+author:
+- name: Daniel R. McCloy
+  affiliation: 
+  - Institute for Learning and Brain Sciences, University of Washington
 bibliography: phonR.bib
-csl: phonR.csl
+csl: ../phonR.csl
 nocite: |
  @charis, @mplus, @stix, @libertine
 date: "`r Sys.Date()`"
 output:
-  rmarkdown::html_vignette:
-    keep_md: true
+  pdf_document:
     fig_caption: true
     fig_width: 7.5
     fig_height: 7.5
-vignette: >
-  %\VignetteIndexEntry{Normalizing and plotting vowels with phonR 1.0-0}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\usepackage[utf8]{inputenc}
+    toc: false
+    highlight: zenburn
+    latex_engine: xelatex
+    template: "../vignette_template.tex"
+    pandoc_args: ["--no-tex-ligatures", "--natbib"]
+  html_document:
+    fig_caption: true
+    fig_width: 7.5
+    fig_height: 7.5
+    stylesheet: "../phonR.css"
 ---
 ```{r, echo=FALSE}
-knitr::opts_chunk$set(collapse=TRUE, comment="#>", warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(collapse=TRUE, comment="#>", warning=FALSE, message=FALSE, 
+                      tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=60),
+                      fig.path="images/", dev="cairo_pdf")
 ```
 
 # Introduction
@@ -185,7 +195,7 @@ with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, alpha.token
 ## Vowel heatmaps and repulsive force
 One of the more unique aspects of `phonR` is its ability to calculate and plot the repulsive force of a vowel space. The next plot shows vowels color-coded by their repulsive force (i.e., the degree of encroachment or overlap between vowel categories), and a heatmap of the same information using the same color scale.
 
-```{r, fig.height=3.75, fig.cap="Color-coding repulsive force using individual tokens, versus plotting a heatmap"}
+```{r, fig.height=3.75, fig.cap="Color-coding repulsive force using individual tokens, versus plotting a heatmap", cache=TRUE}
 force <- with(indo, repulsiveForce(f2, f1, vowel))
 force.col <- plotrix::color.scale(force, cs1=c(150, 330), cs2=c(25, 75),
                                   cs3=c(60, 90), color.spec="hcl")
@@ -203,7 +213,7 @@ The resolution of the heatmap is controlled by the `resolution` argument, which 
 
 The plots below use just one speaker’s vowels to illustrate the effect of increasing `resolution`. Values shown are `20`, `40`, and `60`, with the actual vowel tokens plotted with a force color-code (as above) for comparison.
 
-```{r, fig.cap="Repulsive force heatmaps of increasing resolution"}
+```{r, fig.cap="Repulsive force heatmaps of increasing resolution", cache=TRUE}
 par(mfrow=c(2, 2))
 female2 <- indo[indo$subj %in% "F02",]
 force <- with(female2, repulsiveForce(f2, f1, vowel))
@@ -222,7 +232,7 @@ These plots show that there can be a sort of “sweet spot” when choosing reso
 
 In theory, resolution can go as high as you want, but the heatmaps are somewhat computationally expensive to generate so it is often best to keep the resolution low during “exploratory” plotting, and only increase the resolution when you are ready to generate plots for use in finished documents. Alternatively, you can pass `fast=TRUE` as part of the `heatmap.args` list, which will use an interpolation algorithm to assign force values to the pixels, rather than calculating the actual force value at that pixel as if there had been a vowel there.
 
-```{r, fig.height=3.75, fig.cap="Comparison of `fast` options for heatmaps. Left: `fast=TRUE`. Right: `fast=FALSE`."}
+```{r, fig.height=3.75, fig.cap="Comparison of `fast` options for heatmaps. Left: `fast=TRUE`. Right: `fast=FALSE`.", cache=TRUE}
 par(mfrow=c(1, 2))
 for (speed in c(TRUE, FALSE)) {
     time.st <- Sys.time()
