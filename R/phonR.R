@@ -46,7 +46,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ellipse.line=FALSE, ellipse.fill=FALSE, ellipse.conf=0.6827, ellipse.args=NULL,
     diph.arrows=FALSE, diph.args.tokens=NULL, diph.args.means=NULL,
     diph.label.first.only=TRUE, diph.mean.timept=1, diph.smooth=FALSE,
-    heatmap=FALSE, heatmap.args=NULL,
+    force.heatmap=FALSE, heatmap.args=NULL,
     heatmap.legend=FALSE, heatmap.legend.args=NULL,
     var.col.by=NULL, var.style.by=NULL, fill.opacity=0.3, legend.kwd=NULL,
     label.las=NULL, pretty=FALSE, output='screen', ...)
@@ -282,12 +282,16 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                             fg=hcl(0,0,40), tcl=-0.25, xpd=NA,
                             pch=pretty.pch, lty=pretty.lty, col=pretty.col)
         pretty.par.args <- list(mar=c(1,1,5,5), las=1)
+        # legend args
+        pretty.legend.args <- list(bty="n", seg.len=1)
         # LET USER-SPECIFIED ARGS OVERRIDE "PRETTY" DEFAULTS
         pretty.args[names(exargs)] <- exargs
         pretty.par.args[names(par.args)] <- par.args
+        pretty.legend.args[names(legend.args)] <- legend.args
         # RE-UNIFY TO AVOID LATER LOGIC BRANCHING
         exargs <- pretty.args
         par.args <- pretty.par.args
+        legend.args <- pretty.legend.args
     }
 
     # # # # # # # # # #
@@ -866,20 +870,22 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             if (identical(legend.bgf, logical(0))) legend.bgf <- NULL
             if (identical(legend.brd, logical(0))) legend.brd <- legend.bgf
             # assemble legend args
-            legend.args <- list(legend.kwd, legend=legend.lab, pch=legend.pch,
-                                col=legend.col, lty=legend.lty,
-                                bty="n", seg.len=1)
+            new.legend.args <- list(legend.kwd, legend=legend.lab, pch=legend.pch,
+                                    col=legend.col, lty=legend.lty)
+            # user override & recombine
+            new.legend.args[names(legend.args)] <- legend.args
+            legend.args <- new.legend.args
             # can't always pass fill because fill=NULL triggers drawing empty boxes
             # and border=NULL draws black! :(
             if (!is.null(legend.bgf)) {
-                legend.args <- append(legend.args, list(fill=legend.bgf, border=legend.brd))
+                if (!"fill" %in% names(legend.args))   legend.args$fill   <- legend.bgf
+                if (!"border" %in% names(legend.args)) legend.args$border <- legend.brd
             }
             # avoid warning that merge only works when segments are drawn
             if (!is.null(legend.lty)) {
-                legend.args <- append(legend.args, list(merge=legend.merge))
+                if (!"merge" %in% names(legend.args)) legend.args$merge <- legend.merge
             }
             # draw legend
-            #print(legend.args)
             do.call(legend, legend.args)
         }
     }
@@ -902,11 +908,11 @@ normVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
                     vowel=NULL, group=NULL, ...) {
     m <- tolower(method)
     methods <- c('bark', 'mel', 'log', 'erb', 'zscore', 'lobanov',
-                'logmean', 'nearey', 'nearey1', 'nearey2', 'scentroid',
+                'logmean', 'shared', 'nearey1', 'nearey2', 'scentroid',
                 'wattfabricius')
     if (!(m %in% methods)) {
         warning('Method must be one of: bark, mel, log, erb, ',
-                'zscore | lobanov, logmean | nearey1, nearey | nearey2, ',
+                'zscore | lobanov, logmean | nearey1, shared | nearey2, ',
                 'scentroid | wattfabricius.')
     }
     f <- cbind(f0=f0, f1=f1, f2=f2, f3=f3)
@@ -916,7 +922,7 @@ normVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
     else if (m %in% 'erb') return(normErb(f))
     else if (m %in% c('z','zscore','lobanov')) return(normLobanov(f, group))
     else if (m %in% c('logmean','nearey1')) return(normLogmean(f, group, ...))
-    else if (m %in% c('nearey','nearey2')) return(normNearey(f, group, ...))
+    else if (m %in% c('shared','nearey2')) return(normSharedLogmean(f, group, ...))
     else {
         f <- as.matrix(cbind(f1=f1, f2=f2))
         return(normWattFabricius(f, vowel, group))
@@ -959,32 +965,57 @@ normLobanov <- function(f, group=NULL) {
 }	}
 
 #' @export
-normLogmean <- function(f, group=NULL, ...) {
+normLogmean <- function(f, group=NULL, exp=FALSE, ...) {
+    # AKA "Nearey1", what Adank confusingly calls "SingleLogmean".
+    # Note that Adank et al 2004 (eq. 8) looks more like a shared logmean,
+    # but in text she says it is applied to each formant separately.
+    if (ncol(f) != 4) {
+        stop("Missing values: normalization method 'normLogmean' ",
+            "requires non-null values for f0, f1, f2, and f3).")
+    }
     if (is.null(group)) {
-        return(log(f) - rep(colMeans(log(f), ...), each=nrow(f)))
+        logmeans <- log(f) - rep(colMeans(log(f), ...), each=nrow(f))
+        if (exp) logmeans <- exp(logmeans)
+        return(logmeans)
     } else {
         f <- as.data.frame(f)
         groups <- split(f, group)
         logmeans <- lapply(groups,
-                    function(x) log(x) - rep(apply(log(x), 2, mean),
-                    each=nrow(x)))
+                           function(x) log(x) - rep(apply(log(x), 2, mean),
+                                                    each=nrow(x)))
+        if (exp) logmeans <- exp(logmeans)
         return(unsplit(logmeans, group))
 }	}
 
 #' @export
-normNearey <- function(f, group=NULL, ...) {
-    if (ncol(f) != 4) {
-        stop("Missing values: normalization method 'norm.nearey' ",
-            "requires non-null values for f0, f1, f2, and f3).")
-    }
+normNearey1 <- function(f, group=NULL, ...) {
+    normLogmean(f, group=NULL, ...)
+}
+
+#' @export
+normSharedLogmean <- function(f, group=NULL, exp=FALSE, ...) {
+    # AKA "Nearey2"
     if (is.null(group)) {
-        return(log(f) - sum(colMeans(log(f), ...)))
+        # this is my implementation of Nearey 1978's CLIH (eq. 3.1.10, page 95)
+        # (cf. eqs. 1 & 2 of Morrison & Nearey 2006)
+        logmeans <- log(f) - mean(log(unlist(f)), ...)
+        # NOTE: Adank et al 2004 (eq. 9) would suggest this implementation:
+        # logmeans <- log(f) - sum(colMeans(log(f), ...))
+        if (exp) logmeans <- exp(logmeans)
+        return(logmeans)
     } else {
         f <- as.data.frame(f)
         groups <- split(f, group)
-        logmeans <- lapply(groups, function(x) log(x) - sum(colMeans(log(x), ...)))
+        logmeans <- lapply(groups, function(x) log(x) - mean(log(unlist(x)), ...))
+        # Adank:    lapply(groups, function(x) log(x) - sum(colMeans(log(x), ...)))
+        if (exp) logmeans <- exp(logmeans)
         return(unsplit(logmeans, group))
 }	}
+
+#' @export
+normNearey2 <- function(f, group=NULL, ...) {
+    normSharedLogmean(f, group=NULL, ...)
+}
 
 #' @export
 normWattFabricius <- function(f, vowel, group=NULL) {
@@ -992,7 +1023,7 @@ normWattFabricius <- function(f, vowel, group=NULL) {
         warning("Wrong dimensions: s-centroid normalization requires ",
                 "an Nx2 matrix or data frame of F1 and F2 values.")
     }
-    if (is.null(group)) group <- rep('g', nrow(f))
+    if (is.null(group)) group <- rep("g", nrow(f))
     subsets <- by(f, list(vowel, group), identity)  # 2D list (group x vowel) of lists (f1,f2)
     means <- matrix(sapply(subsets, function(i) ifelse(is.null(i),
                                                     data.frame(I(c(f1=NA, f2=NA))),
@@ -1003,23 +1034,23 @@ normWattFabricius <- function(f, vowel, group=NULL) {
     min.id <- apply(means, 2, function(i) apply(do.call(rbind, i), 2, which.min))
     max.id <- apply(means, 2, function(i) apply(do.call(rbind, i), 2, which.max))
     if (length(unique(min.id['f1',]))>1) {
-        warning('The vowel with the lowest mean F1 value (usually /i/)',
-                ' does not match across all speakers/groups. You\'ll ',
-                'have to calculate s-centroid manually.')
-        print(data.frame(minF1=minima['f1',],
-                vowel=dimnames(means)[[1]][min.id['f1',]],
+        warning("The vowel with the lowest mean F1 value (usually /i/)",
+                "does not match across all speakers/groups. You'll ",
+                "have to calculate s-centroid manually.")
+        print(data.frame(minF1=minima["f1",],
+                vowel=dimnames(means)[[1]][min.id["f1",]],
                 group=dimnames(means)[[2]]))
         stop()
-    } else if (length(unique(max.id['f1',]))>1) {
-        warning('The vowel with the highest mean F1 value (usually /a/)',
-                ' does not match across all speakers/groups. You\'ll ',
-                'have to calculate s-centroid manually.')
-        print(data.frame(maxF1=round(maxima['f1',]),
-                vowel=dimnames(means)[[1]][max.id['f1',]],
+    } else if (length(unique(max.id["f1",]))>1) {
+        warning("The vowel with the highest mean F1 value (usually /a/) ",
+                "does not match across all speakers/groups. You'll ",
+                "have to calculate s-centroid manually.")
+        print(data.frame(maxF1=round(maxima["f1",]),
+                vowel=dimnames(means)[[1]][max.id["f1",]],
                 group=dimnames(means)[[2]]))
         stop()
     }
-    lowvowf2 <- do.call(rbind, means[unique(max.id['f1',]),])[,'f2']
+    lowvowf2 <- do.call(rbind, means[unique(max.id["f1",]),])[,"f2"]
     centroids <- t(rbind(f1=(2*minima$f1 + maxima$f1) / 3,
     				     f2=(minima$f2 + maxima$f2 + lowvowf2) / 3))
     f / centroids[group,]
@@ -1117,11 +1148,10 @@ repulsiveForceHeatmap <- function(x, y, type=NULL, xform=log, exclude.inf=TRUE,
         if (exclude.inf) dmat[dmat == 0] <- min(dmat[dmat>0]) / 2
         # if there is a tie of which vowel is closest, pick first one (arbitrarily)
         which.min <- apply(dmat, 2, function(i) which(i == min(i))[1])
-        # TODO: sensible way to do tiebreaker?
         #how.many.min <- apply(dmat, 2, function(i) length(which(i == min(i))))
-        # wherever how.many.min > 1, look at next closest vowel iteratively until
-        # you find one that matches one of the vowels tied as closest...
-        # that could get ugly.
+        # TODO: sensible way to do tiebreaker? wherever how.many.min > 1, look at
+        # next closest vowel iteratively until you find one that matches one of the
+        # vowels tied as closest... could get ugly.
         sg.vowel <- vertices$z[which.min]
         sg.force <- sapply(seq_along(sg.vowel),
                            function(i) sum(1/dmat[!(vertices$z %in% sg.vowel[i]), i] ^ 2))
@@ -1133,12 +1163,12 @@ repulsiveForceHeatmap <- function(x, y, type=NULL, xform=log, exclude.inf=TRUE,
 }
 
 #' @export
-repulsiveForceHeatmapLegend <- function (x, y, labels=c("low", "hi"), pos=c(1, 3),
+repulsiveForceHeatmapLegend <- function (x, y, labels=c("low", "high"), pos=c(1, 3),
                                          colormap=NULL, smoothness=50, lend=2,
                                          lwd=12, ...) {
     if (is.null(colormap)) {  # default to grayscale
         colormap <- plotrix::color.scale(x=0:100, cs1=0, cs2=0, cs3=c(0,100),
-                                         alpha=1, color.spec='hcl')
+                                         alpha=1, color.spec="hcl")
     }
     xvals <- seq(x[1], x[2], length.out=smoothness)
     yvals <- seq(y[1], y[2], length.out=smoothness)
@@ -1175,7 +1205,7 @@ ellipse <- function(mu, sigma, alpha=0.05, npoints=250, draw=TRUE, ...) {
     v1 <- cbind(r1*cos(theta), r1*sin(theta))
     pts <- t(mu-(e1 %*% t(v1)))
     if (draw) {
-        colnames(pts) <- c('x','y')
+        colnames(pts) <- c("x", "y")
         polygon(pts, ...)
     }
     invisible(pts)

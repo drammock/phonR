@@ -1,4 +1,6 @@
 # Directories
+cache
+phonR_cache
 extras
 oldVersions
 .Rproj.user

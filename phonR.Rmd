@@ -1,31 +1,41 @@
 ---
 title: "Normalizing and plotting vowels with phonR 1.0-0"
 runningtitle: "phonR 1.0-0 vignette"
-author: "Daniel R. McCloy"
+author:
+- name: Daniel R. McCloy
+  affiliation:
+  - Institute for Learning and Brain Sciences, University of Washington
 bibliography: phonR.bib
 csl: phonR.csl
 nocite: |
  @charis, @mplus, @stix, @libertine
 date: "`r Sys.Date()`"
+stylesheet: phonR.css
 output:
-  rmarkdown::html_vignette:
+  html_document:
     fig_caption: true
     fig_width: 7.5
     fig_height: 7.5
-vignette: >
-  %\VignetteIndexEntry{Normalizing and plotting vowels with phonR 1.0-0}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\usepackage[utf8]{inputenc}
+    keep_md: true
 ---
-```{r, echo=FALSE}
-knitr::opts_chunk$set(collapse=TRUE, comment="#>", warning=FALSE, message=FALSE)
+```{r setup-options, echo=FALSE, cache=FALSE, include=FALSE}
+knitr::opts_chunk$set(collapse=TRUE, cache=TRUE, comment="#>", warning=FALSE, message=FALSE, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=75), fig.path="images/", dev="cairo_pdf")
 ```
 
 # Introduction
 The `phonR` package provides functions for vowel formant frequency and $f_0$ normalization, as well as a vowel plotting function `plotVowels` with many advanced features. There are also a few functions for calculating the area of the vowel space (either as a convex polygonal hull or a polygon connecting the mean values of the vowels), and for calculating the repulsive force of the vowel system. Finally, there are several helper functions that serve to simplify the `phonR` codebase; those are described in the documentation distributed with the package, but are not discussed further here. `phonR` also includes sample data in the form of F1 and F2 measurements for eight speakers of Standard Indonesian.
 
 ## Installation
-The phonR package can be downloaded from the [Comprehensive R Archive Network](http://cran.r-project.org/package=phonR) or installed through `R` via `install.packages("phonR")`. The source code is hosted on [GitHub](https://github.com/drammock/phonR), and is licensed under [GPL-3](http://www.gnu.org/licenses/gpl.html). `phonR` has three dependencies: `deldir` (for Delaunay triangulations), `plotrix` (for creating color scales), and `splancs` (for point-in-polygon functions). Plotting vowels with non-ASCII characters (i.e., most vowel symbols in the IPA) also requires that the user’s computer have a typeface installed that contains glyphs at the necessary codepoints, and that the user specify that typeface when calling the `plotVowels` function.
+The phonR package can be downloaded from the [Comprehensive R Archive Network](http://cran.r-project.org/package=phonR) or installed through `R` via `install.packages("phonR")`. The source code is hosted on [GitHub](https://github.com/drammock/phonR), and is licensed under [GPL-3](http://www.gnu.org/licenses/gpl.html). Users wishing to work off the development version can install using `devtools::install_github("drammock/phonR")`. `phonR` has three dependencies: `deldir` (for Delaunay triangulations), `plotrix` (for creating color scales), and `splancs` (for point-in-polygon functions). Plotting vowels with non-ASCII characters (i.e., most vowel symbols in the IPA) also requires that the user’s computer have a typeface installed that contains glyphs at the necessary codepoints, and that the user specify that typeface when calling the `plotVowels` function.
+
+To run the examples in this tutorial yourself, you need to load `phonR` and the accompanying sample data:
+
+```{r load-phonR}
+source("/home/dan/Documents/academics/tools/phonR/R/phonR.R")
+load("/home/dan/Documents/academics/tools/phonR/data/indoVowels.rda")
+#library(phonR)
+#data(indoVowels)  # provides dataframe "indo"
+```
 
 ## A note about the examples
 All the examples make use of `R`’s `with()` syntax. If you’ve never used `with`, the short explanation is it allows you to access the columns of a dataframe without the `$` operator. So instead of `plotVowels(indo$f1, indo$f2)` you can say `with(indo, plotVowels(f1, f2))`. It functions similar to providing a `data` argument in functions like `lm` or older versions of `plotVowels`.
@@ -38,20 +48,20 @@ Older versions of `plotVowels` also had built-in support for multiple figures wi
 Finally, the ability of the `plotVowels` function to do on-the-fly normalization has been removed, and with it the ability to draw axes with tick marks corresponding to evenly-spaced Hertz values (rendered as unevenly spaced in the units of the plot). The rationale for removing these capabilities is that (1) it is not burdensome to have to normalize formant frequencies prior to plotting, and (2) the “Bark-transformed Hertz” style of axis annotation was handy as a teaching tool but not obviously useful when generating plots for publication. Users who still require this functionality are encouraged to read about `R`’s `axis` function and its `at` argument; you can pass the `axes=FALSE` argument to `plotVowels` and draw the axes yourself.
 
 # Vowel normalization with `phonR`
-`phonR` implements eight different vowel formant frequency normalization function algorithms as separate functions, and additionally provides a convenience function `normalizeVowels` that wraps to the individual functions, specified by a `method` argument. The algorithms implemented are listed in Table 1. Most of the normalization functions accept a vector or matrix of $f_0$ or formant frequencies, and return a vector or matrix of the same dimensions.
+`phonR` implements eight different vowel formant frequency normalization function algorithms as separate functions, and additionally provides a convenience function `normalizeVowels` that wraps to the individual functions, specified by a `method` argument. The algorithms implemented are listed in Table 1. Most of the normalization functions accept a vector or matrix of $f_0$ or formant frequencies, and return a vector or matrix of the same dimensions. In the table below, $\mu()$ is the mean function, $F$ is the $f_0$ or formant value in Hertz, $F_n$ indicates that the equation applies to $f_0$ and to each formant separately, and $F1_v$ and $F2_v$ indicate that the formant values for each vowel are treated separately.
 
-| **Normalization method**               | **Function name**   | **Source**           | **Formula**                                           |
-|:---------------------------------------|:--------------------|:---------------------|:------------------------------------------------------|
-| Bark                                   | `normBark`          | [@traunmuller1990]   | $$ \frac {26.81 \times F_n}{1960+F_n} - 0.53 $$         |
-| Equivalent Rectangular Bandwidth (ERB) | `normErb`           | [@glasbergMoore1990] | $$ 21.4 \times \log_{10} (1 + F_n \times 0.00437) $$    |
-| Mel                                    | `normMel`           | [@mel]               | $$ 2595 \times \log_{10} (1 + \frac{F_n}{700}) $$       |
-| Log                                    | `normLog`           | n/a                  | $$ \log_{10}(F_n) $$                                    |
-| Lobanov (z‑score)                      | `normLobanov`       | [@lobanov1971]       | $$ \frac{F_n - \mu(F_n)}{\sigma(F_n)} $$                |
-| Watt-Fabricius (s‑centroid)[^wf]       | `normWattFabricius` | [@wattFabricius2002] | $$ \frac{F_n}{centroid} $$                              |
-| Nearey‑1 (logmean)                     | `normLogmean`       | [@nearey1977]        | $$ \log_{e} (F_n) - \mu(\log_{e}(F_n)) $$               |
-| Nearey‑2 (nearey)                      | `normNearey`        | [@nearey1977]        | $$ \log_{e}(F_n) - \sum_{n=0}^{3} \mu(\log_{e}(F_n)) $$ |
+| **Normalization method**               | **Function name**                  | **Source**           | **Formula**                                                                                                                                 |
+|:---------------------------------------|:-----------------------------------|:---------------------|:--------------------------------------------------------------------------------------------------------------------------------------------|
+| Bark                                   | `normBark`                         | [@traunmuller1990]   | $$ \frac {26.81 \times F}{1960+F} - 0.53 $$                                                                                                 |
+| Equivalent Rectangular Bandwidth (ERB) | `normErb`                          | [@glasbergMoore1990] | $$ 21.4 \times \log_{10} (1 + F \times 0.00437) $$                                                                                          |
+| Mel                                    | `normMel`                          | [@mel]               | $$ 2595 \times \log_{10} (1 + \frac{F}{700}) $$                                                                                             |
+| Log                                    | `normLog`                          | n/a                  | $$ \log_{10}(F) $$                                                                                                                          |
+| Lobanov (z‑score)                      | `normLobanov`                      | [@lobanov1971]       | $$ \frac{F_n - \mu(F_n)}{\sigma(F_n)} $$                                                                                                    |
+| Watt-Fabricius (s‑centroid)            | `normWattFabricius`                | [@wattFabricius2002] | $$ \langle \frac{2 \times F2}{\min(\mu(F2_v)) + \max(\mu(F2_v))}, \frac{3 \times F1}{2 \times \min(\mu(F1_v)) + \max(\mu(F1_v))} \rangle $$ |
+| Nearey‑1 (logmean)                     | `normLogmean`, `normNearey1`       | [@nearey1977]        | $$ \log_{e} (F_n) - \mu(\log_{e}(F_n)) $$                                                                                                   |
+| Nearey‑2 (shared logmean)              | `normSharedLogmean`, `normNearey2` | [@nearey1977]        | $$ \log_{e} (F) - \mu(\log_{e}(F)) $$                                                                                                       |
 
-[^wf]: In `phonR`, the centroid is defined as the point $\langle \frac{\min(\overline{F2}_{vowel})+\max(\overline{F2}_{vowel})}{2}, \frac{2 \times \min(\overline{F1}_{vowel})+\max(\overline{F1}_{vowel})}{3} \rangle$.  This varies slightly from the formula in [@wattFabricius2002], since the `phonR` implementation simply calculates which vowel has the highest mean F1 value and designates it as low corner of the triangle, rather than asking the user to expressly specify the *trap* or *start* vowel. Similarly, the `phonR` implementation simply calculates which vowel has the highest mean F2 value and uses that to calculate the upper left corner, rather than expressly looking for the mean of the “point-vowel” /i/.  The upper right corner is, as in the original method, derived from the other two corners.
+Note that in `phonR`, the “centroid” for Watt-Fabricius normalization is defined as the point $\langle \frac{\min(\mu(F2_v)) + \max(\mu(F2_v))}{2}, \frac{2 \times \min(\mu(F1_v)) + \max(\mu(F1_v))}{3} \rangle$. This varies slightly from the formula in [@wattFabricius2002], since the `phonR` implementation simply calculates which vowel has the highest mean F1 value and designates it as low corner of the triangle, rather than asking the user to expressly specify the *trap* or *start* vowel. Similarly, the `phonR` implementation simply calculates which vowel has the highest mean F2 value and uses that to calculate the upper left corner, rather than expressly looking for the mean of the “point-vowel” /i/.  The upper right corner is, as in the original method, derived from the other two corners.
 
 # The `plotVowels` function
 The `plotVowels` function has been developed to be maximally compatible with the base `R` function `plot`, so that many familiar function arguments and graphical parameters can be passed to `plotVowels` and work as expected. Arguments like `family` for specifying font family, `xlab`, `ylab`, `main` and `sub` for axis annotation and titles, or `xlim` and `ylim` for specifying axis bounds are all respected. Other arguments applicable to direct-to-file plotting are also respected (e.g., `filename`, `width`, `height`, `res`, `units`, etc). Finally, just as with the base `plot` function, arguments specific to the individual components of the plot such as `cex.main`, `col.axis`, or `font.main` are available to specify the size, color, and font style of titles, axes, and axis labels.
@@ -59,24 +69,20 @@ The `plotVowels` function has been developed to be maximally compatible with the
 ## Basic plotting
 Using the included `indo` vowel data, the default behavior of `plotVowels` is not much different from a standard `plot` command, with the exception that the axis directions are reversed (as is standard practice in linguistics).
 
-```{r, fig.width=3.75, fig.height=3.75, fig.cap="A minimal `plotVowels` call"}
-source("/home/dan/Documents/academics/tools/phonR/R/phonR.R")
-load("/home/dan/Documents/academics/tools/phonR/data/indoVowels.rda")
-#library(phonR)
-#data(indoVowels)  # provides dataframe "indo"
+```{r min-ex, dependson=c("load-phonR"), fig.width=3.75, fig.height=3.75, fig.cap="A minimal `plotVowels` call"}
 with(indo, plotVowels(f1, f2))
 ```
 
 Of course, there is little point in plotting all the vowels with the same symbol, and without further information, `plotVowels` doesn’t know which F1 and F2 values belong to which vowel and which talker or group. It also doesn’t know how you want them plotted, which is why the next plot looks just like the previous one: even though we have *semantically* distinguished the data points by telling `plotVowels` which formant values belong to which vowel / talker, we haven’t specified any way of *visually* distinguishing the points on the plot.
 
-```{r, fig.width=3.75, fig.height=3.75, fig.cap="Specifying `vowel` and `group` doesn’t automatically change the appearance!"}
+```{r near-min-ex, dependson=c("load-phonR"), fig.width=3.75, fig.height=3.75, fig.cap="Specifying `vowel` and `group` doesn’t automatically change the appearance!"}
 with(indo, plotVowels(f1, f2, vowel=vowel, group=gender))
 ```
 
 ## The arguments `vowel`, `group`, `var.col.by` and `var.style.by`
 The next plot solves this problem by specifying various ways to assign colors and styles to the plot, using the `var.col.by` and `var.style.by` arguments. On the top left, both color and symbol redundantly encode vowel identity. On the top right, color encodes the gender of the talker, and symbol type again encodes vowel identity. On the bottom left, color varies by talker and symbol varies by gender; on the bottom right, color varies by whether the vowel is rounded or not, and symbol varies by talker.
 
-```{r, fig.cap="Four different combinations of `var.col.by` and `var.style.by`"}
+```{r var-by-ugly, dependson=c("load-phonR"), fig.cap="Four different combinations of `var.col.by` and `var.style.by`"}
 par(mfrow=c(2, 2))
 rounded <- ifelse(indo$vowel %in% c("o", "u"), "round", "unround")
 with(indo, plotVowels(f1, f2, var.style.by=vowel,  var.col.by=vowel))
@@ -89,7 +95,7 @@ Notice that in none of these plots are we making use of the `vowel` and `group` 
 
 Another important aspect of `var.col.by` and `var.style.by` is the ability to override their function by passing them the value `NA`.  One reason you might want this is if you want color to represent some other dimension of each data point, such as vowel length or repulsive force. In such cases, you can pre-calculate the color that you want for each vowel (e.g., with the `plotrix::color.scale` function) and pass the vector of color values to `plotVowels` as the `col` argument. When doing this, you must also pass `var.col.by=NA`, otherwise the default behavior of `plotVowels` (when `var.col.by=NULL`) is to assume that you don’t want to vary color at all, and it will apply the first value of `col` to all the data points and ignore the rest of `col` (note that `var.col.by=NA` also affects the interpretation of `col` arguments passed as part of `ellipse.args`, `hull.args`, and `poly.args` in the same way). To demonstrate this, the plots below vary color smoothly based on F2 values (left) or distance from the centroid of the vowel space (right):
 
-```{r, fig.height=3.75, fig.cap="Using `col` and `var.col.by=NA` to specify unique colors for each data point."}
+```{r custom-point-cols, dependson=c("load-phonR"), fig.height=3.75, fig.cap="Using `col` and `var.col.by=NA` to specify unique colors for each data point."}
 par(mfrow=c(1, 2))
 f2col <- plotrix::color.scale(indo$f2, cs1=c(180, 0), cs2=100, cs3=60, color.spec="hcl")
 pts <- with(indo, cbind(f2, f1))
@@ -102,7 +108,7 @@ with(indo, plotVowels(f1, f2, var.col.by=NA, col=cdistcol))
 ## The `pretty` argument
 By now you will have noticed that the default colors and symbols are ugly, and the axes are on the wrong sides of the plot (from a phonetician’s perspective, anyway). `plotVowels` has a wonderful argument called `pretty` that sets a whole bunch of default color and style options all at once, as a shortcut to getting plots that are easy on the eyes. Here are the four plots used above to introduce `var.col.by` and `var.style.by`, but this time they are `pretty`:
 
-```{r, fig.cap="Default appearance with pretty=TRUE"}
+```{r var-by-pretty, dependson=c("load-phonR", "var-by-ugly"), fig.cap="Default appearance with pretty=TRUE"}
 par(mfrow=c(2, 2))
 with(indo, plotVowels(f1, f2, var.style.by=vowel, var.col.by=vowel, pretty=TRUE))
 with(indo, plotVowels(f1, f2, var.style.by=vowel, var.col.by=gender, pretty=TRUE))
@@ -115,85 +121,61 @@ Don’t worry if you don’t love the colors, or want different symbols or a dif
 ## Tokens, means, and groups
 As we have seen, the default for `plotVowels` is to plot each individual vowel token, potentially colored and styled in different ways. But sometimes a summary view is helpful to look at group differences. This is easily achieved by turning off the `plot.tokens` argument (which defaults to `TRUE`) and turning on the `plot.means` argument (which defaults to `FALSE`). Now that we’re calculating means for each vowel, the `vowel` and `group` arguments become important. These next two plots show the mean F1 and F2 values for each vowel, but with different grouping factors: on the left, the mean for each vowel is calculated within-speaker; on the right, the means are calculated within gender groups.
 
-```{r, fig.height=3.75, fig.cap="Mean F1 and F2 values for each vowel, plotted with different grouping factors"}
+```{r plot-means, dependson=c("load-phonR"), fig.height=3.75, fig.cap="Mean F1 and F2 values for each vowel, plotted with different grouping factors"}
 par(mfrow=c(1, 2))
-with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE,
-                      var.col.by=gender, var.style.by=vowel, pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE,
-                      var.col.by=gender, var.style.by=vowel, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE, var.col.by=gender, var.style.by=vowel, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE, var.col.by=gender, var.style.by=vowel, pretty=TRUE))
 ```
 
 ## Plotting with IPA glyphs
 `plotVowels` allows you to replace the plotting symbols with arbitrary text, including non-ASCII characters such as IPA glyphs. This can be done separately for the vowel tokens and vowel means using the `pch.tokens` and `pch.means` arguments; we can also control the size separately too using `cex.tokens` and `cex.means`. The vowels of Standard Indonesian in the example data are all transcribed with ASCII characters, so to demonstrate the IPA symbols we’ll add some unnecessary extra symbols and diacritics to plot the means. While we’re at it, we’ll make the tokens smaller and semi-transparent and specify the font family (you can use any typeface that has the glyphs you need and is installed on your system).
 
-```{r, fig.cap="Plot showing semi-transparent tokens and plotting with IPA glyphs"}
+```{r plot-ipa, dependson=c("load-phonR"), fig.cap="Plot showing semi-transparent tokens and plotting with IPA glyphs"}
 remapping <- c(i="ɪʏ̯", e="ɛœ̰ɚ", a="ɒɐ˞", o="ɤɞ̆", u="ɯʊ̥")
 indo$unicodevowel <- remapping[as.character(indo$vowel)]
-with(indo, plotVowels(f1, f2, unicodevowel, plot.tokens=TRUE, pch.tokens=vowel,
-                      cex.tokens=0.8, alpha.tokens=0.4, plot.means=TRUE,
-                      pch.means=unicodevowel, cex.means=4, var.col.by=unicodevowel, 
-                      family="Charis SIL", pretty=TRUE))
+with(indo, plotVowels(f1, f2, unicodevowel, plot.tokens=TRUE, pch.tokens=vowel, cex.tokens=0.8, alpha.tokens=0.4, plot.means=TRUE, pch.means=unicodevowel, cex.means=4, var.col.by=unicodevowel, family="Charis SIL", pretty=TRUE))
 ```
 
-Notice that the glyphs used to plot the tokens and means need not be the same, and that labels are not restricted to a single glyph (making it easy to symbolize diphthongs, consonantal context, or even use entire words as labels). 
+Notice that the glyphs used to plot the tokens and means need not be the same, and that labels are not restricted to a single glyph (making it easy to symbolize diphthongs, consonantal context, or even use entire words as labels).
 
 An important note here is that using non-ASCII symbols in `R` can be somewhat challenging when using `R` in Microsoft Windows, particularly when using Microsoft Excel to organize and store the data. See the Appendix for advice on how to minimize problems when dealing with non-ASCII glyphs on computers running Windows.
 
 ## Ellipses, polygons, and hulls
 Although seeing the cloud of individual tokens for each vowel is sometimes informative, the plot may become hard to read if there is too much overlap (e.g., due to plotting several different talkers on the same graph). The ability to specify `alpha.tokens` mitigates this to some extent, but in some cases even this is not enough and the plot becomes unreadable. In such cases, ellipses summarizing the range of variation of each vowel can provide a convenient summary of the underlying data with less visual clutter. The next plot shows (in the top row) two plots showing the effect of the `ellipse.conf` argument. The default is `ellipse.conf=0.6827`, which is a confidence level corresponding to ±1 standard deviation from the bivariate mean. The upper right-hand plot shows `ellipse.conf=0.95`, which gives 95% confidence ellipses. The individual tokens are left visible to show their relationship with the ellipse extents. The bottom row shows how ellipses can be drawn as lines, fills, or both; how plotting ellipses interacts with the `group` argument; how the `var.style.by` argument affects the ellipse lines; and the utility of reducing the `fill.opacity` argument when lots of filled objects overlap.
 
-```{r, fig.cap="Ellipses in various configurations"}
+```{r plot-ellipses, dependson=c("load-phonR"), fig.cap="Ellipses in various configurations"}
 par(mfrow=c(2, 2))
-with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.2,
-                      plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel,
-                      ellipse.line=TRUE, pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.2,
-                      plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel,
-                      ellipse.line=TRUE, ellipse.conf=0.95, pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE,
-                      pch.means=vowel, cex.means=2, var.col.by=vowel, ellipse.fill=TRUE,
-                      pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE,
-                      pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=subj,
-                      ellipse.line=TRUE, ellipse.fill=TRUE, fill.opacity=0.1, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.2, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, ellipse.line=TRUE, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.2, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, ellipse.line=TRUE, ellipse.conf=0.95, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, ellipse.fill=TRUE, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=subj, ellipse.line=TRUE, ellipse.fill=TRUE, fill.opacity=0.1, pretty=TRUE))
 ```
 
 In the lower-left plot above, we know from the function call that the two sets of ellipses correspond to talker gender, but it is not clear which ellipses “go together” (especially in the high back region). We can regain this information by passing arguments `ellipse.line=TRUE, var.style.by=gender` or by adding a legend, but we can achieve the same thing by drawing connecting lines between the vowel means:
 
-```{r, fig.width=3.75, fig.height=3.75, fig.cap="The “vowel means” polygon"}
-with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE,
-                      pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=gender,
-                      ellipse.fill=TRUE, poly.line=TRUE,
-                      poly.order=c("i", "e", "a", "o", "u"), pretty=TRUE))
+```{r plot-poly-line, dependson=c("load-phonR"), fig.width=3.75, fig.height=3.75, fig.cap="The “vowel means” polygon"}
+with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=gender, ellipse.fill=TRUE, poly.line=TRUE, poly.order=c("i", "e", "a", "o", "u"), pretty=TRUE))
 ```
 
 The vowel polygon lines above (and also convex hulls, seen below) are drawn in black color if the `var.col.by` argument is `vowel` (because the polygonal boundary line is a property of the entire *vowel space*, not of any one vowel). If `var.col.by` is something else (like gender or talker) then the polygonal or hull line follows the color coding of the tokens and means. Just like ellipses (and hulls), vowel polygons may also have lines, fills, or both (controlled by the boolean `poly.line` and `poly.fill` arguments).
 
-```{r, fig.height=3.75, fig.cap="Convex hulls with different values for the `color.by` argument"}
+```{r convex-hull, dependson=c("load-phonR"), fig.height=3.75, fig.cap="Convex hulls with different values for the `color.by` argument"}
 par(mfrow=c(1, 2))
-with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, alpha.tokens=0.3,
-                      plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel,
-                      var.style.by=gender, hull.fill=TRUE, hull.line=TRUE, fill.opacity=0.1,
-                      pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, alpha.tokens=0.3,
-                      plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=gender,
-                      var.style.by=gender, hull.fill=TRUE, hull.line=TRUE, fill.opacity=0.1,
-                      pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, alpha.tokens=0.3, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=gender, hull.fill=TRUE, hull.line=TRUE, fill.opacity=0.1, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, alpha.tokens=0.3, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=gender, var.style.by=gender, hull.fill=TRUE, hull.line=TRUE, fill.opacity=0.1, pretty=TRUE))
 ```
 
 ## Vowel heatmaps and repulsive force
 One of the more unique aspects of `phonR` is its ability to calculate and plot the repulsive force of a vowel space. The next plot shows vowels color-coded by their repulsive force (i.e., the degree of encroachment or overlap between vowel categories), and a heatmap of the same information using the same color scale.
 
-```{r, fig.height=3.75, fig.cap="Color-coding repulsive force using individual tokens, versus plotting a heatmap"}
+```{r force-one, dependson=c("load-phonR"), fig.height=3.75, fig.cap="Color-coding repulsive force using individual tokens, versus plotting a heatmap", cache=TRUE}
 force <- with(indo, repulsiveForce(f2, f1, vowel))
-force.col <- plotrix::color.scale(force, cs1=c(150, 330), cs2=c(25, 75),
-                                  cs3=c(60, 90), color.spec="hcl")
-coolcolors <- plotrix::color.scale(x=0:100, cs1=c(150, 330), cs2=c(25, 75),
-                                   cs3=c(60, 90), color.spec="hcl")
+force.col <- plotrix::color.scale(force, cs1=c(150, 330), cs2=c(25, 75), cs3=c(60, 90), color.spec="hcl")
+coolcolors <- plotrix::color.scale(x=0:100, cs1=c(150, 330), cs2=c(25, 75), cs3=c(60, 90), color.spec="hcl")
 par(mfrow=c(1, 2))
 with(indo, plotVowels(f1, f2, vowel, pch.tokens=vowel, col=force.col, var.col.by=NA,
                       pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, plot.tokens=FALSE, heatmap=TRUE,
+with(indo, plotVowels(f1, f2, vowel, plot.tokens=FALSE, force.heatmap=TRUE,
                       heatmap.args=list(colormap=coolcolors, resolution=10), 
                       heatmap.legend=TRUE, pretty=TRUE))
 ```
@@ -202,16 +184,16 @@ The resolution of the heatmap is controlled by the `resolution` argument, which 
 
 The plots below use just one speaker’s vowels to illustrate the effect of increasing `resolution`. Values shown are `20`, `40`, and `60`, with the actual vowel tokens plotted with a force color-code (as above) for comparison.
 
-```{r, fig.cap="Repulsive force heatmaps of increasing resolution"}
+```{r force-res, dependson=c("load-phonR", "force-one"), fig.cap="Repulsive force heatmaps of increasing resolution", cache=TRUE}
 par(mfrow=c(2, 2))
 female2 <- indo[indo$subj %in% "F02",]
+# we need to recalculate the force and the colormap since
+# we subsetted to a single talker's vowels
 force <- with(female2, repulsiveForce(f2, f1, vowel))
-force.col <- plotrix::color.scale(force, cs1=c(150, 330), cs2=c(25, 75),
-                                  cs3=c(60, 90), color.spec="hcl")
-with(female2, plotVowels(f1, f2, vowel, pch.tokens=vowel, cex.tokens=1.2,
-                         col=force.col, var.col.by=NA, pretty=TRUE))
+force.col <- plotrix::color.scale(force, cs1=c(150, 330), cs2=c(25, 75), cs3=c(60, 90), color.spec="hcl")
+with(female2, plotVowels(f1, f2, vowel, pch.tokens=vowel, cex.tokens=1.2, col=force.col, var.col.by=NA, pretty=TRUE))
 for (res in c(20, 40, 60)) {
-    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, heatmap=TRUE,
+    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, force.heatmap=TRUE,
                              heatmap.args=list(colormap=coolcolors, resolution=res),
                              pretty=TRUE))
 }
@@ -221,48 +203,35 @@ These plots show that there can be a sort of “sweet spot” when choosing reso
 
 In theory, resolution can go as high as you want, but the heatmaps are somewhat computationally expensive to generate so it is often best to keep the resolution low during “exploratory” plotting, and only increase the resolution when you are ready to generate plots for use in finished documents. Alternatively, you can pass `fast=TRUE` as part of the `heatmap.args` list, which will use an interpolation algorithm to assign force values to the pixels, rather than calculating the actual force value at that pixel as if there had been a vowel there.
 
-```{r, fig.height=3.75, fig.cap="Comparison of `fast` options for heatmaps. Left: `fast=TRUE`. Right: `fast=FALSE`."}
+```{r force-fast, dependson=c("load-phonR", "force-one"), fig.height=3.75, fig.cap="Comparison of `fast` options for heatmaps. Left: `fast=TRUE`. Right: `fast=FALSE`.", cache=TRUE}
 par(mfrow=c(1, 2))
 for (speed in c(TRUE, FALSE)) {
     time.st <- Sys.time()
-    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, heatmap=TRUE,
+    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, force.heatmap=TRUE,
                              heatmap.args=list(colormap=coolcolors, resolution=50,
                                                fast=speed), pretty=TRUE))
     time.nd <- Sys.time()
-    title(main=paste("This plot took", round(time.nd - time.st, 1), "seconds"),
-          line=3, adj=0)
+    title(main=paste("This plot took", round(time.nd - time.st, 1), "seconds"), line=3, adj=0)
 }
 ```
 
 ## Legends
 In most cases, legends can be added automatically to plots created using `plotVowels` by adding a legend location keyword such as `legend.kwd="bottomleft"` (see the documentation of `graphics::legend` for explanation of the keywords). Great care has been taken to ensure that the legends display all (and only) the necessary color and style contrasts in the plot. Here we repeat four of the plots seen above, with legends added:
 
-```{r, fig.cap="Illustration of automatic legend creation."}
+```{r plot-legends, dependson=c("load-phonR", "plot-ipa"), fig.cap="Illustration of automatic legend creation."}
 par(mfrow=c(2, 2))
-with(indo, plotVowels(f1, f2, var.style.by=gender, var.col.by=subj, pretty=TRUE,
-                      legend.kwd="bottomright"))
-with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel,
-                      cex.tokens=0.8, alpha.tokens=0.4, plot.means=TRUE,
-                      pch.means=unicodevowel, cex.means=4, var.col.by=unicodevowel,
-                      family="Charis SIL", pretty=TRUE, legend.kwd="bottomright"))
-with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, alpha.tokens=0.3,
-                      plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel,
-                      var.style.by=gender, hull.fill=TRUE, hull.line=TRUE, fill.opacity=0.1,
-                      pretty=TRUE, legend.kwd="bottomright"))
-with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE,
-                      pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=subj,
-                      ellipse.line=TRUE, ellipse.fill=TRUE, fill.opacity=0.1, pretty=TRUE,
-                      legend.kwd="bottomright"))
+with(indo, plotVowels(f1, f2, var.style.by=gender, var.col.by=subj, pretty=TRUE, legend.kwd="bottomright"))
+with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, cex.tokens=0.8, alpha.tokens=0.4, plot.means=TRUE, pch.means=unicodevowel, cex.means=4, var.col.by=unicodevowel, family="Charis SIL", pretty=TRUE, legend.kwd="bottomright"))
+with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, alpha.tokens=0.3, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=gender, hull.fill=TRUE, hull.line=TRUE, fill.opacity=0.1, pretty=TRUE, legend.kwd="bottomright"))
+with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=subj, ellipse.line=TRUE, ellipse.fill=TRUE, fill.opacity=0.1, pretty=TRUE, legend.kwd="bottomright"))
 ```
 
-Note that the text in the legends is taken from the arguments `var.col.by` and `var.style.by`, so in the upper-right plot above, the legend shows the `unicodevowel` strings instead of the `vowel` strings.
-
-TODO: it is possible to override these strings using the `legend.args` argument, for example: `legend.args=list(legend=c("foo", "bar", "baz", "etc", "etc"))`.
+Note that the text in the legends is taken from the arguments `var.col.by` and `var.style.by`, so in the upper-right plot above, the legend shows the `unicodevowel` strings instead of the `vowel` strings. It is possible to override these strings using the `legend.args` argument, for example: `legend.args=list(legend=c("foo", "bar", "baz", "etc", "etc"))`. The elements of `legend.args` are passed to `legend` and can be used to further customize the legend by specifying `seg.len`, `inset`, etc. See `?legend` for further details.
 
 ## Diphthongs
-Vowels are not instantaneous phenomena, and all phoneticians know that vowel formants are usually not stationary over time. To accommodate this, `plotVowels` allows you to supply `f1` and `f2` arguments as matrices where the values across a given row are the measurements at different timepoints for the same vowel. The timepoints for the vowels are connected with line segments, and you can add arrowheads to the last segment via the `diph.arrows` argument. Controlling the style of the diphthong lines is achieved through the `diph.args.tokens` and `diph.args.means` arguments, which take named lists of graphical parameters. 
+Vowels are not instantaneous phenomena, and all phoneticians know that vowel formants are usually not stationary over time. To accommodate this, `plotVowels` allows you to supply `f1` and `f2` arguments as matrices where the values across a given row are the measurements at different timepoints for the same vowel. The timepoints for the vowels are connected with line segments, and you can add arrowheads to the last segment via the `diph.arrows` argument. Controlling the style of the diphthong lines is achieved through the `diph.args.tokens` and `diph.args.means` arguments, which take named lists of graphical parameters.
 
-```{r, fig.cap="Plotting multiple timepoints for each vowel."}
+```{r diph, dependson=c("load-phonR"), fig.cap="Plotting multiple timepoints for each vowel."}
 # simulate some diphthongs; not terribly realistic values
 f1delta <- sample(c(-10:-5, 5:15), nrow(indo), replace=TRUE)
 f2delta <- sample(c(-15:-10, 20:30), nrow(indo), replace=TRUE)
@@ -279,18 +248,13 @@ indo <- within(indo, {
     f2d <- f2c + f2delta * f2coefs[,4]
     })
 
-with(indo, plotVowels(cbind(f1, f1a, f1b, f1c, f1d), cbind(f2, f2a, f2b, f2c, f2d), 
-                      unicodevowel, plot.tokens=TRUE, pch.tokens=NA, alpha.tokens=0.2,
-                      plot.means=TRUE, pch.means=unicodevowel, cex.means=2, 
-                      var.col.by=unicodevowel, pretty=TRUE,  diph.arrows=TRUE, 
-                      diph.args.tokens=list(lwd=0.8), diph.args.means=list(lwd=3),
-                      family="Charis SIL"))
+with(indo, plotVowels(cbind(f1, f1a, f1b, f1c, f1d), cbind(f2, f2a, f2b, f2c, f2d), unicodevowel, plot.tokens=TRUE, pch.tokens=NA, alpha.tokens=0.2, plot.means=TRUE, pch.means=unicodevowel, cex.means=2, var.col.by=unicodevowel, pretty=TRUE,  diph.arrows=TRUE, diph.args.tokens=list(lwd=0.8), diph.args.means=list(lwd=3), family="Charis SIL"))
 ```
 
 By default, `plotVowels` will only label the first point of each diphthong when `pch.tokens` or `pch.means` is specified (whether using symbols or text). If you want every timepoint along the line labeled, specify `diph.label.first.only=FALSE`. If you also specify `diph.arrows=TRUE`, the arrowheads will take precedence and `diph.label.first.only=FALSE` will cause all but the last timepoint of each vowel to be labeled.
 
 If you want to plot polygons, ellipses, or hulls with your diphthong data, an additional argument `diph.mean.timept` allows you to specify which timepoint you want to use to calculate and draw those measures. The default is to use the first timepoint, but if (for example) you had measurements at 20%, 50%, and 80% through the duration of each vowel, you could specify `diph.mean.timept=2` to base the mean calculations on the midpoint values.
- 
+
 # Appendix: Fonts, IPA, and Unicode
 It would be quite a shame to put so much effort into creating beautiful vowel plots only to use crude ASCII shorthand on the plots to represent vowel quality, instead of proper IPA vowel symbols. There are a couple of good IPA character pickers out there (such as [this one](http://rishida.net/scripts/pickers/ipa/) and [this one](http://westonruter.github.io/ipa-chart/keyboard/)) that make it easy to copy-and-paste any vowel symbol or diacritic you might need. There are even input methods that allow you to type unicode-compliant IPA symbols using a normal keyboard using various control keys (see [here](http://scripts.sil.org/uniipakeyboard)). Given that these options exist and are free (and most are open-source), there is in my mind no longer any good reason to use ASCII shorthand on vowel plots.
 
@@ -300,7 +264,7 @@ Gone are the days when the only unicode-compliant option for IPA transcription w
 ## Working with Unicode IPA glyphs in Microsoft Windows
 Perhaps the easiest way to have a pleasant experience working with unicode-compliant representations of IPA glyphs is to use a computer running the Linux operating system: `R` on Linux defaults to a UTF-8 locale, which means that IPA glyphs can be displayed in the `R` command console (both in commands you type/paste in, and in `R`’s output) and used in plots without issue.
 
-If you use Windows, here are some key pieces of information that will allow you to work with Unicode IPA glyphs in `R` more easily. First: Microsoft Excel does not output UTF-8 encoded text files. If you try to save a spreadsheet from Excel as plain CSV, all the non-ASCII glyphs will be corrupted (i.e., each single non-ASCII codepoint will be interpreted as multiple ASCII codepoints). If you export from Excel as “Unicode text”, what you get is a CSV encoded in “UCS2-LE” format (AKA, “UTF-16 with BOM”). To open this in `R` you must either specify `read.csv(..., encoding="UCS-2")`, or convert it to UTF-8 prior to importing into `R`, then specify `read.csv(..., encoding="UTF-8")`. Converting between encoding formats can be accomplished with the free text editor Notepad++. 
+If you use Windows, here are some key pieces of information that will allow you to work with Unicode IPA glyphs in `R` more easily. First: Microsoft Excel does not output UTF-8 encoded text files. If you try to save a spreadsheet from Excel as plain CSV, all the non-ASCII glyphs will be corrupted (i.e., each single non-ASCII codepoint will be interpreted as multiple ASCII codepoints). If you export from Excel as “Unicode text”, what you get is a CSV encoded in “UCS2-LE” format (AKA, “UTF-16 with BOM”). To open this in `R` you must either specify `read.csv(..., encoding="UCS-2")`, or convert it to UTF-8 prior to importing into `R`, then specify `read.csv(..., encoding="UTF-8")`. Converting between encoding formats can be accomplished with the free text editor Notepad++.
 
 In either case, the non-ASCII characters will be rendered as “escaped” characters when the resulting dataframe is displayed in the `R` console (e.g., when using `head()` you will see `\u0259` instead of `ə`). These escaped characters will _usually_ display properly when plotted, as long as a suitable typeface is specified via the graphical parameter `family`. However, specifying fonts in `R` is more complicated under Windows than on other operating systems, as font names cannot be passed directly to `family` as a character string. Instead, you must first register the font using `windowsFonts(myCustomFontName=windowsFont("Charis SIL"))`, and then reference the font as `family="myCustomFontName"` (you may of course substitute anything you like for `myCustomFontName` as long as there are no spaces in the name, and substitute your desired font’s name for `"Charis SIL"`).
 

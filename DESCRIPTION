@@ -11,7 +11,7 @@ Suggests: knitr
 VignetteBuilder: knitr
 Description: Tools for phoneticians and phonologists, including functions for normalization and plotting of vowels.
 License: GPL-3
-URL: https://github.com/drammock/phonR
+URL: http://drammock.github.io/phonR/
 BugReports: https://github.com/drammock/phonR/issues 
 LazyLoad: yes
 LazyData: yes
