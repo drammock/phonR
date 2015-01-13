@@ -3,33 +3,23 @@ title: "Normalizing and plotting vowels with phonR 1.0-0"
 runningtitle: "phonR 1.0-0 vignette"
 author:
 - name: Daniel R. McCloy
-  affiliation: 
+  affiliation:
   - Institute for Learning and Brain Sciences, University of Washington
 bibliography: phonR.bib
 csl: phonR.csl
 nocite: |
  @charis, @mplus, @stix, @libertine
 date: "`r Sys.Date()`"
+stylesheet: phonR.css
 output:
   html_document:
     fig_caption: true
     fig_width: 7.5
     fig_height: 7.5
     keep_md: true
-    stylesheet: phonR.css
-  pdf_document:
-    fig_caption: true
-    fig_width: 7.5
-    fig_height: 7.5
-    keep_tex: true
-    toc: false
-    highlight: zenburn
-    latex_engine: xelatex
-    template: vignette_template.tex
-    pandoc_args: ["--no-tex-ligatures", "--natbib"]
 ---
 ```{r setup-options, echo=FALSE, cache=FALSE, include=FALSE}
-knitr::opts_chunk$set(collapse=TRUE, comment="#>", warning=FALSE, message=FALSE, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=60), fig.path="images/", dev="CairoPNG")
+knitr::opts_chunk$set(collapse=TRUE, cache=TRUE, comment="#>", warning=FALSE, message=FALSE, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=75), fig.path="images/", dev="cairo_pdf")
 ```
 
 # Introduction
@@ -146,7 +136,7 @@ indo$unicodevowel <- remapping[as.character(indo$vowel)]
 with(indo, plotVowels(f1, f2, unicodevowel, plot.tokens=TRUE, pch.tokens=vowel, cex.tokens=0.8, alpha.tokens=0.4, plot.means=TRUE, pch.means=unicodevowel, cex.means=4, var.col.by=unicodevowel, family="Charis SIL", pretty=TRUE))
 ```
 
-Notice that the glyphs used to plot the tokens and means need not be the same, and that labels are not restricted to a single glyph (making it easy to symbolize diphthongs, consonantal context, or even use entire words as labels). 
+Notice that the glyphs used to plot the tokens and means need not be the same, and that labels are not restricted to a single glyph (making it easy to symbolize diphthongs, consonantal context, or even use entire words as labels).
 
 An important note here is that using non-ASCII symbols in `R` can be somewhat challenging when using `R` in Microsoft Windows, particularly when using Microsoft Excel to organize and store the data. See the Appendix for advice on how to minimize problems when dealing with non-ASCII glyphs on computers running Windows.
 
@@ -232,7 +222,7 @@ with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=T
 Note that the text in the legends is taken from the arguments `var.col.by` and `var.style.by`, so in the upper-right plot above, the legend shows the `unicodevowel` strings instead of the `vowel` strings. It is possible to override these strings using the `legend.args` argument, for example: `legend.args=list(legend=c("foo", "bar", "baz", "etc", "etc"))`. The elements of `legend.args` are passed to `legend` and can be used to further customize the legend by specifying `seg.len`, `inset`, etc. See `?legend` for further details.
 
 ## Diphthongs
-Vowels are not instantaneous phenomena, and all phoneticians know that vowel formants are usually not stationary over time. To accommodate this, `plotVowels` allows you to supply `f1` and `f2` arguments as matrices where the values across a given row are the measurements at different timepoints for the same vowel. The timepoints for the vowels are connected with line segments, and you can add arrowheads to the last segment via the `diph.arrows` argument. Controlling the style of the diphthong lines is achieved through the `diph.args.tokens` and `diph.args.means` arguments, which take named lists of graphical parameters. 
+Vowels are not instantaneous phenomena, and all phoneticians know that vowel formants are usually not stationary over time. To accommodate this, `plotVowels` allows you to supply `f1` and `f2` arguments as matrices where the values across a given row are the measurements at different timepoints for the same vowel. The timepoints for the vowels are connected with line segments, and you can add arrowheads to the last segment via the `diph.arrows` argument. Controlling the style of the diphthong lines is achieved through the `diph.args.tokens` and `diph.args.means` arguments, which take named lists of graphical parameters.
 
 ```{r diph, dependson=c("load-phonR"), fig.cap="Plotting multiple timepoints for each vowel."}
 # simulate some diphthongs; not terribly realistic values
@@ -257,7 +247,7 @@ with(indo, plotVowels(cbind(f1, f1a, f1b, f1c, f1d), cbind(f2, f2a, f2b, f2c, f2
 By default, `plotVowels` will only label the first point of each diphthong when `pch.tokens` or `pch.means` is specified (whether using symbols or text). If you want every timepoint along the line labeled, specify `diph.label.first.only=FALSE`. If you also specify `diph.arrows=TRUE`, the arrowheads will take precedence and `diph.label.first.only=FALSE` will cause all but the last timepoint of each vowel to be labeled.
 
 If you want to plot polygons, ellipses, or hulls with your diphthong data, an additional argument `diph.mean.timept` allows you to specify which timepoint you want to use to calculate and draw those measures. The default is to use the first timepoint, but if (for example) you had measurements at 20%, 50%, and 80% through the duration of each vowel, you could specify `diph.mean.timept=2` to base the mean calculations on the midpoint values.
- 
+
 # Appendix: Fonts, IPA, and Unicode
 It would be quite a shame to put so much effort into creating beautiful vowel plots only to use crude ASCII shorthand on the plots to represent vowel quality, instead of proper IPA vowel symbols. There are a couple of good IPA character pickers out there (such as [this one](http://rishida.net/scripts/pickers/ipa/) and [this one](http://westonruter.github.io/ipa-chart/keyboard/)) that make it easy to copy-and-paste any vowel symbol or diacritic you might need. There are even input methods that allow you to type unicode-compliant IPA symbols using a normal keyboard using various control keys (see [here](http://scripts.sil.org/uniipakeyboard)). Given that these options exist and are free (and most are open-source), there is in my mind no longer any good reason to use ASCII shorthand on vowel plots.
 
@@ -267,7 +257,7 @@ Gone are the days when the only unicode-compliant option for IPA transcription w
 ## Working with Unicode IPA glyphs in Microsoft Windows
 Perhaps the easiest way to have a pleasant experience working with unicode-compliant representations of IPA glyphs is to use a computer running the Linux operating system: `R` on Linux defaults to a UTF-8 locale, which means that IPA glyphs can be displayed in the `R` command console (both in commands you type/paste in, and in `R`’s output) and used in plots without issue.
 
-If you use Windows, here are some key pieces of information that will allow you to work with Unicode IPA glyphs in `R` more easily. First: Microsoft Excel does not output UTF-8 encoded text files. If you try to save a spreadsheet from Excel as plain CSV, all the non-ASCII glyphs will be corrupted (i.e., each single non-ASCII codepoint will be interpreted as multiple ASCII codepoints). If you export from Excel as “Unicode text”, what you get is a CSV encoded in “UCS2-LE” format (AKA, “UTF-16 with BOM”). To open this in `R` you must either specify `read.csv(..., encoding="UCS-2")`, or convert it to UTF-8 prior to importing into `R`, then specify `read.csv(..., encoding="UTF-8")`. Converting between encoding formats can be accomplished with the free text editor Notepad++. 
+If you use Windows, here are some key pieces of information that will allow you to work with Unicode IPA glyphs in `R` more easily. First: Microsoft Excel does not output UTF-8 encoded text files. If you try to save a spreadsheet from Excel as plain CSV, all the non-ASCII glyphs will be corrupted (i.e., each single non-ASCII codepoint will be interpreted as multiple ASCII codepoints). If you export from Excel as “Unicode text”, what you get is a CSV encoded in “UCS2-LE” format (AKA, “UTF-16 with BOM”). To open this in `R` you must either specify `read.csv(..., encoding="UCS-2")`, or convert it to UTF-8 prior to importing into `R`, then specify `read.csv(..., encoding="UTF-8")`. Converting between encoding formats can be accomplished with the free text editor Notepad++.
 
 In either case, the non-ASCII characters will be rendered as “escaped” characters when the resulting dataframe is displayed in the `R` console (e.g., when using `head()` you will see `\u0259` instead of `ə`). These escaped characters will _usually_ display properly when plotted, as long as a suitable typeface is specified via the graphical parameter `family`. However, specifying fonts in `R` is more complicated under Windows than on other operating systems, as font names cannot be passed directly to `family` as a character string. Instead, you must first register the font using `windowsFonts(myCustomFontName=windowsFont("Charis SIL"))`, and then reference the font as `family="myCustomFontName"` (you may of course substitute anything you like for `myCustomFontName` as long as there are no spaces in the name, and substitute your desired font’s name for `"Charis SIL"`).
 
