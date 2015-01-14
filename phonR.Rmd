@@ -28,6 +28,7 @@ template: vignette_template.tex
 
 ```{r setup-options, echo=FALSE, cache=FALSE, include=FALSE}
 knitr::opts_chunk$set(collapse=TRUE, cache=TRUE, comment="#>", warning=FALSE, message=FALSE, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=90), fig.path="images/", dev="cairo_pdf", fig.align="center", fig.width=12, fig.height=12)
+options(width=90)
 ```
 
 # Introduction
@@ -70,7 +71,7 @@ Finally, the ability of the `plotVowels` function to do on-the-fly normalization
 Note that in `phonR`, the “centroid” for Watt-Fabricius normalization is defined as the point $\langle \frac{\min(\mu(F2_v)) + \max(\mu(F2_v))}{2}, \frac{2 \times \min(\mu(F1_v)) + \max(\mu(F1_v))}{3} \rangle$. This varies slightly from the formula in [@wattFabricius2002], since the `phonR` implementation simply calculates which vowel has the highest mean F1 value and designates it as low corner of the triangle, rather than asking the user to expressly specify the *trap* or *start* vowel. Similarly, the `phonR` implementation simply calculates which vowel has the highest mean F2 value and uses that to calculate the upper left corner, rather than expressly looking for the mean of the “point-vowel” /i/.  The upper right corner is, as in the original method, derived from the other two corners.
 
 # Calculating vowel space area
-The area of the vowel space can be calculated either as the area of the convex hull encompassing all vowel tokens, or as the area of the polygon defined by the mean values for each vowel. An optional `group` argument allows each function to be applied separately to subsets of the data based on a grouping factor (such as subject, gender, speech register, phonetic environment, etc).
+The area of the vowel space can be calculated either as the area of the convex hull encompassing all vowel tokens, or as the area of the polygon defined by the mean values for each vowel. An optional `group` argument allows each function to be applied separately to subsets of the data based on a grouping factor (such as subject, gender, speech register, phonetic environment, etc). The `vowelMeansPolygonArea` function also requires an argument `poly.order` that specifies in which order the means should be connected. Vowels present in the data but not included in `poly.order` will be ignored for the purposes of defining the polygon; this is useful for ignoring mid-central vowels, vowels that are part of long/short pairs, etc.
 
 ```{r area-by-subj}
 poly.area <- with(indo, vowelMeansPolygonArea(f1, f2, vowel, poly.order=c("i", "e", "a", "o", "u"), group=subj))
@@ -190,7 +191,6 @@ coolcolors <- plotrix::color.scale(x=0:100, cs1=c(150, 330), cs2=c(25, 75), cs3=
 par(mfrow=c(1, 2))
 with(indo, plotVowels(f1, f2, vowel, pch.tokens=vowel, col=force.col, var.col.by=NA, pretty=TRUE))
 with(indo, plotVowels(f1, f2, vowel, plot.tokens=FALSE, heatmap=TRUE, heatmap.args=list(colormap=coolcolors, resolution=10, useRaster=TRUE), heatmap.legend=TRUE, pretty=TRUE))
-# useRaster gets passed through to the underlying `graphics::image()` function
 ```
 
 The resolution of the heatmap is controlled by the `resolution` argument, which must be passed as part of the named list `heatmap.args`. The colormap used to draw the heatmap defaults to grayscale if `pretty=FALSE` or to a cool palette if `pretty=TRUE`, but can be specified by passing a vector of color values as the `colormap` element of `heatmap.args`. There is also a boolean argument `heatmap.legend` that can be used to create a colorbar showing the range of possible values, and a named list argument `heatmap.legend.args` for controlling its appearance.
@@ -271,7 +271,7 @@ It would be quite a shame to put so much effort into creating beautiful vowel pl
 Gone are the days when the only unicode-compliant option for IPA transcription was the Doulos SIL typeface. The plots above use [Charis SIL](http://scripts.sil.org/CharisSILfont/), which (unlike Doulos SIL) has bold, italic, and bold-italic faces in addition to regular. In my experience Charis SIL aligns diacritics better than any of its competitors, but the following three fonts also have sufficiently respectable coverage of IPA codepoints to be usable in most documents concerning phonetics or phonology: [M+](http://mplus-fonts.sourceforge.jp/), [STIX](http://www.stixfonts.org/), and [Linux Libertine O](http://www.linuxlibertine.org/) (despite its name, Linux Libertine O will work on any operating system, not just Linux). All of these typefaces are free; M+ comes in an impressive range of weights and has both proportional and monospaced variants, and is the best sans-serif typeface I have found for rendering IPA glyphs.
 
 ## Working with Unicode IPA glyphs in Microsoft Windows
-Perhaps the easiest way to have a pleasant experience working with unicode-compliant representations of IPA glyphs is to use a computer running the Linux operating system: `R` on Linux defaults to a UTF-8 locale, which means that IPA glyphs can be displayed in the `R` command console (both in commands you type/paste in, and in `R`’s output) and used in plots without issue.
+Perhaps the easiest way to have a pleasant experience working with unicode-compliant representations of IPA glyphs is to use a computer running the Linux operating system: `R` on Linux defaults to a UTF-8 locale, which means that IPA glyphs can be displayed in the `R` command console (both in commands you type/paste in, and in `R`’s output) and can be used in plots without issue.
 
 If you use Windows, here are some key pieces of information that will allow you to work with Unicode IPA glyphs in `R` more easily. First: Microsoft Excel does not output UTF-8 encoded text files. If you try to save a spreadsheet from Excel as plain CSV, all the non-ASCII glyphs will be corrupted (i.e., each single non-ASCII codepoint will be interpreted as multiple ASCII codepoints). If you export from Excel as “Unicode text”, what you get is a CSV encoded in “UCS2-LE” format (AKA, “UTF-16 with BOM”). To open this in `R` you must either specify `read.csv(..., encoding="UCS-2")`, or convert it to UTF-8 prior to importing into `R`, then specify `read.csv(..., encoding="UTF-8")`. Converting between encoding formats can be accomplished with the free text editor [Notepad++](http://notepad-plus-plus.org/).
 
