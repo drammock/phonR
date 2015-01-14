@@ -31,7 +31,7 @@ knitr::opts_chunk$set(collapse=TRUE, cache=TRUE, comment="#>", warning=FALSE, me
 ```
 
 # Introduction
-The `phonR` package provides functions for vowel formant frequency and $f_0$ normalization, as well as a vowel plotting function `plotVowels` with many advanced features. There are also a few functions for calculating the area of the vowel space (either as a convex polygonal hull or a polygon connecting the mean values of the vowels), and for calculating the repulsive force of the vowel system. Finally, there are several helper functions that serve to simplify the `phonR` codebase; those are described in the documentation distributed with the package, but are not discussed further here. `phonR` also includes sample data in the form of F1 and F2 measurements for eight speakers of Standard Indonesian.
+The `phonR` package provides functions for vowel formant frequency and $f_0$ normalization, as well as a vowel plotting function `plotVowels` with many advanced features. There are also a few functions for calculating the area of the vowel space (either as a convex polygonal hull or a polygon connecting the mean values of the vowels), and for calculating the repulsive force of the vowel system. `phonR` also includes sample data in the form of F1 and F2 measurements for eight speakers of Standard Indonesian.
 
 ## Installation
 The phonR package can be downloaded from the [Comprehensive R Archive Network](http://cran.r-project.org/package=phonR) or installed through `R` via `install.packages("phonR")`. The source code is hosted on [GitHub](https://github.com/drammock/phonR), and is licensed under [GPL-3](http://www.gnu.org/licenses/gpl.html). Users wishing to work off the development version can install using `devtools::install_github("drammock/phonR")`. `phonR` has three dependencies: `deldir` (for Delaunay triangulations), `plotrix` (for creating color scales), and `splancs` (for point-in-polygon functions). Plotting vowels with non-ASCII characters (i.e., most vowel symbols in the IPA) also requires that the user’s computer have a typeface installed that contains glyphs at the necessary codepoints, and that the user specify that typeface when calling the `plotVowels` function.
@@ -68,6 +68,15 @@ Finally, the ability of the `plotVowels` function to do on-the-fly normalization
 | Nearey‑2 (shared logmean)              | `normSharedLogmean`, `normNearey2` | [@nearey1977]        | $$ \log_{e} (F) - \mu(\log_{e}(F)) $$                                                                                                       |
 
 Note that in `phonR`, the “centroid” for Watt-Fabricius normalization is defined as the point $\langle \frac{\min(\mu(F2_v)) + \max(\mu(F2_v))}{2}, \frac{2 \times \min(\mu(F1_v)) + \max(\mu(F1_v))}{3} \rangle$. This varies slightly from the formula in [@wattFabricius2002], since the `phonR` implementation simply calculates which vowel has the highest mean F1 value and designates it as low corner of the triangle, rather than asking the user to expressly specify the *trap* or *start* vowel. Similarly, the `phonR` implementation simply calculates which vowel has the highest mean F2 value and uses that to calculate the upper left corner, rather than expressly looking for the mean of the “point-vowel” /i/.  The upper right corner is, as in the original method, derived from the other two corners.
+
+# Calculating vowel space area
+The area of the vowel space can be calculated either as the area of the convex hull encompassing all vowel tokens, or as the area of the polygon defined by the mean values for each vowel. An optional `group` argument allows each function to be applied separately to subsets of the data based on a grouping factor (such as subject, gender, speech register, phonetic environment, etc).
+
+```{r area-by-subj}
+poly.area <- with(indo, vowelMeansPolygonArea(f1, f2, vowel, poly.order=c("i", "e", "a", "o", "u"), group=subj))
+hull.area <- with(indo, convexHullArea(f1, f2, group=subj))
+rbind(poly.area, hull.area)
+```
 
 # The `plotVowels` function
 The `plotVowels` function has been developed to be maximally compatible with the base `R` function `plot`, so that many familiar function arguments and graphical parameters can be passed to `plotVowels` and work as expected. Arguments like `family` for specifying font family, `xlab`, `ylab`, `main` and `sub` for axis annotation and titles, or `xlim` and `ylim` for specifying axis bounds are all respected. Other arguments applicable to direct-to-file plotting are also respected (e.g., `filename`, `width`, `height`, `res`, `units`, etc). Finally, just as with the base `plot` function, arguments specific to the individual components of the plot such as `cex.main`, `col.axis`, or `font.main` are available to specify the size, color, and font style of titles, axes, and axis labels.
