@@ -129,8 +129,8 @@ As we have seen, the default for `plotVowels` is to plot each individual vowel t
 
 ```{r plot-means, dependson=c("load-phonR"), fig.height=6, fig.cap="Mean F1 and F2 values for each vowel, plotted with different grouping factors"}
 par(mfrow=c(1, 2))
-with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE, var.col.by=gender, var.style.by=vowel, pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE, var.col.by=gender, var.style.by=vowel, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE, var.col.by=gender, var.style.by=vowel, pretty=TRUE, xlim=c(3000, 500), ylim=c(1000, 250)))
+with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE, var.col.by=gender, var.style.by=vowel, pretty=TRUE, xlim=c(3000, 500), ylim=c(1000, 250)))
 ```
 
 ## Plotting with IPA glyphs
