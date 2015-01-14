@@ -1,0 +1,141 @@
+% !TEX TS-program = xelatex
+% !TEX encoding = UTF-8
+\documentclass[$if(fontsize)$$fontsize$,$endif$$if(lang)$$lang$,$endif$$if(papersize)$$papersize$,$endif$$for(classoption)$$classoption$$sep$,$endfor$]{$documentclass$}
+$if(geometry)$\usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}$endif$
+$if(natbib)$\usepackage{natbib}\bibliographystyle{$if(biblio-style)$$biblio-style$$else$plainnat$endif$}$endif$
+$if(biblatex)$\usepackage{biblatex}$if(biblio-files)$\bibliography{$biblio-files$}$endif$$endif$
+$if(listings)$\usepackage{listings}$endif$
+$if(tables)$\usepackage{longtable,booktabs}$endif$
+% use microtype if available
+\IfFileExists{microtype.sty}{\usepackage{microtype}}{}
+
+$if(graphics)$
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+$endif$
+
+\usepackage{hyperref}
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={$author-meta$},
+            pdftitle={$title-meta$},
+            colorlinks=false,
+            pdfborder={0 0 0}}
+
+$if(numbersections)$
+%\setcounter{secnumdepth}{5}
+$else$
+%\setcounter{secnumdepth}{0}
+$endif$
+$if(verbatim-in-note)$
+%\VerbatimFootnotes % allows verbatim text in footnotes 
+$endif$
+$if(mainfont)$
+%    \setmainfont{$mainfont$}
+$endif$
+$if(sansfont)$
+%    \setsansfont{$sansfont$}
+$endif$
+$if(monofont)$
+%    \setmonofont[Mapping=tex-ansi]{$monofont$}
+$endif$
+$if(mathfont)$
+%    \setmathfont(Digits,Latin,Greek){$mathfont$}
+$endif$
+
+% % % % % % % % % % % % % % % % % %
+% MOSTLY JASA-SPECIFIC FORMATTING %
+% % % % % % % % % % % % % % % % % %
+\usepackage{amsmath, setspace}
+% TITLE PAGE HACKS
+\usepackage{titling}
+\pretitle{\begin{center}\large}
+\posttitle{\par\end{center}\medskip}
+\preauthor{\begin{center}\begin{tabular}[t]{c}}
+\postauthor{\end{tabular}\par\end{center}\medskip}
+\predate{\begin{center}}
+\postdate{\par\end{center}\medskip}
+% formatting for the titlepage footnotes
+\thanksmarkseries{alph}
+\thanksheadextra{\thinspace}{)}
+\thanksfootextra{}{)}
+\setlength{\thanksmarkwidth}{1em}
+\setlength{\thanksmargin}{0em}
+\setlength{\footnotesep}{2em}
+% author block
+\usepackage[blocks]{authblk}
+\renewcommand{\Authfont}{\scshape} 
+\renewcommand\Affilfont{\normalfont\itshape} 
+\setlength{\affilsep}{0in}
+% SINGLE SPACE TABLES
+\usepackage{etoolbox}  % provides \AtBeginEnvironment and \apptocmd
+\AtBeginEnvironment{tabular}{\singlespacing}
+% formatting for section & subsection headings and table captions
+\makeatletter\renewcommand{\section}{\@startsection {section}{1}{0mm}{-\baselineskip}{0.5\baselineskip}{\bfseries\large\uppercase}}\makeatother %{name}{level}{indent}{beforeskip}{afterskip}{style}
+\makeatletter\renewcommand{\subsubsection}{\@startsection {subsubsection}{3}{0mm}{-\baselineskip}{0.5\baselineskip}{\bfseries\itshape}}\makeatother %{name}{level}{indent}{beforeskip}{afterskip}{style}
+\renewcommand{\thesection}{\Roman{section}.} 
+\renewcommand{\thesubsection}{\Alph{subsection}.} 
+\renewcommand{\thesubsubsection}{\arabic{subsubsection}.} 
+\renewcommand*\thetable{\Roman{table}}
+% format various headings to match the style of section headings 
+\renewcommand{\refname}{\bfseries\large\uppercase{references}}
+\renewcommand{\abstractname}{\bfseries\large\uppercase{abstract}}
+\renewcommand{\listfigurename}{\bfseries\large\uppercase{list of figures}}
+
+% % % % % % % % % % % % % 
+% other customizations  %
+% % % % % % % % % % % % % 
+\usepackage{fontspec}
+\setmainfont[Numbers={Lining}]{Linux Libertine O} 
+\setmonofont[ItalicFont={Source Sans Pro}]{Source Sans Pro}
+\renewcommand{\url}{\begingroup \def\UrlLeft{}\def\UrlRight{}\urlstyle{same}\Url} % set URLs in whatever font surrounding text uses
+
+% % % % % % % % % % % % % % % % %
+% title, subtitle, author, date %
+% % % % % % % % % % % % % % % % %
+$if(title)$\title{$title$$if(titlenote)$\thanks{$titlenote$}$endif$}$endif$
+$if(subtitle)$\subtitle{$subtitle$}$endif$
+
+$for(author)$\author{$author.name$$if(author.email)$\thanks{Author to whom correspondence should be addressed. Electronic mail: $author.email$}\thanksgap{1ex}$endif$}
+$if(author.affiliation)$\affil{$for(author.affiliation)$$author.affiliation$$sep$ \& $endfor$}$endif$
+$endfor$
+$if(date)$\date{$date$}$else$\date{\today}$endif$
+
+\begin{document}
+%\doublespacing
+
+$if(title)$\maketitle$if(runningtitle)$\begin{center}Running title: $runningtitle$\end{center}$endif$\newpage$endif$
+$if(abstract)$\begin{abstract}$abstract$\end{abstract}$if(pacs)$\bigskip\bigskip\bigskip PACS Numbers: $for(pacs)$$pacs$$sep$, $endfor$$endif$\newpage$endif$
+
+$for(include-before)$
+$include-before$
+$endfor$
+
+$body$
+
+%\cleardoublepage
+
+$if(acknowledgments)$\section*{acknowledgments}$acknowledgments$\cleardoublepage$endif$
+
+$if(natbib)$
+$if(biblio-files)$
+$if(biblio-title)$\renewcommand\refname{$biblio-title$}$endif$
+\bibliography{$biblio-files$}
+$endif$
+$endif$
+$if(biblatex)$\printbibliography$if(biblio-title)$[title=$biblio-title$]$endif$$endif$
+
+%\cleardoublepage
+
+$for(include-after)$
+$include-after$
+$endfor$
+
+\end{document}
