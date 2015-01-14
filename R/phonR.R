@@ -1075,8 +1075,8 @@ vowelMeansPolygonArea <- function(f1, f2, vowel, poly.order) {
     }
     df <- data.frame(f1=f1, f2=f2, v=factor(vowel, levels=poly.order))
     df <- df[order(df$v),]
-    area <- areapl(cbind(tapply(df$f2, df$v, mean),
-                         tapply(df$f1, df$v, mean)))
+    area <- splancs::areapl(cbind(tapply(df$f2, df$v, mean),
+    							  tapply(df$f1, df$v, mean)))
 }
 
 #' @export
