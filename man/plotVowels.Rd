@@ -1,4 +1,4 @@
-\name{plotVowels}
+\name{Plot vowel formant frequencies}
 \alias{plotVowels}
 \title{Plot vowel formant data and a variety of derivative measures.}
 \description{Generates high-quality plots of provided formant values using
