@@ -12,17 +12,6 @@
     repulsiveForceHeatmapLegend(x, y, labels=c("low", "hi"), pos=c(1, 3),
                                 colormap=NULL, smoothness=50, lend=2, lwd=12, ...)
 }
-
-
-    \item{pos}{Location for plotting a color bar showing the range of force heatmap
-               values. Possible values are: a vector
-                            \code{c(x1, x2, y1, y2)} defining the endpoints of a
-                            line; \code{NA} to suppress plotting a color bar; and
-                            \code{NULL} (the default) to plot it along the left side
-                            of the graph, spanning from the bottom edge to halfway
-                            up the left side of the plotting area.}
-
-
 \arguments{
     \item{x,y}{Numeric vector of x and y values (e.g., F2 and F1 frequencies), or for
                \code{repulsiveForceHeatmapLegend}, length-2 vectors specifying the
@@ -87,8 +76,8 @@
     \item{lend}{End-cap style for the individual segments of the colorbar. See
                 \code{\link[graphics]{par}}.}
     \item{lwd}{Width of the colorbar. See \code{\link[graphics]{par}}.}
-    \item{...}{Additional arguments passed by \code{forceHeatmapLegend} to
-               \code{\link[plotrix]{color.scale.lines}}, or by
+    \item{...}{Additional arguments passed by \code{repulsiveForceHeatmapLegend}
+               to \code{\link[plotrix]{color.scale.lines}}, or by
                \code{repulsiveForceHeatmap} to \code{\link[graphics]{image}},
                (the most important of which is probably \code{add}).}
 }
