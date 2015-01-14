@@ -4,7 +4,7 @@ runningtitle: "phonR 1.0-0 vignette"
 author:
 - name: Daniel R. McCloy
   affiliation:
-  - Institute for Learning and Brain Sciences, University of Washington
+  - University of Washington
 nocite: |
  @charis, @mplus, @stix, @libertine
 date: "`r Sys.Date()`"
@@ -26,8 +26,8 @@ output: phonR.pdf
 template: vignette_template.tex
 -->
 
-```{r setup-options, echo=FALSE, cache=FALSE, include=FALSE, fig.width=12, fig.height=12}
-knitr::opts_chunk$set(collapse=TRUE, cache=TRUE, comment="#>", warning=FALSE, message=FALSE, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=75), fig.path="images/", dev="cairo_pdf")
+```{r setup-options, echo=FALSE, cache=FALSE, include=FALSE}
+knitr::opts_chunk$set(collapse=TRUE, cache=TRUE, comment="#>", warning=FALSE, message=FALSE, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=90), fig.path="images/", dev="cairo_pdf", fig.align="center", fig.width=12, fig.height=12)
 ```
 
 # Introduction
@@ -141,7 +141,7 @@ with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means
 ```{r plot-ipa, dependson=c("load-phonR"), fig.cap="Plot showing semi-transparent tokens and plotting with IPA glyphs"}
 remapping <- c(i="ɪʏ̯", e="ɛœ̰ɚ", a="ɒɐ˞", o="ɤɞ̆", u="ɯʊ̥")
 indo$unicodevowel <- remapping[as.character(indo$vowel)]
-with(indo, plotVowels(f1, f2, unicodevowel, plot.tokens=TRUE, pch.tokens=vowel, cex.tokens=0.8, alpha.tokens=0.4, plot.means=TRUE, pch.means=unicodevowel, cex.means=4, var.col.by=unicodevowel, family="Charis SIL", pretty=TRUE))
+with(indo, plotVowels(f1, f2, unicodevowel, plot.tokens=TRUE, pch.tokens=vowel, cex.tokens=1.2, alpha.tokens=0.4, plot.means=TRUE, pch.means=unicodevowel, cex.means=4, var.col.by=unicodevowel, family="Charis SIL", pretty=TRUE))
 ```
 
 Notice that the glyphs used to plot the tokens and means need not be the same, and that labels are not restricted to a single glyph (making it easy to symbolize diphthongs, consonantal context, or even use entire words as labels).
@@ -153,8 +153,8 @@ Although seeing the cloud of individual tokens for each vowel is sometimes infor
 
 ```{r plot-ellipses, dependson=c("load-phonR"), fig.cap="Ellipses in various configurations"}
 par(mfrow=c(2, 2))
-with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.2, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, ellipse.line=TRUE, pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, alpha.tokens=0.2, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, ellipse.line=TRUE, ellipse.conf=0.95, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, cex.tokens=1.2, alpha.tokens=0.2, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, ellipse.line=TRUE, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, cex.tokens=1.2, alpha.tokens=0.2, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, ellipse.line=TRUE, ellipse.conf=0.95, pretty=TRUE))
 with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, ellipse.fill=TRUE, pretty=TRUE))
 with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=subj, ellipse.line=TRUE, ellipse.fill=TRUE, fill.opacity=0.1, pretty=TRUE))
 ```
@@ -167,10 +167,10 @@ with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means
 
 The vowel polygon lines above (and also convex hulls, seen below) are drawn in black color if the `var.col.by` argument is `vowel` (because the polygonal boundary line is a property of the entire *vowel space*, not of any one vowel). If `var.col.by` is something else (like gender or talker) then the polygonal or hull line follows the color coding of the tokens and means. Just like ellipses (and hulls), vowel polygons may also have lines, fills, or both (controlled by the boolean `poly.line` and `poly.fill` arguments).
 
-```{r convex-hull, dependson=c("load-phonR"), fig.height=6, fig.cap="Convex hulls with different values for the `color.by` argument"}
+```{r convex-hull, dependson=c("load-phonR"), fig.height=6, fig.width=12, fig.cap="Convex hulls with different values for the `color.by` argument"}
 par(mfrow=c(1, 2))
-with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, alpha.tokens=0.3, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=gender, hull.fill=TRUE, hull.line=TRUE, fill.opacity=0.1, pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, alpha.tokens=0.3, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=gender, var.style.by=gender, hull.fill=TRUE, hull.line=TRUE, fill.opacity=0.1, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, cex.tokens=1.2, alpha.tokens=0.3, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=gender, hull.fill=TRUE, hull.line=TRUE, fill.opacity=0.1, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, cex.tokens=1.2, alpha.tokens=0.3, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=gender, var.style.by=gender, hull.fill=TRUE, hull.line=TRUE, fill.opacity=0.1, pretty=TRUE))
 ```
 
 ## Vowel heatmaps and repulsive force
@@ -182,7 +182,8 @@ force.col <- plotrix::color.scale(force, cs1=c(150, 330), cs2=c(25, 75), cs3=c(6
 coolcolors <- plotrix::color.scale(x=0:100, cs1=c(150, 330), cs2=c(25, 75), cs3=c(60, 90), color.spec="hcl")
 par(mfrow=c(1, 2))
 with(indo, plotVowels(f1, f2, vowel, pch.tokens=vowel, col=force.col, var.col.by=NA, pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, plot.tokens=FALSE, heatmap=TRUE, heatmap.args=list(colormap=coolcolors, resolution=10), heatmap.legend=TRUE, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, plot.tokens=FALSE, heatmap=TRUE, heatmap.args=list(colormap=coolcolors, resolution=10, useRaster=TRUE), heatmap.legend=TRUE, pretty=TRUE))
+# useRaster gets passed through to the underlying `graphics::image()` function
 ```
 
 The resolution of the heatmap is controlled by the `resolution` argument, which must be passed as part of the named list `heatmap.args`. The colormap used to draw the heatmap defaults to grayscale if `pretty=FALSE` or to a cool palette if `pretty=TRUE`, but can be specified by passing a vector of color values as the `colormap` element of `heatmap.args`. There is also a boolean argument `heatmap.legend` that can be used to create a colorbar showing the range of possible values, and a named list argument `heatmap.legend.args` for controlling its appearance.
@@ -198,7 +199,7 @@ force <- with(female2, repulsiveForce(f2, f1, vowel))
 force.col <- plotrix::color.scale(force, cs1=c(150, 330), cs2=c(25, 75), cs3=c(60, 90), color.spec="hcl")
 with(female2, plotVowels(f1, f2, vowel, pch.tokens=vowel, cex.tokens=1.2, col=force.col, var.col.by=NA, pretty=TRUE))
 for (res in c(20, 40, 60)) {
-    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, heatmap=TRUE, heatmap.args=list(colormap=coolcolors, resolution=res), pretty=TRUE))
+    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, heatmap=TRUE, heatmap.args=list(colormap=coolcolors, resolution=res, useRaster=TRUE), pretty=TRUE))
 }
 ```
 
@@ -210,7 +211,7 @@ In theory, resolution can go as high as you want, but the heatmaps are somewhat 
 par(mfrow=c(1, 2))
 for (speed in c(TRUE, FALSE)) {
     time.st <- Sys.time()
-    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, heatmap=TRUE, heatmap.args=list(colormap=coolcolors, resolution=50, fast=speed), pretty=TRUE))
+    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, heatmap=TRUE, heatmap.args=list(colormap=coolcolors, resolution=50, fast=speed, useRaster=TRUE), pretty=TRUE))
     time.nd <- Sys.time()
     title(main=paste("This plot took", round(time.nd - time.st, 1), "seconds"), line=3, adj=0)
 }

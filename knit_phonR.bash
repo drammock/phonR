@@ -11,7 +11,7 @@ Rscript -e "knitr::pandoc('index.md')"  # index.md > phonR.html
 mv phonR.html index.html
 
 # cleanup
-rm phonR.html
 rm *.pyc
 rm index.md
 rm phonR.md
+#rm phonR.html

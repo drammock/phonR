@@ -9,6 +9,12 @@ tt, code, pre {
 	font-size: 100%;
 }
 
+pre code {
+	background-color: #F6F6F6;
+	display: block;
+	padding: 1em;
+}
+
 h1 { 
 	line-height: 100%;
 	margin-top: 1em;
@@ -40,3 +46,7 @@ h1 code, h2 code {
 table { font-size: small; }
 tr:nth-child(even) { background: #EEE; }
 tr:nth-child(odd) { background: #FFF; }
+
+table, td, th {
+  border: none;
+}
