@@ -10,7 +10,7 @@ buildInstructions.txt
 installingCairo.txt
 phonR.Rproj
 .Rhistory
-vignettes/phonR.html
+images/*.pdf
 
 # File types
 *.aux
