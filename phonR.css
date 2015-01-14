@@ -1,11 +1,18 @@
-body, td {
+body {
 	font-family: 'M+ 1c', 'Source Sans Pro', 'Droid Sans', 'DejaVu Sans', Calibri, sans-serif;
 	max-width: 1000px;
+	margin: auto;
 }
 
 tt, code, pre {
 	font-family: 'M+ 1m', 'Source Code Pro', 'Droid Sans Mono', 'DejaVu Sans Mono', Consolas, monospace;
 	font-size: 100%;
+}
+
+pre code {
+	background-color: #F6F6F6;
+	display: block;
+	padding: 1em;
 }
 
 h1 { 
@@ -34,4 +41,12 @@ p code, td code {
 h1 code, h2 code {
 	background-color: transparent;
 	border: none;
+}
+
+table { font-size: small; }
+tr:nth-child(even) { background: #EEE; }
+tr:nth-child(odd) { background: #FFF; }
+
+table, td, th {
+  border: none;
 }
