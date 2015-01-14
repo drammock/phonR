@@ -1,7 +1,7 @@
-\name{repulsiveForce}
+\name{Repulsive force}
 \alias{repulsiveForce}
 \alias{repulsiveForceHeatmap}
-\alias{forceHeatmapLegend}
+\alias{repulsiveForceHeatmapLegend}
 \title{Repulsive force calculations and plots for vowel systems.}
 \description{For each point, calculates the sum of inverse squared distances to
              all points that are not of the same type.}

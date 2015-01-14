@@ -1062,7 +1062,7 @@ normWattFabricius <- function(f, vowel, group=NULL) {
 # # # # # # # # # # # # # # # # #
 
 #' @export
-vowelMeansPolygonArea <- function(f1, f2, vowel, poly.order) {
+vowelMeansPolygonArea <- function(f1, f2, vowel, poly.order, group=NULL) {
     if (length(poly.order) != length(unique(poly.order))) {
         warning("Duplicate entries in 'poly.order' detected; they will be ",
                 "ignored.")
@@ -1074,19 +1074,20 @@ vowelMeansPolygonArea <- function(f1, f2, vowel, poly.order) {
                 "'vowel'; they will be ignored.")
         poly.order <- intersect(poly.order, v)
     }
-    df <- data.frame(f1=f1, f2=f2, v=factor(vowel, levels=poly.order))
+    if (is.null(group))  group <- "all.points"
+    df <- data.frame(f2=f2, f1=f1, v=factor(vowel, levels=poly.order), g=group)
     df <- df[order(df$v),]
-    area <- areapl(cbind(tapply(df$f2, df$v, mean),
-                         tapply(df$f1, df$v, mean)))
+    bygrouparea <- c(by(df, df$g, function(i) splancs::areapl(cbind(tapply(i$f2, i$v, mean),
+                                                                    tapply(i$f1, i$v, mean)))))
 }
 
 #' @export
-convexHullArea <- function(x, y, group=NULL) {
+convexHullArea <- function(f1, f2, group=NULL) {
     if (is.null(group))  group <- "all.points"
-    df <- data.frame(x=x, y=y, g=group, stringsAsFactors=FALSE)
-    bygrouppts <- by(df, df$g, function(i) i[chull(i$x, i$y),c('x','y')])
+    df <- data.frame(x=f2, y=f1, g=group, stringsAsFactors=FALSE)
+    bygrouppts <- by(df, df$g, function(i) i[chull(i$x, i$y), c("x", "y")])
     bygrouparea <- sapply(bygrouppts, function(i) {
-        areapl(as.matrix(data.frame(x=i$x, y=i$y, stringsAsFactors=FALSE)))
+        splancs::areapl(as.matrix(data.frame(x=i$x, y=i$y, stringsAsFactors=FALSE)))
 })  }
 
 #' @export

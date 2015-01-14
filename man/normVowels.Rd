@@ -1,4 +1,4 @@
-\name{normVowels}
+\name{Normalize vowel formant frequencies}
 \alias{normVowels}
 \alias{normBark}
 \alias{normErb}
