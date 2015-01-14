@@ -1085,7 +1085,7 @@ convexHullArea <- function(x, y, group=NULL) {
     df <- data.frame(x=x, y=y, g=group, stringsAsFactors=FALSE)
     bygrouppts <- by(df, df$g, function(i) i[chull(i$x, i$y),c('x','y')])
     bygrouparea <- sapply(bygrouppts, function(i) {
-        areapl(as.matrix(data.frame(x=i$x, y=i$y, stringsAsFactors=FALSE)))
+        splancs::areapl(as.matrix(data.frame(x=i$x, y=i$y, stringsAsFactors=FALSE)))
 })  }
 
 #' @export
