@@ -1,6 +1,7 @@
-body, td {
+body {
 	font-family: 'M+ 1c', 'Source Sans Pro', 'Droid Sans', 'DejaVu Sans', Calibri, sans-serif;
 	max-width: 1000px;
+	margin: auto;
 }
 
 tt, code, pre {
@@ -35,3 +36,7 @@ h1 code, h2 code {
 	background-color: transparent;
 	border: none;
 }
+
+table { font-size: small; }
+tr:nth-child(even) { background: #EEE; }
+tr:nth-child(odd) { background: #FFF; }
