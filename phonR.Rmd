@@ -39,10 +39,8 @@ The phonR package can be downloaded from the [Comprehensive R Archive Network](h
 To run the examples in this tutorial yourself, you need to load `phonR` and the accompanying sample data:
 
 ```{r load-phonR}
-source("/home/dan/Documents/academics/tools/phonR/R/phonR.R")
-load("/home/dan/Documents/academics/tools/phonR/data/indoVowels.rda")
-#library(phonR)
-#data(indoVowels)  # provides dataframe "indo"
+library(phonR)
+data(indoVowels)  # provides dataframe "indo"
 ```
 
 ## A note about the examples
