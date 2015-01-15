@@ -7,15 +7,17 @@
              all points that are not of the same type.}
 \usage{
     repulsiveForce(x, y, type, xform=log, exclude.inf=TRUE)
-    repulsiveForceHeatmap(x, y, type=NULL, xform=log, exclude.inf=TRUE,
-                          resolution=10, colormap=NULL, fast=FALSE, ...)
-    repulsiveForceHeatmapLegend(x, y, labels=c("low", "high"), pos=c(1, 3),
-                                colormap=NULL, smoothness=50, lend=2, lwd=12, ...)
+    repulsiveForceHeatmap(x, y, type=NULL, xform=log, 
+                          exclude.inf=TRUE, resolution=10,
+                          colormap=NULL, fast=FALSE, ...)
+    repulsiveForceHeatmapLegend(x, y, labels=c("low", "high"),
+                                pos=c(1, 3), colormap=NULL,
+                                smoothness=50, lend=2, lwd=12, ...)
 }
 \arguments{
-    \item{x,y}{Numeric vector of x and y values (e.g., F2 and F1 frequencies), or for
-               \code{repulsiveForceHeatmapLegend}, length-2 vectors specifying the
-               endpoints of the legend colorbar.}
+    \item{x,y}{Numeric vector of x and y values (e.g., F2 and F1 frequencies), or
+               in the case of \code{repulsiveForceHeatmapLegend}, length-2 vectors
+               specifying the endpoints of the legend colorbar.}
     \item{type}{Attribute of the \code{(x, y)} points used to interpolate values
                 for intermediate points. In typical linguistic usage of this
                 function, \code{type} would be the vowel identities of the F2
@@ -76,10 +78,10 @@
     \item{lend}{End-cap style for the individual segments of the colorbar. See
                 \code{\link[graphics]{par}}.}
     \item{lwd}{Width of the colorbar. See \code{\link[graphics]{par}}.}
-    \item{...}{Additional arguments passed by \code{repulsiveForceHeatmapLegend}
-               to \code{\link[plotrix]{color.scale.lines}}, or by
-               \code{repulsiveForceHeatmap} to \code{\link[graphics]{image}},
-               (the most important of which is probably \code{add}).}
+    \item{...}{Additional arguments passed to \code{\link[graphics]{image}} by
+               \code{repulsiveForceHeatmap}, or passed to
+               \code{\link[plotrix]{color.scale.lines}} by
+               \code{repulsiveForceHeatmapLegend}.}
 }
 \details{Given endpoints \code{x} and \code{y}, \code{forceHeatmapLegend} draws
          a colorbar legend with \code{smoothness} number of steps using the
@@ -99,14 +101,15 @@ Pineda, J. 1988 \dQuote{A parallel algorithm for polygon rasterization}. \emph{A
 \examples{
     require(plotrix)
     data(indoVowels)
-    force <- with(indo[indo$subj==indo$subj[1],], repulsiveForce(f2, f1, vowel))
-    colmap <- color.scale(x=0:100, cs1=c(0, 180), cs2=100, cs3=c(25, 100),
-                          alpha=0.5, color.spec='hcl')
+    force <- with(indo[indo$subj==indo$subj[1],], 
+                  repulsiveForce(f2, f1, vowel))
+    colmap <- color.scale(x=0:100, cs1=c(0, 180), cs2=100, 
+                          cs3=c(25, 100), color.spec='hcl')
     with(indo[indo$subj==indo$subj[1],],
         repulsiveForceHeatmap(f2, f1, type=vowel, resolution=10,
                               colormap=colmap, add=FALSE))
     xl <- rep(max(range(indo$f2)), 2)
-    yl <- rev(range(indo$f1)) + c(0, abs(diff(range(indo$f1)) / 2))
-    repulsiveForceHeatmapLegend(xl, yl, colormap=colmap)
+    yl <- range(indo$f1) + c(abs(diff(range(indo$f1)) / 2), 0)
+    repulsiveForceHeatmapLegend(xl, yl, colormap=colmap, useRaster=TRUE)
 }
 \keyword{methods}

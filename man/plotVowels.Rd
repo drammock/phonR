@@ -114,7 +114,7 @@
                        extent that it is implemented, it is only implemented for
                        tokens, not means.}
     \item{heatmap}{Logical; should a repulsive force heatmap be drawn?}
-    \item{heatmap.args}{Named list of additional arguments to be passed to
+    \item{heatmap.args}{Named list of additional arguments passed to
                         \code{\link{repulsiveForceHeatmap}}. The arguments \code{x},
                         \code{y}, and \code{type} are passed automatically by
                         \code{plotVowels}; \code{heatmap.args} is probably most
@@ -122,13 +122,13 @@
                         and the \code{xform} function.}
     \item{heatmap.legend}{Logical; should a legend be drawn showing the color scale
                           used in the repulsive force heatmap?}
-    \item{heatmap.legend.args}{Named list of additional arguments to be passed to
+    \item{heatmap.legend.args}{Named list of additional arguments passed to
                                \code{\link{repulsiveForceHeatmapLegend}}. Parameters
                                likely to be user-specified here are \code{x} and \code{y}
                                for specifying the endpoints of the colorbar, \code{labels}
                                for label text at the two ends of the colorbar, and
                                \code{smoothness} for the number of color steps to display
-                               (limited by the actual number of levels in the color scale
+                               (limited by the number of levels in the color scale
                                used). See \code{\link{repulsiveForceHeatmapLegend}} for
                                a more complete description of the available arguments.}
     \item{var.col.by}{Vector or factor indicating the dimension along which to vary
@@ -171,8 +171,8 @@
                \code{plotVowels}.}
 }
 \details{\emph{Notes on color handling}. If no \code{col} or \code{border}
-         arguments are passed to \code{ellipse.args}, \code{poly.args}, or
-         \code{hull.args}, then color is handled as follows: if
+         arguments are passed to \code{hull.args}, \code{poly.args}, or
+         \code{ellipse.args}, then color is handled as follows: if
          \code{pretty=FALSE}, colors default to the values in \code{palette()},
          with opacity for fills set by \code{fill.opacity}. If \code{pretty=TRUE},
          equally-spaced hues of HCL colors are used instead of \code{palette()}.
@@ -187,14 +187,27 @@ data(indoVowels)
 with(indo, plotVowels(f1, f2, vowel, group=gender, plot.means=TRUE,
                       pch.means=vowel, ellipse.line=TRUE, poly.line=TRUE,
                       poly.order=c('i','e','a','o','u'), var.col.by=vowel,
-                      var.style.by=gender, pretty=TRUE))
+                      var.style.by=gender, pretty=TRUE, alpha.tokens=0.3,
+                      cex.means=2))
 # simulate some diphthongs
-indo_d <- within(indo, {
-        f1b <- f1 + sample(c(-30:-5,5:30), length(f1), replace=TRUE)
-        f2b <- f2 + sample(c(-50:-10,10:50), length(f2), replace=TRUE)
-        })
-with(indo_d, plotVowels(f1=cbind(f1, f1b), f2=cbind(f2, f2b), vowel,
-                        var.col.by=subj, diph.arrows=TRUE, pretty=TRUE))
+f1delta <- sample(c(-10:-5, 5:15), nrow(indo), replace=TRUE)
+f2delta <- sample(c(-15:-10, 20:30), nrow(indo), replace=TRUE)
+f1coefs <- matrix(sample(c(2:5), nrow(indo) * 2, replace=TRUE), 
+                  nrow=nrow(indo))
+f2coefs <- matrix(sample(c(3:6), nrow(indo) * 2, replace=TRUE),
+                  nrow=nrow(indo))
+indo <- within(indo, {
+    f1a <- f1  + f1delta * f1coefs[,1]
+    f2a <- f2  + f2delta * f2coefs[,1]
+    f1b <- f1a + f1delta * f1coefs[,2]
+    f2b <- f2a + f2delta * f2coefs[,2]
+    })
+with(indo, plotVowels(cbind(f1, f1a, f1b), cbind(f2, f2a, f2b), vowel,
+                      group=gender, plot.tokens=TRUE, pch.tokens=NA,
+                      alpha.tokens=0.3, plot.means=TRUE, pch.means=vowel,
+                      var.col.by=vowel, var.style.by=gender, pretty=TRUE,
+                      diph.arrows=TRUE, diph.args.tokens=list(lwd=0.8),
+                      diph.args.means=list(lwd=2)))
 }
 \keyword{device}
 \keyword{hplot}
