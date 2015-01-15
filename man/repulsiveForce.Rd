@@ -107,6 +107,6 @@ Pineda, J. 1988 \dQuote{A parallel algorithm for polygon rasterization}. \emph{A
                               colormap=colmap, add=FALSE))
     xl <- rep(max(range(indo$f2)), 2)
     yl <- rev(range(indo$f1)) + c(0, abs(diff(range(indo$f1)) / 2))
-    forceHeatmapLegend(xl, yl, colormap=colmap)
+    repulsiveForceHeatmapLegend(xl, yl, colormap=colmap)
 }
 \keyword{methods}

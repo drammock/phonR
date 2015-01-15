@@ -21,8 +21,8 @@
                diph.label.first.only=TRUE,
                diph.mean.timept=1, diph.smooth=FALSE,
                heatmap=FALSE, heatmap.args=NULL,
-               heatmap.legend=NULL, heatmap.legend.args=NULL,
-               var.col.by=NA, var.style.by=NA,
+               heatmap.legend=FALSE, heatmap.legend.args=NULL,
+               var.col.by=NULL, var.style.by=NULL,
                fill.opacity=0.3, label.las=NULL,
                legend.kwd=NULL, legend.args=NULL,
                pretty=FALSE, output='screen', ...)
