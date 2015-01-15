@@ -232,14 +232,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (is.null(group)) gf <- rep('gf', l)
     else 			    gf <- factor(group)
     # used later to set default polygon color when color varies by vowel
-    vcb <- as.numeric(factor(var.col.by))
-    vsb <- as.numeric(factor(var.style.by))
-    if (identical(vcb, as.numeric(factor(vowel))))   col.by.vowel <- TRUE
-    else                                             col.by.vowel <- FALSE
-    if (identical(vcb, as.numeric(factor(group))))   col.by.group <- TRUE
-    else                                             col.by.group <- FALSE
-    if (identical(vsb, as.numeric(factor(group)))) style.by.group <- TRUE
-    else                                           style.by.group <- FALSE
+    if (identical(as.numeric(factor(var.col.by)), 
+    			  as.numeric(factor(vowel)))) col.by.vowel <- TRUE
+    else                                      col.by.vowel <- FALSE
     # var.col.by & var.style.by
     if (!is.null(var.col.by[1])) {
         if (is.na(var.col.by[1])) legend.col.lab <- NULL
@@ -425,12 +420,14 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             with(i, data.frame(f2=mean(f2, na.rm=TRUE),
                                f1=mean(f1, na.rm=TRUE),
                                v=unique(v), gf=unique(gf),
-                               col.means=ifelse(col.by.group, unique(col.means), par("fg")),
-                               style=ifelse(style.by.group, unique(style), 1),
-                               poly.fill.col=ifelse(col.by.group, unique(poly.fill.col), trans.fg),
-                               poly.line.col=ifelse(col.by.group, unique(poly.line.col), par("fg")),
-                               ellipse.fill.col=ifelse(col.by.group, unique(ellipse.fill.col), trans.fg),
-                               ellipse.line.col=ifelse(col.by.group, unique(ellipse.line.col), par("fg")),
+                               col.means=ifelse(length(unique(col.means)) == 1,
+                               					unique(col.means), par("fg")),
+                               style=ifelse(length(unique(style)) == 1,
+                               				unique(style), 1),
+                               poly.fill.col=unique(poly.fill.col),
+                               poly.line.col=unique(poly.line.col),
+                               ellipse.fill.col=unique(ellipse.fill.col),
+                               ellipse.line.col=unique(ellipse.line.col),
                                pchmeans=unique(pchmeans),
                                stringsAsFactors=FALSE))
     }})
@@ -975,23 +972,23 @@ normLogmean <- function(f, group=NULL, exp=FALSE, ...) {
     # AKA "Nearey1", what Adank confusingly calls "SingleLogmean".
     # Note that Adank et al 2004 (eq. 8) looks more like a shared logmean,
     # but in text she says it is applied to each formant separately.
-    if (ncol(f) != 4) {
+    if (ncol(f) < 2) {
         stop("Missing values: normalization method 'normLogmean' ",
-            "requires non-null values for f0, f1, f2, and f3).")
+            "requires non-null values for f1 and f2).")
     }
     if (is.null(group)) {
         logmeans <- log(f) - rep(colMeans(log(f), ...), each=nrow(f))
-        if (exp) logmeans <- exp(logmeans)
-        return(logmeans)
     } else {
         f <- as.data.frame(f)
         groups <- split(f, group)
         logmeans <- lapply(groups,
                            function(x) log(x) - rep(apply(log(x), 2, mean),
                                                     each=nrow(x)))
-        if (exp) logmeans <- exp(logmeans)
-        return(unsplit(logmeans, group))
-}	}
+    logmeans <- unsplit(logmeans, group)
+	}
+    if (exp) logmeans <- exp(logmeans)
+    logmeans
+}
 
 #' @export
 normNearey1 <- function(f, group=NULL, exp=FALSE, ...) {
@@ -1007,16 +1004,16 @@ normSharedLogmean <- function(f, group=NULL, exp=FALSE, ...) {
         logmeans <- log(f) - mean(log(unlist(f)), ...)
         # NOTE: Adank et al 2004 (eq. 9) would suggest this implementation:
         # logmeans <- log(f) - sum(colMeans(log(f), ...))
-        if (exp) logmeans <- exp(logmeans)
-        return(logmeans)
     } else {
         f <- as.data.frame(f)
         groups <- split(f, group)
         logmeans <- lapply(groups, function(x) log(x) - mean(log(unlist(x)), ...))
         # Adank:    lapply(groups, function(x) log(x) - sum(colMeans(log(x), ...)))
-        if (exp) logmeans <- exp(logmeans)
-        return(unsplit(logmeans, group))
-}	}
+        logmeans <- unsplit(logmeans, group)
+	}
+    if (exp) logmeans <- exp(logmeans)
+    logmeans
+}
 
 #' @export
 normNearey2 <- function(f, group=NULL, exp=FALSE, ...) {
