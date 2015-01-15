@@ -27,8 +27,8 @@
     normNearey2(f, group=NULL, exp=FALSE, ...)
     normSharedLogmean(f, group=NULL, exp=FALSE, ...)
     normWattFabricius(f, vowel, group=NULL)
-    normVowels(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, vowel=NULL,
-                group=NULL, ...)
+    normVowels(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, 
+               vowel=NULL, group=NULL, ...)
 }
 \arguments{
     \item{f}{Vector or matrix of formant frequencies. For \code{normNearey},
@@ -40,8 +40,8 @@
              rows.}
     \item{vowel}{Vector or factor of vowel symbols, with
                  \code{length(vowel)==nrow(f)}. Used only in
-                 \code{normWattFabricius} or
-                 \code{normVowels(method="wattfabricius", ...)}.}
+                 \code{normVowels(method="wattfabricius", ...)} or
+                 \code{normWattFabricius(...)}.}
     \item{group}{Vector or factor indicating rows of \code{f} that should be
                  normalized together. This is useful for, e.g., calculating
                  talker-intrinsic normalizations when \code{group} encodes
@@ -50,21 +50,21 @@
                through the \code{\link[base]{exp}} function before being returned?}
     \item{f0,f1,f2,f3}{Separate vectors of formant or
         fundamental frequency values used in the convenience method
-        \code{plotVowels}. All four arguments are required when
-        \code{method="nearey"}; \code{f1} and \code{f2} are required when
-        \code{method="wattfabricius"}.}
+        \code{plotVowels}. \code{f1} and \code{f2} are required when
+        \code{method} is \code{"wattfabricius"}, \code{"logmean"},
+        \code{"shared"}, \code{"nearey1"}, or \code{"nearey2"}.}
     \item{method}{Specification of the normalization method to use when calling
                   the convenience method \code{normVowels}. Possible values are
                   \dQuote{bark}, \dQuote{erb}, \dQuote{lobanov},
                   \dQuote{log}, \dQuote{logmean}, \dQuote{mel},
-                  \dQuote{nearey}, and \dQuote{wattfabricius}.
+                  \dQuote{shared}, and \dQuote{wattfabricius}.
                   \dQuote{zscore} is an accepted synonym for \dQuote{lobanov};
                   \dQuote{nearey1} is an accepted synonym for \dQuote{logmean};
                   \dQuote{nearey2} is an accepted synonym for \dQuote{shared};
                   and \dQuote{scentroid}, is an accepted synonym for
                   \dQuote{wattfabricius}.}
     \item{...}{Additional arguments passed to \code{\link[base]{colMeans}} by
-               functions \code{normLogmean} and \code{normNearey} (useful for
+               functions \code{normLogmean} and \code{normSharedLogmean} (useful for
                specifying the value of \code{na.rm}).}
 }
 \details{
