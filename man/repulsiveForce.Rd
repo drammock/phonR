@@ -9,7 +9,7 @@
     repulsiveForce(x, y, type, xform=log, exclude.inf=TRUE)
     repulsiveForceHeatmap(x, y, type=NULL, xform=log, exclude.inf=TRUE,
                           resolution=10, colormap=NULL, fast=FALSE, ...)
-    repulsiveForceHeatmapLegend(x, y, labels=c("low", "hi"), pos=c(1, 3),
+    repulsiveForceHeatmapLegend(x, y, labels=c("low", "high"), pos=c(1, 3),
                                 colormap=NULL, smoothness=50, lend=2, lwd=12, ...)
 }
 \arguments{
@@ -107,6 +107,6 @@ Pineda, J. 1988 \dQuote{A parallel algorithm for polygon rasterization}. \emph{A
                               colormap=colmap, add=FALSE))
     xl <- rep(max(range(indo$f2)), 2)
     yl <- rev(range(indo$f1)) + c(0, abs(diff(range(indo$f1)) / 2))
-    forceHeatmapLegend(xl, yl, colormap=colmap)
+    repulsiveForceHeatmapLegend(xl, yl, colormap=colmap)
 }
 \keyword{methods}

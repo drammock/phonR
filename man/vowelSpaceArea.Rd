@@ -2,7 +2,7 @@
 \alias{convexHullArea}
 \alias{vowelMeansPolygonArea}
 \title{Calculate the area of a vowel space}
-\description{Calculate the area of an \code{F2 \times F1} vowel space, either as the area of a polygon connecting vowel formant means, or the area of a convex hull encompassing all tokens.}
+\description{Calculate the area of an \code{F2 x F1} vowel space, either as the area of a polygon connecting vowel formant means, or the area of a convex hull encompassing all tokens.}
 \usage{
     convexHullArea(f1, f2, group=NULL)
     vowelMeansPolygonArea(f1, f2, vowel, poly.order, group=NULL)
@@ -23,6 +23,7 @@
 \examples{
     data(indoVowels)
     hull.area <- with(indo, convexHullArea(f1, f2, group=subj))
-    poly.area <- with(indo, vowelMeansPolygonArea(f1, f2, vowel, poly.order=c("i", "e", "a", "o", "u"), group=subj))
+    poly.area <- with(indo, vowelMeansPolygonArea(f1, f2, vowel, 
+        poly.order=c("i", "e", "a", "o", "u"), group=subj))
 }
 \keyword{methods}

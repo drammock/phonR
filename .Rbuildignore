@@ -2,8 +2,10 @@
 .Rproj.user
 cache
 extras
+images
 old-versions
 
+index.html
 knit_phonR.bash
 phonR.bib
 phonR.csl
@@ -11,6 +13,7 @@ phonR.css
 phonR.Rmd
 phonR.Rproj
 README.md
+TODO.txt
 vignette_mathjax_resizer.py
 vignette_postprocessing.py
 vignette_template.tex
