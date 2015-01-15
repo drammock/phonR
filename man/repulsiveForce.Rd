@@ -9,7 +9,7 @@
     repulsiveForce(x, y, type, xform=log, exclude.inf=TRUE)
     repulsiveForceHeatmap(x, y, type=NULL, xform=log, exclude.inf=TRUE,
                           resolution=10, colormap=NULL, fast=FALSE, ...)
-    repulsiveForceHeatmapLegend(x, y, labels=c("low", "hi"), pos=c(1, 3),
+    repulsiveForceHeatmapLegend(x, y, labels=c("low", "high"), pos=c(1, 3),
                                 colormap=NULL, smoothness=50, lend=2, lwd=12, ...)
 }
 \arguments{
