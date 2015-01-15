@@ -810,7 +810,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             # legend pch
             legend.pch <- NULL
             if (length(legend.style.lab)) {
-                if (plot.means && all(grepl("[[:digit:]]", pchmeans))) {
+                if (plot.means && all(grepl("[[:digit:]]", pch.means))) {
                     legend.pch <- unique(m$pchmeans)
                 } else if (plot.tokens && all(grepl("[[:digit:]]", pch.tokens))) {
                     legend.pch <- unique(d$pchtokens)
