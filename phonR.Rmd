@@ -27,7 +27,7 @@ template: vignette_template.tex
 -->
 
 ```{r setup-options, echo=FALSE, cache=FALSE, include=FALSE}
-knitr::opts_chunk$set(collapse=TRUE, cache=TRUE, comment="#>", warning=FALSE, message=FALSE, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=90), fig.path="images/", dev="cairo_pdf", fig.align="center", fig.width=12, fig.height=12)
+knitr::opts_chunk$set(collapse=TRUE, cache=TRUE, comment="#>", warning=FALSE, message=FALSE, tidy=TRUE, tidy.opts=list(blank=FALSE, width.cutoff=80), fig.path="images/", dev="cairo_pdf", fig.align="center", fig.width=12, fig.height=12)
 options(width=90)
 ```
 
