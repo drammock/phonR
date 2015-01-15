@@ -185,13 +185,13 @@ with(indo, plotVowels(f1, f2, vowel, group=gender, plot.means=TRUE,
                       pch.means=vowel, ellipse.line=TRUE, poly.line=TRUE,
                       poly.order=c('i','e','a','o','u'), var.col.by=vowel,
                       var.style.by=gender, pretty=TRUE))
-    # simulate some diphthongs
+# simulate some diphthongs
 indo_d <- within(indo, {
         f1b <- f1 + sample(c(-30:-5,5:30), length(f1), replace=TRUE)
         f2b <- f2 + sample(c(-50:-10,10:50), length(f2), replace=TRUE)
         })
-    with(indo_d, plotVowels(f1=cbind(f1, f1b), f2=cbind(f2, f2b), vowel,
-                        group=subj, diph.arrows=TRUE, pretty=TRUE))
+with(indo_d, plotVowels(f1=cbind(f1, f1b), f2=cbind(f2, f2b), vowel,
+                        var.col.by=subj, diph.arrows=TRUE, pretty=TRUE))
 }
 \keyword{device}
 \keyword{hplot}

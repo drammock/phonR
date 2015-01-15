@@ -987,8 +987,8 @@ normLogmean <- function(f, group=NULL, exp=FALSE, ...) {
 }	}
 
 #' @export
-normNearey1 <- function(f, group=NULL, ...) {
-    normLogmean(f, group=NULL, ...)
+normNearey1 <- function(f, group=NULL, exp=FALSE, ...) {
+    normLogmean(f, group=group, exp=exp, ...)
 }
 
 #' @export
@@ -1012,8 +1012,8 @@ normSharedLogmean <- function(f, group=NULL, exp=FALSE, ...) {
 }	}
 
 #' @export
-normNearey2 <- function(f, group=NULL, ...) {
-    normSharedLogmean(f, group=NULL, ...)
+normNearey2 <- function(f, group=NULL, exp=FALSE, ...) {
+    normSharedLogmean(f, group=group, exp=exp, ...)
 }
 
 #' @export
