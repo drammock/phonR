@@ -180,7 +180,7 @@
 \author{McCloy, Daniel \email{drmccloy@uw.edu}}
 \seealso{\code{\link{normVowels}}}
 \examples{
-    data(indoVowels)
+data(indoVowels)
 with(indo, plotVowels(f1, f2, vowel, group=gender, plot.means=TRUE,
                       pch.means=vowel, ellipse.line=TRUE, poly.line=TRUE,
                       poly.order=c('i','e','a','o','u'), var.col.by=vowel,
