@@ -4,7 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
-  <meta name="date" content="2015-01-15" />
+  <meta name="date" content="2015-01-18" />
   <title>Normalizing and plotting vowels with phonR 1.0-0</title>
   <style type="text/css">code{white-space: pre;}</style>
   <style type="text/css">
@@ -34,7 +34,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <h1 class="title">Normalizing and plotting vowels with phonR 1.0-0</h1>
 <h2 class="author">Daniel R. McCloy</h2>
 <h3 class="author">University of Washington</h3>
-<h3 class="date">2015-01-15</h3>
+<h3 class="date">2015-01-18</h3>
 </div>
 <!--pandoc
 s:
@@ -55,7 +55,7 @@ template: vignette_template.tex
 <h1 id="introduction">Introduction</h1>
 <p>The <code>phonR</code> package provides functions for vowel formant frequency and <span class="math">\(f_0\)</span> normalization, as well as a vowel plotting function <code>plotVowels</code> with many advanced features. There are also a few functions for calculating the area of the vowel space (either as a convex polygonal hull or a polygon connecting the mean values of the vowels), and for calculating the repulsive force of the vowel system. <code>phonR</code> also includes sample data in the form of F1 and F2 measurements for eight speakers of Standard Indonesian.</p>
 <h2 id="installation">Installation</h2>
-<p>The phonR package can be downloaded from the <a href="http://cran.r-project.org/package=phonR">Comprehensive R Archive Network</a> or installed through <code>R</code> via <code>install.packages(&quot;phonR&quot;)</code>. The source code is hosted on <a href="https://github.com/drammock/phonR">GitHub</a>, and is licensed under <a href="http://www.gnu.org/licenses/gpl.html">GPL-3</a>. Users wishing to work off the development version can install using <code>devtools::install_github(&quot;drammock/phonR&quot;)</code>. <code>phonR</code> has three dependencies: <code>deldir</code> (for Delaunay triangulations), <code>plotrix</code> (for creating color scales), and <code>splancs</code> (for point-in-polygon functions). Plotting vowels with non-ASCII characters (i.e., most vowel symbols in the IPA) also requires that the user’s computer have a typeface installed that contains glyphs at the necessary codepoints, and that the user specify that typeface when calling the <code>plotVowels</code> function.</p>
+<p><code>phonR 1.0-0</code> is not yet available through the <a href="http://cran.r-project.org/package=phonR">Comprehensive R Archive Network</a>, but the source code is hosted on <a href="https://github.com/drammock/phonR">GitHub</a> so the package can be installed using <code>devtools::install_github(&quot;drammock/phonR&quot;)</code>. <code>phonR</code> is licensed under <a href="http://www.gnu.org/licenses/gpl.html">GPL-3</a>, and has three dependencies: <code>deldir</code> (for Delaunay triangulations), <code>plotrix</code> (for creating color scales), and <code>splancs</code> (for point-in-polygon functions). Plotting vowels with non-ASCII characters (i.e., most vowel symbols in the IPA) also requires that the user’s computer have a typeface installed that contains glyphs at the necessary codepoints, and that the user specify that typeface when calling the <code>plotVowels</code> function.</p>
 <p>To run the examples in this tutorial yourself, you need to load <code>phonR</code> and the accompanying sample data:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(phonR)
 <span class="kw">data</span>(indoVowels)  <span class="co"># provides dataframe &#39;indo&#39;</span></code></pre>
@@ -239,6 +239,7 @@ coolcolors &lt;-<span class="st"> </span>plotrix::<span class="kw">color.scale</
 <span class="kw">with</span>(indo, <span class="kw">plotVowels</span>(f1, f2, vowel, <span class="dt">plot.tokens =</span> <span class="ot">FALSE</span>, <span class="dt">heatmap =</span> <span class="ot">TRUE</span>, <span class="dt">heatmap.args =</span> <span class="kw">list</span>(<span class="dt">colormap =</span> coolcolors, 
     <span class="dt">resolution =</span> <span class="dv">10</span>, <span class="dt">useRaster =</span> <span class="ot">TRUE</span>), <span class="dt">heatmap.legend =</span> <span class="ot">TRUE</span>, <span class="dt">pretty =</span> <span class="ot">TRUE</span>))</code></pre>
 <p><img src="images/force-one-1.png" title="Color-coding repulsive force using individual tokens, versus plotting a heatmap" alt="Color-coding repulsive force using individual tokens, versus plotting a heatmap" style="display: block; margin: auto;" /></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># useRaster gets passed through to the underlying `graphics::image()` function</span></code></pre>
 <p>The resolution of the heatmap is controlled by the <code>resolution</code> argument, which must be passed as part of the named list <code>heatmap.args</code>. The colormap used to draw the heatmap defaults to grayscale if <code>pretty=FALSE</code> or to a cool palette if <code>pretty=TRUE</code>, but can be specified by passing a vector of color values as the <code>colormap</code> element of <code>heatmap.args</code>. There is also a boolean argument <code>heatmap.legend</code> that can be used to create a colorbar showing the range of possible values, and a named list argument <code>heatmap.legend.args</code> for controlling its appearance.</p>
 <p>The plots below use just one speaker’s vowels to illustrate the effect of increasing <code>resolution</code>. Values shown are <code>20</code>, <code>40</code>, and <code>60</code>, with the actual vowel tokens plotted with a force color-code (as above) for comparison.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mfrow =</span> <span class="kw">c</span>(<span class="dv">2</span>, <span class="dv">2</span>))
