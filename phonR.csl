@@ -5,9 +5,14 @@
     <id>http://www.zotero.org/styles/apa</id>
     <link href="http://dan.mccloy.info/apa-custom.csl" rel="self"/>
     <author>
+      <name>Daniel McCloy</name>
+      <email>drmccloy@uw.edu</email>
+      <uri>http://dan.mccloy.info/</uri>
+    </author>
+    <contributor>
       <name>Simon Kornblith</name>
       <email>simon@simonster.com</email>
-    </author>
+    </contributor>
     <contributor>
       <name>Bruce D'Arcus</name>
     </contributor>
@@ -21,11 +26,6 @@
     </contributor>
     <contributor>
       <name>Sebastian Karcher</name>
-    </contributor>
-    <contributor>
-      <name>Daniel McCloy</name>
-      <email>drmccloy@uw.edu</email>
-      <uri>http://dan.mccloy.info/</uri>
     </contributor>
     <category field="psychology"/>
     <category field="generic-base"/>
