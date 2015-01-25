@@ -1,8 +1,38 @@
+*, html {
+	margin: 0;
+	padding: 0;
+}
+
+html {
+	background-image: url(./images/morris_thistleViolet1.png);
+	background-repeat: repeat;
+	background-color:#16002C;
+}
+
 body {
 	font-family: 'M+ 1c', 'Source Sans Pro', 'Droid Sans', 'DejaVu Sans', Calibri, sans-serif;
 	max-width: 1000px;
-	margin: auto;
+	margin:  0 auto !important;
+	padding: 0 1.5em;
+	background-color: #FFF;
 }
+
+p {
+	margin: 0 0 0.5em;
+}
+
+div.references p {
+	display: list-item;
+	list-style: square;
+	margin-left: 1.25em;
+}
+
+/*
+div.references p:before {
+	content: "▪ ";
+	color: #46008C; #5C5C66
+}
+*/
 
 tt, code, pre {
 	font-family: 'M+ 1m', 'Source Code Pro', 'Droid Sans Mono', 'DejaVu Sans Mono', Consolas, monospace;
@@ -12,13 +42,19 @@ tt, code, pre {
 pre code {
 	background-color: #F6F6F6;
 	display: block;
-	padding: 1em;
+	padding: 0.75em;
+	margin: 0.5em 0;
 }
 
 h1 {
 	line-height: 100%;
-	margin-top: 1em;
-	margin-bottom: 0.4em;
+	padding-top: 1em;
+	padding-bottom: 0.5em;
+}
+
+h2, h3 {
+	padding-top: 0.5em;
+	padding-bottom: 0.5em;
 }
 
 a:link, a:visited {
@@ -44,7 +80,13 @@ h1 code, h2 code {
 	color: #666;
 }
 
-table { font-size: small; }
+table {
+	font-size: small;
+	border: none;
+	margin: 1.5em 0;
+	border-spacing: 0px;
+}
+
 tr:nth-child(even) { background: #EEE; }
 tr:nth-child(odd) { background: #FFF; }
 tr.header {
@@ -52,8 +94,8 @@ tr.header {
 	color: #EEE;
 }
 
-table, td, th {
-  border: none;
+td, th {
+	border: none;
 	border-spacing: 0px;
 	padding: 0px 8px;
 }
@@ -72,18 +114,6 @@ table, td, th {
   font-size: 1.33333333em;
   line-height: 0.75em;
   vertical-align: -15%;
-}
-.fa-2x {
-  font-size: 2em;
-}
-.fa-3x {
-  font-size: 3em;
-}
-.fa-4x {
-  font-size: 4em;
-}
-.fa-5x {
-  font-size: 5em;
 }
 .fa-fw {
   width: 1.28571429em;
@@ -108,10 +138,7 @@ table, td, th {
   left: -1.85714286em;
 }
 
-/* FONTAWESOME CODEPOINTS */
-
-
-/* CUSTOM ICON FONT CSS (FONTELLO) */
+/* CUSTOM FONTELLO CSS OVERRIDES */
 @font-face {
   font-family: 'drammock';
   src: url('./fonts/drammock.eot?22044939');
@@ -127,7 +154,7 @@ table, td, th {
 	display: block;
 	margin: 2.5em 0em 0em;
 	padding: 1em 1em 2.5em;
-	background: #EEE;
+	border-top: thin solid #46008c;
 }
 .fa-ul li {
 	display: inline;
