@@ -124,13 +124,13 @@
             </group>
           </if>
           <else>
-          <!--
             <group>
+              <!--
               <text term="retrieved" text-case="capitalize-first" suffix=" "/>
               <text term="from" suffix=" "/>
+              -->
               <text variable="URL"/>
             </group>
-          -->
           </else>
         </choose>
       </if>
@@ -146,8 +146,8 @@
           <else>
             <choose>
               <if type="webpage">
-	          <!--
                 <group delimiter=" ">
+	                <!--
                   <text term="retrieved" text-case="capitalize-first" suffix=" "/>
                   <group>
                     <date variable="accessed" suffix=", ">
@@ -157,18 +157,18 @@
                     </date>
                   </group>
                   <text term="from"/>
+	                -->
                   <text variable="URL"/>
                 </group>
-	          -->
               </if>
               <else>
-	          <!--
                 <group>
+	                <!--
                   <text term="retrieved" text-case="capitalize-first" suffix=" "/>
                   <text term="from" suffix=" "/>
+	                -->
                   <text variable="URL"/>
                 </group>
-	          -->
               </else>
             </choose>
           </else>
@@ -181,11 +181,9 @@
       <if type="report thesis" match="any">
         <text variable="title" font-style="italic"/>
         <group prefix=" (" suffix=")">
-          <!--
           <text variable="genre"/>
           <text variable="institution"/>
           <text variable="number" prefix=" No. "/>
-          -->
         </group>
       </if>
       <else-if type="bill book graphic legal_case motion_picture report song manuscript speech" match="any">

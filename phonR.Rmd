@@ -6,7 +6,7 @@ author:
   affiliation:
   - University of Washington
 nocite: |
- @charis, @mplus, @stix, @libertine
+ @charis, @mplus, @stix, @libertine, @hcl, @vowelsR, @norm, @r
 date: "Last updated `r Sys.Date()`"
 ---
 <!--pandoc
@@ -19,6 +19,7 @@ bibliography: phonR.bib
 o: phonR.html
 c: phonR.css
 template: vignette_template.html
+include-after: footer.html
 
 t: latex
 latex-engine: xelatex
