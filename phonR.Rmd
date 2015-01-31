@@ -274,9 +274,27 @@ Gone are the days when the only unicode-compliant option for IPA transcription w
 ## Working with Unicode IPA glyphs in Microsoft Windows
 Perhaps the easiest way to have a pleasant experience working with Unicode-compliant representations of IPA glyphs is to use a computer running the Linux operating system: `R` on Linux defaults to a UTF-8 locale, which means that non-ASCII glyphs can be displayed in the `R` command console (both in commands you type/paste in, and in `R`’s output) and can be used in plots without issue. Do not bother trying to get that to work on Windows by changing `R`’s locale parameter to UTF-8 on Windows. It will not work. If you want to be able to view and type non-ASCII characters in the `R` console, use Linux.
 
-If you do use Windows, here are some key pieces of information that will allow you to work with Unicode IPA glyphs in `R` more easily. First: Microsoft Excel does not output UTF-8 encoded text files. If you try to save a spreadsheet from Excel as plain CSV, all the non-ASCII glyphs will be corrupted (i.e., each single non-ASCII codepoint will be interpreted as multiple ASCII codepoints). If you export from Excel as “Unicode text”, what you get is a CSV encoded in “UCS2-LE” format (AKA, “UTF-16 little-endian with BOM”). To open this in `R` you must either specify `read.csv(..., encoding="UCS-2")`, or convert it to UTF-8 prior to importing into `R`, then specify `read.csv(..., encoding="UTF-8")`. Converting between encoding formats can be accomplished with the free text editor [Notepad++](http://notepad-plus-plus.org/).
+If you do use Windows, here are some key pieces of information that will allow you to work with Unicode IPA glyphs in `R` more easily. First: Microsoft Excel does not output UTF-8 encoded text files. If you try to save a spreadsheet from Excel as plain CSV, all the non-ASCII glyphs will be corrupted (i.e., each single non-ASCII codepoint will be converted to `?` characters). If you export from Excel as “Unicode text”, what you get is a CSV encoded in “UCS2-LE” format (AKA, “UTF-16 little-endian with BOM”). The easiest route to opening this in `R` is to first convert it to UTF-8 (e.g., with the free text editor [Notepad++](http://notepad-plus-plus.org/)) and then read the data in `R` via `read.csv(..., encoding="UTF-8")` (or `read.delim()` if the file is tab-delimited). To open “UCS-2LE” encoded files directly in `R` is a complicated process, but can be done; it involves reading in the file as raw text, splitting each line on the tab characters, collapsing the resulting list into a matrix using `rbind`, converting to a data frame, and finally manually converting any columns containing numeric or logical data to the proper mode. A sample of this method is given below:
 
-In either case, the non-ASCII characters will be rendered as “escaped” codepoints when the resulting dataframe is displayed in the `R` console (e.g., when using `head()` you will see `\u0259` instead of `ə`, because the Unicode address for `ə` is `0259`). These escaped characters will _usually_ display properly when plotted, as long as a suitable typeface is specified via the graphical parameter `family`. However, specifying fonts in `R` is more complicated under Windows than on other operating systems, as font names cannot be passed directly to `family` as a character string. Instead, you must first register the font using `windowsFonts(myCustomFontName=windowsFont("Charis SIL"))`, and then reference the font as `family="myCustomFontName"` (you may of course substitute anything you like for `myCustomFontName` as long as there are no spaces in the name, and substitute your desired font’s name for `"Charis SIL"`).
+```{r ucstwo}
+header <- TRUE
+textconnection <- file("my_ucs2_encoded_tab_delimited_file.txt", encoding="UCS-2LE")
+rawtext <- readLines(textconnection, encoding="UCS-2LE")
+close(textconnection)
+splitlist <- sapply(rawtext, strsplit, "\t")
+names(splitlist) <- NULL
+if (header) {
+    mat <- do.call(rbind, splitlist[-1])
+    colnames(mat) <- splitlist[[1]]
+} else {
+    mat <- do.call(rbind, splitlist)
+}
+df <- as.data.frame(mat, stringsAsFactors=FALSE)
+# any numeric or logical columns will have to be manually converted, e.g.:
+# df$nameOfNumericColumn <- as.numeric(df$nameOfNumericColumn)
+```
+
+In either case, the non-ASCII characters will be rendered as “escaped” codepoints when the resulting dataframe is displayed in the `R` console (e.g., when using `head()` you will see `<U+0259>` instead of `ə`, because the Unicode address for `ə` is `0259`). These escaped characters will _usually_ display properly when plotted, as long as a suitable typeface is specified via the graphical parameter `family`. However, specifying fonts in `R` is more complicated under Windows than on other operating systems, as font names cannot be passed directly to `family` as a character string. Instead, you must first register the font using `windowsFonts(myCustomFontName=windowsFont("Charis SIL"))`, and then reference the font as `family="myCustomFontName"` (you may of course substitute anything you like for `myCustomFontName` as long as there are no spaces in the name, and substitute your desired font’s name for `"Charis SIL"`).
 
 # Acknowledgments
 Many people bravely used the development version of `phonR` in the year leading up to its release, and in the process discovered many bugs (and made many feature requests!), ultimately leading to a more polished and stable version of `phonR` released on CRAN. Thanks to Valerie Freeman, Cory Holland, Sophie Holmes-Elliott, Wendy Kempsell, Katharina Nimz, Jason Shaw, Shufang Xu, and most especially John Riebold.
