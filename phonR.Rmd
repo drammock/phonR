@@ -276,7 +276,7 @@ Perhaps the easiest way to have a pleasant experience working with Unicode-compl
 
 If you do use Windows, here are some key pieces of information that will allow you to work with Unicode IPA glyphs in `R` more easily. First: Microsoft Excel does not output UTF-8 encoded text files. If you try to save a spreadsheet from Excel as plain CSV, all the non-ASCII glyphs will be corrupted (i.e., each single non-ASCII codepoint will be converted to `?` characters). If you export from Excel as “Unicode text”, what you get is a CSV encoded in “UCS2-LE” format (AKA, “UTF-16 little-endian with BOM”). The easiest route to opening this in `R` is to first convert it to UTF-8 (e.g., with the free text editor [Notepad++](http://notepad-plus-plus.org/)) and then read the data in `R` via `read.csv(..., encoding="UTF-8")` (or `read.delim()` if the file is tab-delimited). To open “UCS-2LE” encoded files directly in `R` is a complicated process, but can be done; it involves reading in the file as raw text, splitting each line on the tab characters, collapsing the resulting list into a matrix using `rbind`, converting to a data frame, and finally manually converting any columns containing numeric or logical data to the proper mode. A sample of this method is given below:
 
-```{r ucstwo}
+```{r ucstwo, eval=FALSE}
 header <- TRUE
 textconnection <- file("my_ucs2_encoded_tab_delimited_file.txt", encoding="UCS-2LE")
 rawtext <- readLines(textconnection, encoding="UCS-2LE")
