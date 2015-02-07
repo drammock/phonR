@@ -49,6 +49,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     force.heatmap=FALSE, heatmap.args=NULL,
     heatmap.legend=FALSE, heatmap.legend.args=NULL,
     var.col.by=NULL, var.style.by=NULL, fill.opacity=0.3, legend.kwd=NULL,
+	legend.args=NULL,
     label.las=NULL, pretty=FALSE, output='screen', ...)
 {
     # # # # # # # # # # #
@@ -533,7 +534,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # #
     # PLOT HEATMAP  #
     # # # # # # # # #
-    if (heatmap) {
+    if (force.heatmap) {
         if (pretty & !"colormap" %in% names(heatmap.args)) {
             heatmap.args$colormap <- plotrix::color.scale(x=0:100, cs1=c(0, 180),
                                                           cs2=100, cs3=c(25, 100),

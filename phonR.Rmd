@@ -191,7 +191,7 @@ force.col <- plotrix::color.scale(force, cs1=c(150, 330), cs2=c(25, 75), cs3=c(6
 coolcolors <- plotrix::color.scale(x=0:100, cs1=c(150, 330), cs2=c(25, 75), cs3=c(60, 90), color.spec="hcl")
 par(mfrow=c(1, 2))
 with(indo, plotVowels(f1, f2, vowel, pch.tokens=vowel, col=force.col, var.col.by=NA, pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, plot.tokens=FALSE, heatmap=TRUE, heatmap.args=list(colormap=coolcolors, resolution=10, useRaster=TRUE), heatmap.legend=TRUE, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, plot.tokens=FALSE, force.heatmap=TRUE, heatmap.args=list(colormap=coolcolors, resolution=10, useRaster=TRUE), heatmap.legend=TRUE, pretty=TRUE))
 ```
 
 The resolution of the heatmap is controlled by the `resolution` argument, which must be passed as part of the named list `heatmap.args`. The colormap used to draw the heatmap defaults to grayscale if `pretty=FALSE` or to a cool palette if `pretty=TRUE`, but can be specified by passing a vector of color values as the `colormap` element of `heatmap.args`. There is also a boolean argument `heatmap.legend` that can be used to create a colorbar showing the range of possible values, and a named list argument `heatmap.legend.args` for controlling its appearance.
@@ -207,7 +207,7 @@ force <- with(female2, repulsiveForce(f2, f1, vowel))
 force.col <- plotrix::color.scale(force, cs1=c(150, 330), cs2=c(25, 75), cs3=c(60, 90), color.spec="hcl")
 with(female2, plotVowels(f1, f2, vowel, pch.tokens=vowel, cex.tokens=1.2, col=force.col, var.col.by=NA, pretty=TRUE))
 for (res in c(20, 40, 60)) {
-    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, heatmap=TRUE, heatmap.args=list(colormap=coolcolors, resolution=res, useRaster=TRUE), pretty=TRUE))
+    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, force.heatmap=TRUE, heatmap.args=list(colormap=coolcolors, resolution=res, useRaster=TRUE), pretty=TRUE))
 }
 ```
 
@@ -219,7 +219,7 @@ In theory, resolution can go as high as you want, but the heatmaps are somewhat 
 par(mfrow=c(1, 2))
 for (speed in c(TRUE, FALSE)) {
     time.st <- Sys.time()
-    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, heatmap=TRUE, heatmap.args=list(colormap=coolcolors, resolution=50, fast=speed, useRaster=TRUE), pretty=TRUE))
+    with(female2, plotVowels(f1, f2, vowel, plot.tokens=FALSE, force.heatmap=TRUE, heatmap.args=list(colormap=coolcolors, resolution=50, fast=speed, useRaster=TRUE), pretty=TRUE))
     time.nd <- Sys.time()
     title(main=paste("This plot took", round(time.nd - time.st, 1), "seconds"), line=3, adj=0)
 }
