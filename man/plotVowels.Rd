@@ -148,9 +148,6 @@
                      or \code{NULL} (to use the default value of \code{par("las")},
                      or a value passed to \code{plotVowels} as \code{las} if
                      available).}
-    \item{legend.kwd}{Keyword indicating legend placement (see
-                      \code{\link[graphics]{legend}}). If \code{NULL} (the
-                      default), no legend will be printed.}
     \item{legend.args}{Named list of additional arguments to be passed to
                        \code{\link[graphics]{legend}}, for controlling things
                        like \code{inset}, \code{ncol}, \code{seg.len}, etc.}
