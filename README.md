@@ -9,4 +9,4 @@ The second main offering of `phonR` is a set of functions for normalization of f
 
 Need to cite `phonR`? The R command `citation("phonR")` will work, but I prefer including the URL at the end like this:
 
-> McCloy, Daniel (2014). “phonR: Tools for phoneticians and phonologists.” R package version 1.0-0. http://drammock.github.io/phonR/
+> McCloy, Daniel (2015). “phonR: Tools for phoneticians and phonologists.” R package version 1.0-0. http://drammock.github.io/phonR/
