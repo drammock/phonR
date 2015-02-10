@@ -157,9 +157,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     "topright", "bottomleft", "bottomright")
     if (!is.null(legend.kwd)) {
         if (!legend.kwd %in% legend.kwds) {
-            warning(paste(c("legend.kwd must be one of '",
-                            paste(legend.kwds, collapse="', '"), "'."),
-                          collapse=""))
+            stop(paste(c("legend.kwd must be one of '",
+                         paste(legend.kwds, collapse="', '"), "'."),
+                 collapse=""))
     }   }
 
     # # # # # # # # # # # # # # # # # #
@@ -450,10 +450,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                  list(cov(cbind(f2, f1))))
         }})
         # the covariance calculation above still may yield some NA cov. matrices,
-        # due to some vowels having only 1 token, so we fix that here:
-        sigma <- lapply(sigma, function(i) {
-            ifelse(is.na(i[[1]][1]), matrix(c(0,0,0,0), nrow=2), i)
-        })
+        # due to some vowels having only 1 token. This is handled later.
         sigma <- do.call(rbind, sigma)
         m$mu <- mu
         m$sigma <- sigma
@@ -468,10 +465,15 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     else           plot.bounds <- apply(d[,c('f2','f1')], 2, range, finite=TRUE)
     # ELLIPSE EXTREMA
     if (ellipse.fill || ellipse.line) {
-        ellipse.param <- apply(m, 1, function(i) list('mu'=i$mu,
-                                                      'sigma'=i$sigma,
-                                                      'alpha'=1 - ellipse.conf,
-                                                      'draw'=FALSE))
+        ellipse.param <- apply(m, 1, function(i) {
+            if (any(is.na(i$sigma))) {
+                i$sigma <- matrix(rep(0, 4), nrow=2)
+                msg <- ifelse(i$gf == "gf", as.character(i$v),
+                              paste("(", i$gf, ", ", i$v, ")", sep=""))
+                message("No ellipse drawn for ", msg, " because there is only one token.")
+            }
+            list('mu'=i$mu, 'sigma'=i$sigma, 'alpha'=1 - ellipse.conf, 'draw'=FALSE)
+        })
         ellipse.points <- lapply(ellipse.param,
                                  function(i) do.call(ellipse, i))
         ellipse.bounds <- lapply(ellipse.points,
@@ -603,13 +605,13 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # #
     if (!is.na(poly.order[1]) && (poly.fill || poly.line)) {
         if (length(poly.order) != length(unique(poly.order))) {
-            warning("Duplicate entries in 'poly.order' detected; they will be ",
+            message("Duplicate entries in 'poly.order' detected; they will be ",
                     "ignored.")
         }
         poly.order <- unique(as.character(poly.order)) # as.character in case factor
         v <- unique(as.character(m$v))
         if (length(setdiff(poly.order, v)) > 0) {
-            warning("There are vowels in 'poly.order' that are not in ",
+            message("There are vowels in 'poly.order' that are not in ",
                     "'vowel'; they will be ignored.")
             poly.order <- intersect(poly.order, v)
         }
@@ -914,9 +916,9 @@ normVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
                 'logmean', 'shared', 'nearey1', 'nearey2', 'scentroid',
                 'wattfabricius')
     if (!(m %in% methods)) {
-        warning('Method must be one of: bark, mel, log, erb, ',
-                'zscore | lobanov, logmean | nearey1, shared | nearey2, ',
-                'scentroid | wattfabricius.')
+        stop('Method must be one of: bark, mel, log, erb, ',
+             'zscore | lobanov, logmean | nearey1, shared | nearey2, ',
+             'scentroid | wattfabricius.')
     }
     f <- cbind(f0=f0, f1=f1, f2=f2, f3=f3)
     if (m %in% 'bark') return(normBark(f))
@@ -1023,8 +1025,8 @@ normNearey2 <- function(f, group=NULL, exp=FALSE, ...) {
 #' @export
 normWattFabricius <- function(f, vowel, group=NULL) {
     if (ncol(f) != 2) {
-        warning("Wrong dimensions: s-centroid normalization requires ",
-                "an Nx2 matrix or data frame of F1 and F2 values.")
+        stop("Wrong dimensions: s-centroid normalization requires an Nx2 ",
+             "matrix or data frame of F1 and F2 values.")
     }
     if (is.null(group)) group <- rep("g", nrow(f))
     subsets <- by(f, list(vowel, group), identity)  # 2D list (group x vowel) of lists (f1,f2)
@@ -1202,12 +1204,13 @@ prettyTicks <- function(lim) {
 
 ellipse <- function(mu, sigma, alpha=0.05, npoints=250, draw=TRUE, ...) {
     # adapted from the (now-defunct) mixtools package
+    if (all(sigma == matrix(rep(0, 4), nrow=2))) return(rbind(mu, mu))
     es <- eigen(sigma)
     e1 <- es$vec %*% diag(sqrt(es$val))
-    r1 <- sqrt(qchisq(1-alpha, 2))
-    theta <- seq(0, 2*pi, len=npoints)
-    v1 <- cbind(r1*cos(theta), r1*sin(theta))
-    pts <- t(mu-(e1 %*% t(v1)))
+    r1 <- sqrt(qchisq(1 - alpha, 2))
+    theta <- seq(0, 2 * pi, len=npoints)
+    v1 <- cbind(r1 * cos(theta), r1 * sin(theta))
+    pts <- t(mu - (e1 %*% t(v1)))
     if (draw) {
         colnames(pts) <- c("x", "y")
         polygon(pts, ...)
