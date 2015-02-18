@@ -488,6 +488,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # PREPARE GARNISHES #
     # # # # # # # # # # #
     # ticks
+    xticks <- NULL
+    yticks <- NULL
     if (!'xlim' %in% names(exargs)) {
         exargs$xlim <- rev(plot.bounds[,1])
         if (pretty) {
@@ -524,8 +526,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     do.call(mtext, c(main, t.args, main.args))
     do.call(mtext, c(sub, s.args, sub.args))
     if (pretty && draw.axes) {
-        x.axis.args <- c(list(side=3, at=xticks), axis.args)
-        y.axis.args <- c(list(side=4, at=yticks), axis.args)
+        if (!is.null(xticks[1]))  x.axis.args <- c(list(side=3, at=xticks), axis.args)
+        else                      x.axis.args <- c(list(side=3), axis.args)
+        if (!is.null(yticks[1]))  y.axis.args <- c(list(side=4, at=yticks), axis.args)
+        else                      y.axis.args <- c(list(side=4), axis.args)
         do.call(axis, x.axis.args)
         do.call(axis, y.axis.args)
         # extend the axis lines to meet at the corner
