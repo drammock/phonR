@@ -483,19 +483,27 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         plot.bounds <- apply(rbind(plot.bounds, ellipse.bounds), 2,
                              range, finite=TRUE)
     }
-    if (!'xlim' %in% names(exargs)) exargs$xlim <- rev(plot.bounds[,1])
-    if (!'ylim' %in% names(exargs)) exargs$ylim <- rev(plot.bounds[,2])
 
     # # # # # # # # # # #
     # PREPARE GARNISHES #
     # # # # # # # # # # #
+    # ticks
+    if (!'xlim' %in% names(exargs)) {
+        exargs$xlim <- rev(plot.bounds[,1])
+        if (pretty) {
+            xticks <- prettyTicks(exargs$xlim)
+            exargs$xlim <- rev(range(xticks))
+        }
+    }
+    if (!'ylim' %in% names(exargs)) {
+        exargs$ylim <- rev(plot.bounds[,2])
+        if (pretty) {
+            yticks <- prettyTicks(exargs$ylim)
+            exargs$ylim <- rev(range(yticks))
+        }
+    }
+    # annotation
     if (pretty) {
-        # ticks
-        xticks <- prettyTicks(exargs$xlim)
-        yticks <- prettyTicks(exargs$ylim)
-        exargs$xlim <- rev(range(xticks))
-        exargs$ylim <- rev(range(yticks))
-        # annotation
         x.args <- list(side=3, line=2)
         y.args <- list(side=4, line=3)
         t.args <- list(side=3, line=4)
