@@ -526,15 +526,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         else                      y.axis.args <- c(list(side=4), axis.args)
         do.call(axis, x.axis.args)
         do.call(axis, y.axis.args)
-        # extend the axis lines to meet at the corner
-        if (exargs$xlim[2] != par('usr')[2]) {
-            axis(3, at=c(exargs$xlim[2], par('usr')[2]), labels=FALSE,
-                col=par('fg'), tcl=0)
-        }
-        if (exargs$ylim[2] != par('usr')[4]) {
-            axis(4, at=c(exargs$ylim[2], par('usr')[4]), labels=FALSE,
-                col=par('fg'), tcl=0)
-        }
     }
 
     # # # # # # # # #
