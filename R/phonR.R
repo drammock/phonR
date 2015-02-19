@@ -487,23 +487,17 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # # #
     # PREPARE GARNISHES #
     # # # # # # # # # # #
-    # ticks
-    xticks <- NULL
-    yticks <- NULL
-    if (!'xlim' %in% names(exargs)) {
-        exargs$xlim <- rev(plot.bounds[,1])
-        if (pretty) {
-            xticks <- prettyTicks(exargs$xlim)
-            exargs$xlim <- rev(range(xticks))
-        }
-    }
-    if (!'ylim' %in% names(exargs)) {
-        exargs$ylim <- rev(plot.bounds[,2])
-        if (pretty) {
-            yticks <- prettyTicks(exargs$ylim)
-            exargs$ylim <- rev(range(yticks))
-        }
-    }
+    # decide plot bounds
+    user.set.xlim <- "xlim" %in% names(exargs)
+    user.set.ylim <- "ylim" %in% names(exargs)
+    if (!user.set.xlim) exargs$xlim <- rev(plot.bounds[,1])
+    if (!user.set.ylim) exargs$ylim <- rev(plot.bounds[,2])
+    # calculate nice tickmark intervals
+    xticks <- prettyTicks(exargs$xlim)
+    yticks <- prettyTicks(exargs$ylim)
+    # ensure axes begin and end at a tickmark (unless xlim/ylim overtly set)
+    if (pretty && !user.set.xlim) exargs$xlim <- rev(range(xticks))
+    if (pretty && !user.set.ylim) exargs$ylim <- rev(range(yticks))
     # annotation
     if (pretty) {
         x.args <- list(side=3, line=2)
