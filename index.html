@@ -32,7 +32,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <div id="header">
 <h1 class="title">Normalizing and plotting vowels with phonR 1.0-0</h1>
 <h2 class="author">Daniel R. McCloy, <span class="author">University of Washington</span></h2>
-<h4 class="date">Last updated 2015-02-19</h4>
+<h4 class="date">Last updated 2015-03-05</h4>
 </div>
 <!--pandoc
 s:
@@ -185,7 +185,8 @@ cdistcol &lt;-<span class="st"> </span>plotrix::<span class="kw">color.scale</sp
 <p><img src="images/plot-means-1.png" title="Mean F1 and F2 values for each vowel, plotted with different grouping factors" alt="Mean F1 and F2 values for each vowel, plotted with different grouping factors" style="display: block; margin: auto;" /></p>
 <h2 id="plotting-with-ipa-glyphs">Plotting with IPA glyphs</h2>
 <p><code>plotVowels</code> allows you to replace the plotting symbols with arbitrary text, including non-ASCII characters such as IPA glyphs. This can be done separately for the vowel tokens and vowel means using the <code>pch.tokens</code> and <code>pch.means</code> arguments; we can also control the size separately too using <code>cex.tokens</code> and <code>cex.means</code>. The vowels of Standard Indonesian in the example data are all transcribed with ASCII characters, so to demonstrate the IPA symbols we’ll add some unnecessary extra symbols and diacritics to plot the means. While we’re at it, we’ll make the tokens smaller and semi-transparent and specify the font family (you can use any typeface that has the glyphs you need and is installed on your system).</p>
-<pre class="sourceCode r"><code class="sourceCode r">remapping &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">i =</span> <span class="st">&quot;ɪʏ̯&quot;</span>, <span class="dt">e =</span> <span class="st">&quot;ɛœ̰ɚ&quot;</span>, <span class="dt">a =</span> <span class="st">&quot;ɒɐ˞&quot;</span>, <span class="dt">o =</span> <span class="st">&quot;ɤɞ̆&quot;</span>, <span class="dt">u =</span> <span class="st">&quot;ɯʊ̥&quot;</span>)
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># unicode escapes are necessary for this example to work on Windows</span>
+remapping &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">i =</span> <span class="st">&quot;ɪʏ̯&quot;</span>, <span class="dt">e =</span> <span class="st">&quot;ɛœ̰ɚ&quot;</span>, <span class="dt">a =</span> <span class="st">&quot;ɒɐ˞&quot;</span>, <span class="dt">o =</span> <span class="st">&quot;ɤɞ̆&quot;</span>, <span class="dt">u =</span> <span class="st">&quot;ɯʊ̥&quot;</span>)
 indo$unicodevowel &lt;-<span class="st"> </span>remapping[<span class="kw">as.character</span>(indo$vowel)]
 <span class="kw">with</span>(indo, <span class="kw">plotVowels</span>(f1, f2, unicodevowel, <span class="dt">plot.tokens =</span> <span class="ot">TRUE</span>, <span class="dt">pch.tokens =</span> vowel, 
     <span class="dt">cex.tokens =</span> <span class="fl">1.2</span>, <span class="dt">alpha.tokens =</span> <span class="fl">0.4</span>, <span class="dt">plot.means =</span> <span class="ot">TRUE</span>, <span class="dt">pch.means =</span> unicodevowel, 
@@ -356,6 +357,7 @@ df &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(mat, <spa
 </div>
 <ul class='fa-ul'>
 <li><a href="mailto:&#x64;&#x72;&#x6D;&#x63;&#x63;&#x6C;&#x6F;&#x79;&#x40;&#x75;&#x77;&#x2E;&#x65;&#x64;&#x75;"><span class="fa icon-env fa-lg"></span> &#x64;&#x72;&#x6D;&#x63;&#x63;&#x6C;&#x6F;&#x79;&#x40;&#x75;&#x77;&#x2E;&#x65;&#x64;&#x75;</a></li>
+<li><a href="http://dan.mccloy.info/cv/"> CV<span class="fa icon-doc fa-lg"></span></a></li>
 <li><a href="http://dan.mccloy.info/0x2A5152CE.asc"><span class="fa icon-gpg fa-lg"></span> PGP public key</a></li>
 <li><a href="https://github.com/drammock/"><span class="fa icon-gh fa-lg"></span> GitHub</a></li>
 <li><a href="https://orcid.org/0000-0002-7572-3241"><span class="fa icon-orcid fa-lg"></span> ORCID</a></li>
