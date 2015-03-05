@@ -20,11 +20,6 @@ o: phonR.html
 c: phonR.css
 template: vignette_template.html
 include-after: footer.html
-
-t: latex
-latex-engine: xelatex
-output: phonR.pdf
-template: vignette_template.tex
 -->
 
 ```{r setup-options, echo=FALSE, cache=FALSE, include=FALSE}
