@@ -2,14 +2,17 @@
 .Rproj.user
 cache
 extras
+fonts
 images
 old-versions
 
 index.html
+footer.html
 knit_phonR.bash
 phonR.bib
 phonR.csl
 phonR.css
+phonR.pdf
 phonR.Rmd
 phonR.Rproj
 README.md
