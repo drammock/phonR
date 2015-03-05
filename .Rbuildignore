@@ -18,7 +18,8 @@ phonR.Rproj
 README.md
 TODO.txt
 vignette_mathjax_resizer.py
-vignette_postprocessing.py
+vignette_postprocessing_html.py
+vignette_preprocessing_latex.py
 vignette_template.tex
 vignette_template.html
 .gitignore
