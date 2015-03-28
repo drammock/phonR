@@ -1,13 +1,17 @@
 # /bin/bash
+# clear cache if desired
+if [[ $* == *--cache* ]]; then
+	rm cache/*
+fi
+# knit markdown
 Rscript -e "knitr::knit('phonR.Rmd')"   # phonR.Rmd > phonR.md
-if (( $# > 0 )); then
-	if [ $1 = "--plots" ]; then
-		cd images
-		for i in *.pdf; do 
-			inkscape -f "$i" -d 72 -b "white" -e "$(basename $i .pdf).png"
-		done
-		cd ..
-	fi
+# regen images
+if [[ $* == *--plot* ]]; then
+	cd images
+	for i in *.pdf; do 
+		inkscape -f "$i" -d 72 -b "white" -e "$(basename $i .pdf).png"
+	done
+	cd ..
 fi
 # Knit HTML
 python vignette_postprocessing_html.py  # phonR.md > index.md
