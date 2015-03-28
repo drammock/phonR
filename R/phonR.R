@@ -228,9 +228,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # PRELIMINARY HANDLING OF GROUPING FACTOR, COLOR, AND STYLE #
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if (is.null(vowel)) v <- rep(NA, l)
-    else                v <- factor(vowel)
+    else                v <- factor(vowel, levels=unique(vowel))
     if (is.null(group)) gf <- rep('gf', l)
-    else 			    gf <- factor(group)
+    else 			    gf <- factor(group, levels=unique(group))
     # used later to set default polygon color when color varies by vowel
     if (identical(as.numeric(factor(var.col.by)), 
     			  as.numeric(factor(vowel)))) col.by.vowel <- TRUE
@@ -239,7 +239,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (!is.null(var.col.by[1])) {
         if (is.na(var.col.by[1])) legend.col.lab <- NULL
         else                      legend.col.lab <- unique(as.character(var.col.by))
-        var.col.by <- as.numeric(factor(var.col.by))
+        var.col.by <- as.numeric(factor(var.col.by, levels=unique(var.col.by)))
     } else {
         legend.col.lab <- c()
         var.col.by <- rep(1, l)  # default to black
@@ -247,7 +247,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (!is.null(var.style.by[1])) {
         if (is.na(var.style.by[1])) legend.style.lab <- NULL
         else                        legend.style.lab <- unique(as.character(var.style.by))
-        var.style.by <- as.numeric(factor(var.style.by))
+        var.style.by <- as.numeric(factor(var.style.by, levels=unique(var.style.by)))
     } else {
         legend.style.lab <- c()
         var.style.by <- rep(1, l)  # default to solid
@@ -397,7 +397,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # # # # # #
     # COLLECT INTO DATAFRAMES #
     # # # # # # # # # # # # # #
-    d <- data.frame(f1=f1, f2=f2, v=v, gf=factor(gf),
+    d <- data.frame(f1=f1, f2=f2, v=v, gf=factor(gf, levels=unique(gf)),
                     col.tokens=col.tokens, col.means=col.means,
                     style=var.style.by,
                     ellipse.fill.col=ellipse.fill.col,
@@ -432,7 +432,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                stringsAsFactors=FALSE))
     }})
     m <- do.call(rbind, m)
-    m$gfn <- as.numeric(factor(m$gf))
+    m$gfn <- as.numeric(factor(m$gf, levels=unique(m$gf)))
     if (diphthong) {
         m$f2d <- do.call(rbind, lapply(byd, function(i) if (!is.null(i))
                          with(i, list(colMeans(do.call(rbind, f2d))))))
