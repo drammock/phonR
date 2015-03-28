@@ -809,16 +809,13 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 if (plot.means && all(grepl("[[:digit:]]", pch.means))) {
                     legend.pch <- unique(m$pchmeans)
                 } else if (plot.tokens && all(grepl("[[:digit:]]", pch.tokens))) {
-                    legend.pch <- unique(d$pchtokens)[order(unique(var.style.by))]
-                }
-                legend.pch <- legend.pch[unique(var.style.by)]
-            }
+                    legend.pch <- unique(d$pchtokens)
+            }   }
             # legend col
             legend.col <- NULL
             if (length(legend.col.lab)) {
                 if (plot.means)       legend.col <- unique(m$col.means)
                 else if (plot.tokens) legend.col <- unique(d$col.tokens)
-                legend.col <- legend.col[unique(var.col.by)]
             }
             # legend background fill
             legend.bgf <- NULL
@@ -826,7 +823,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 if (!is.na(m$ellipse.fill.col[1]))   legend.bgf <- unique(m$ellipse.fill.col)
                 else if (!is.na(m$poly.fill.col[1])) legend.bgf <- unique(m$poly.fill.col)
                 else                                 legend.bgf <- unique(hull.fill.col)
-                legend.bgf <- legend.bgf[unique(var.col.by)]
             }
             # legend linteype & border color
             legend.lty <- NULL
@@ -837,7 +833,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 else if (!is.na(m$poly.line.col[1])) legend.brd <- unique(m$poly.line.col)
                 else                                 legend.brd <- unique(hull.line.col)
                 if (length(legend.brd) != length(legend.bgf)) legend.brd <- NULL
-                legend.brd <- legend.brd[unique(var.style.by)]
             }
             # handle lty specially; needed for both style & color
             if (!is.null(legend.lty)) {
@@ -846,7 +841,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 } else if (length(legend.col.lab)) {
                     legend.lty <- c(legend.lty, rep(NA, length(legend.col.lab)))
                 }
-                legend.lty <- legend.lty[unique(var.style.by)]
             }
             # reconcile
             if (identical(legend.style.lab, legend.col.lab)) {
