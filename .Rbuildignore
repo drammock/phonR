@@ -25,3 +25,5 @@ vignette_template.html
 .gitignore
 .Rhistory
 .Rprofile
+^.*\.Rproj$
+^\.Rproj\.user$
