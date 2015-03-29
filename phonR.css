@@ -175,8 +175,9 @@ font-family: "drammock";
 .icon-gpg:before { content: '\f023'; } /* '' */
 .icon-li:before { content: '\f08c'; } /* '' */
 .icon-gh:before { content: '\f092'; } /* '' */
-.icon-gp:before { content: '\f0d4'; } /* '' */
+.icon-pl:before { content: '\f0d4'; } /* '' */
 .icon-brain:before { content: '\f0f0'; } /* '' */
+.icon-ncbi:before { content: '\f0f1'; } /* '' */
 .icon-doc:before { content: '\f15c'; } /* '' */
 .icon-env:before { content: '\f199'; } /* '' */
-.icon-scholar-square:before { content: '\f19d'; } /* '' */
+.icon-sch:before { content: '\f19d'; } /* '' */
