@@ -1,5 +1,5 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# phonR version 1.0-0
+# phonR version 1.0-3
 # Functions for phoneticians and phonologists
 # AUTHOR: Daniel McCloy, drmccloy@uw.edu
 # LICENSED UNDER THE GNU GENERAL PUBLIC LICENSE v3.0:
@@ -605,16 +605,17 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             message("Duplicate entries in 'poly.order' detected; they will be ",
                     "ignored.")
         }
-        poly.order <- unique(as.character(poly.order)) # as.character in case factor
+        poly.order <- as.character(poly.order) # as.character in case factor
         v <- unique(as.character(m$v))
         if (length(setdiff(poly.order, v)) > 0) {
             message("There are vowels in 'poly.order' that are not in ",
                     "'vowel'; they will be ignored.")
-            poly.order <- intersect(poly.order, v)
         }
+        poly.order <- intersect(poly.order, v)
         pp <- m
-        pp$v <- factor(pp$v, levels=poly.order)
+        pp$v <- factor(pp$v, levels=poly.order, ordered=TRUE)
         pp <- pp[order(pp$v),]
+        pp <- pp[!is.na(pp$v),]
         pp <- split(pp, pp$gf)
         if (poly.fill) {
             bigenough <- sapply(pp, function(i) nrow(i) > 2)

@@ -164,10 +164,10 @@ with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means
 with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=subj, ellipse.line=TRUE, ellipse.fill=TRUE, fill.opacity=0.1, pretty=TRUE))
 ```
 
-In the lower-left plot above, we know from the function call that the two sets of ellipses correspond to talker gender, but it is not clear which ellipses “go together” (especially in the high back region). We can regain this information by passing arguments `ellipse.line=TRUE, var.style.by=gender` or by adding a legend, but we can achieve the same thing by drawing connecting lines between the vowel means:
+In the lower-left plot above, we know from the function call that the two sets of ellipses correspond to talker gender, but it is not clear which ellipses “go together” (especially in the high back region). We can regain this information by passing arguments `ellipse.line=TRUE, var.style.by=gender` or by adding a legend, but we can achieve the same thing by drawing connecting lines between the vowel means. We’ll omit the low vowel for demonstration purposes; the ability to omit certain vowels from the polygon is useful for vowel systems with pairs (short/long, oral/nasal, etc) or if the plot includes central vowels and you only want to connect the peripheral vowels.
 
 ```{r plot-poly-line, dependson=c("load-phonR"), fig.width=6, fig.height=6, fig.cap="The “vowel means” polygon"}
-with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=gender, ellipse.fill=TRUE, poly.line=TRUE, poly.order=c("i", "e", "a", "o", "u"), pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=gender, ellipse.fill=TRUE, poly.line=TRUE, poly.order=c("i", "e", "o", "u"), pretty=TRUE))
 ```
 
 The vowel polygon lines above (and also convex hulls, seen below) are drawn in black color if the `var.col.by` argument is `vowel` (because the polygonal boundary line is a property of the entire *vowel space*, not of any one vowel). If `var.col.by` is something else (like gender or talker) then the polygonal or hull line follows the color coding of the tokens and means. Just like ellipses (and hulls), vowel polygons may also have lines, fills, or both (controlled by the boolean `poly.line` and `poly.fill` arguments).
