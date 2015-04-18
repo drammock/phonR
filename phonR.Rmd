@@ -1,6 +1,6 @@
 ---
-title: "Normalizing and plotting vowels with phonR 1.0-1"
-runningtitle: "phonR 1.0-0 vignette"
+title: "Normalizing and plotting vowels with phonR 1.0-3"
+runningtitle: "phonR 1.0-3 vignette"
 author:
 - name: Daniel R. McCloy
   affiliation:
