@@ -1,5 +1,5 @@
 ---
-title: "Normalizing and plotting vowels with phonR 1.0-3"
+title: "Normalizing and plotting vowels with phonR `r packageVersion("phonR")`"
 runningtitle: "phonR 1.0-3 vignette"
 author:
 - name: Daniel R. McCloy
@@ -31,7 +31,9 @@ options(width=90)
 The `phonR` package provides functions for vowel formant frequency and $f_0$ normalization, as well as a vowel plotting function `plotVowels` with many advanced features. There are also a few functions for calculating the area of the vowel space (either as a convex polygonal hull or a polygon connecting the mean values of the vowels), and for calculating the repulsive force of the vowel system. `phonR` also includes sample data in the form of F1 and F2 measurements for eight speakers of Standard Indonesian.
 
 ## Installation
-`phonR 1.0-1` is available through the [Comprehensive R Archive Network](http://cran.r-project.org/package=phonR) and can be installed from within `R` using `install.packages('phonR')`. The source code is hosted on [GitHub](https://github.com/drammock/phonR) so the development version of the package can also be installed using `devtools::install_github("drammock/phonR")`. `phonR` is licensed under [GPL-3](http://www.gnu.org/licenses/gpl.html), and has three dependencies: `deldir` (for Delaunay triangulations), `plotrix` (for creating color scales), and `splancs` (for point-in-polygon functions). Plotting vowels with non-ASCII characters (i.e., most vowel symbols in the IPA) also requires that the user’s computer have a typeface installed that contains glyphs at the necessary codepoints, and that the user specify that typeface when calling the `plotVowels` function.
+`phonR` is available through the [Comprehensive R Archive Network](http://cran.r-project.org/package=phonR) and can be installed from within `R` using `install.packages("phonR")`. The source code is hosted on [GitHub](https://github.com/drammock/phonR) so the development version of the package is also available via `devtools::install_github("drammock/phonR")`. This tutorial vignette is built with the most current development version, which is `r packageVersion("phonR")`. The development version may include bugfixes or minor features not present in the CRAN version. If you think you have found a bug, please install and test with the development version first by running `devtools::install_github("drammock/phonR")`, as your bug may have already been fixed. You can always go back to the CRAN version by running the standard `install.packages("phonR")` later.
+
+`phonR` is licensed under [GPL-3](http://www.gnu.org/licenses/gpl.html), and has three dependencies: `deldir` (for Delaunay triangulations), `plotrix` (for creating color scales), and `splancs` (for point-in-polygon functions). Plotting vowels with non-ASCII characters (i.e., most vowel symbols in the International Phonetic Alphabet) also requires that the user’s computer have a typeface installed that contains glyphs at the necessary codepoints, and that the user specify that typeface when calling the `plotVowels` function.
 
 To run the examples in this tutorial yourself, you need to load `phonR` and the accompanying sample data:
 
@@ -44,7 +46,7 @@ data(indoVowels)  # provides dataframe "indo"
 All the examples make use of `R`’s `with()` syntax. If you’ve never used `with`, the short explanation is it allows you to access the columns of a dataframe without the `$` operator. So instead of `plotVowels(indo$f1, indo$f2)` you can say `with(indo, plotVowels(f1, f2))`. It functions similar to providing a `data` argument in functions like `lm` or older versions of `plotVowels`.
 
 ## Changes from previous versions
-The `1.0-0` release of `phonR` is a major update that includes dramatically expanded functionality and changes to the API. Unfortunately this means a couple of features were sacrificed, and some of the argument names have changed. For example, there is no longer a `data` argument to the `plotVowels` function, but comparable simplicity can be had by using the `with` syntax built into `R` (as described above, and as will be demonstrated throughout this tutorial).
+The `1.0` release of `phonR` was a major update that included dramatically expanded functionality and changes to the API. Unfortunately this means a couple of features were sacrificed, and some of the argument names have changed. For example, there is no longer a `data` argument to the `plotVowels` function, but comparable simplicity can be had by using the `with` syntax built into `R` (as described above, and as will be demonstrated throughout this tutorial).
 
 Older versions of `plotVowels` also had built-in support for multiple figures with identical axis ranges via the arguments `single.plot=FALSE` and `match.axes="absolute"` (useful when comparing vowels from different speakers or groups, in cases where plotting all speakers/groups on the same graph is untenable). This is still possible but is now achieved using base `R` multi-plot layout commands such as `par(mfrow=c(2, 2))` and standard axis limit arguments `xlim` and `ylim`.
 
