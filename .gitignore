@@ -1,4 +1,5 @@
 # Directories
+cache
 extras
 old-versions
 .Rproj.user
@@ -8,7 +9,6 @@ phonR.pdf
 phonR.Rproj
 TODO.txt
 .Rhistory
-images/*.pdf
 
 # File types
 *.gz
