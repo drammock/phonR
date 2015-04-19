@@ -1,20 +1,14 @@
 # Directories
-cache
-phonR_cache
 extras
-oldVersions
+old-versions
 .Rproj.user
 
 # Files
-buildInstructions.txt
-installingCairo.txt
+phonR.pdf
 phonR.Rproj
+TODO.txt
 .Rhistory
 images/*.pdf
 
 # File types
-*.aux
-*.bbl
-*.blg
-*.log
 *.gz
