@@ -1,27 +1,16 @@
 .git
 .Rproj.user
-cache
 extras
-fonts
-images
 old-versions
 
 index.html
 footer.html
 knit_phonR.bash
-phonR.bib
-phonR.csl
-phonR.css
 phonR.pdf
 phonR.Rmd
 phonR.Rproj
 README.md
 TODO.txt
-vignette_mathjax_resizer.py
-vignette_postprocessing_html.py
-vignette_preprocessing_latex.py
-vignette_template.tex
-vignette_template.html
 .gitignore
 .Rhistory
 .Rprofile
