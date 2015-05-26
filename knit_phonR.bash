@@ -1,4 +1,4 @@
-# /bin/bash
+#! /bin/bash
 # clear cache if desired
 if [[ $* == *--cache* ]]; then
 	rm cache/*
