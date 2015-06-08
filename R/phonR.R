@@ -1,5 +1,5 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# phonR version 1.0-3
+# phonR version 1.0-4
 # Functions for phoneticians and phonologists
 # AUTHOR: Daniel McCloy, drmccloy@uw.edu
 # LICENSED UNDER THE GNU GENERAL PUBLIC LICENSE v3.0:
@@ -68,12 +68,12 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         if (output %in% c("pdf", "svg", "screen")) {
             if ("width" %in% names(exargs)) {
                 if      (exargs$units == "cm") exargs$width <- exargs$width/2.54
-                else if (exargs$units == "mm") exargs$width <- exargs$width/2540
+                else if (exargs$units == "mm") exargs$width <- exargs$width/25.4
                 else if (exargs$units == "px") exargs$width <- exargs$width/72
             }
             if ("height" %in% names(exargs)) {
                 if      (exargs$units == "cm") exargs$height <- exargs$height/2.54
-                else if (exargs$units == "mm") exargs$height <- exargs$height/2540
+                else if (exargs$units == "mm") exargs$height <- exargs$height/25.4
                 else if (exargs$units == "px") exargs$height <- exargs$height/72
             }
         }
@@ -232,7 +232,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (is.null(group)) gf <- rep('gf', l)
     else 			    gf <- factor(group, levels=unique(group))
     # used later to set default polygon color when color varies by vowel
-    if (identical(as.numeric(factor(var.col.by)), 
+    if (identical(as.numeric(factor(var.col.by)),
     			  as.numeric(factor(vowel)))) col.by.vowel <- TRUE
     else                                      col.by.vowel <- FALSE
     # var.col.by & var.style.by
