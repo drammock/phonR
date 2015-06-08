@@ -309,12 +309,12 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # linetypes & plotting characters
     if (!"lty" %in% names(exargs)) exargs$lty <- seq_len(num.sty)
     if (!"pch" %in% names(exargs)) exargs$pch <- seq_len(num.sty)
+    if (vary.sty) {
+        exargs$lty <- rep(exargs$lty, length.out=num.sty)[var.style.by]
+        exargs$pch <- rep(exargs$pch, length.out=num.sty)[var.style.by]
+    }
     exargs$lty <- rep(exargs$lty, length.out=l)
     exargs$pch <- rep(exargs$pch, length.out=l)
-    if (vary.sty) {
-        exargs$lty <- exargs$lty[var.style.by]
-        exargs$pch <- exargs$pch[var.style.by]
-    }
     if (is.null(pch.tokens)) pcht <- exargs$pch
     else                     pcht <- pch.tokens
     if (is.null(pch.means))  pchm <- exargs$pch
@@ -324,12 +324,22 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     trans.fg <- makeTransparent(par("fg"), fill.opacity)
     # ellipse colors
     if (ellipse.line) {
+        if ("lty" %in% names(ellipse.args)) {
+            ellipse.line.sty <- ifelse(vary.sty, ellipse.args$lty[var.style.by],
+                                       ellipse.args$lty)
+            ellipse.args$lty <- NULL
+        } else {
+            ellipse.line.sty <- exargs$lty
+        }
         if ("border" %in% names(ellipse.args)) {
             ellipse.args$border <- rep(ellipse.args$border, length.out=num.col)
             if (vary.col) ellipse.line.col <- ellipse.args$border[var.col.by]
             else          ellipse.line.col <- ellipse.args$border
         } else            ellipse.line.col <- exargs$col
-    } else                ellipse.line.col <- NA[var.col.by]
+    } else {
+        ellipse.line.col <- NA[var.col.by]
+        ellipse.line.sty <- NA[var.style.by]
+    }
     if (ellipse.fill) {
         if ("col" %in% names(ellipse.args)) {
             if (vary.col) ellipse.fill.col <- ellipse.args$col[var.col.by]
@@ -338,12 +348,26 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     } else                ellipse.fill.col <- NA[var.col.by]
     # hull colors
     if (hull.line) {
+        if ("lty" %in% names(hull.args)) {
+            hull.line.sty <- ifelse(vary.sty, hull.args$lty[var.style.by],
+                                    hull.args$lty)
+            hull.args$lty <- NULL
+        } else {
+            hull.line.sty <- exargs$lty
+        }
         if ("border" %in% names(hull.args)) {
-            if (vary.col)        hull.line.col <- hull.args$border[var.col.by]
-            else                 hull.line.col <- hull.args$border
-        } else if (col.by.vowel) hull.line.col <- par("fg")
-        else                     hull.line.col <- exargs$col
-    } else                       hull.line.col <- NA[var.col.by]
+            hull.line.col <- ifelse(vary.col, hull.args$border[var.col.by],
+                                    hull.args$border)
+            hull.args$border <- NULL
+        } else if (col.by.vowel) {
+            hull.line.col <- par("fg")
+        } else {
+            hull.line.col <- exargs$col
+        }
+    } else {
+        hull.line.col <- NA[var.col.by]
+        hull.line.sty <- NA[var.style.by]
+    }
     if (hull.fill) {
         if ("col" %in% names(hull.args)) {
             if (vary.col)        hull.fill.col <- hull.args$col[var.col.by]
@@ -353,12 +377,26 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     } else                       hull.fill.col <- NA[var.col.by]
     # polygon colors
     if (poly.line) {
+        if ("lty" %in% names(poly.args)) {
+            poly.line.sty <- ifelse(vary.sty, poly.args$lty[var.style.by],
+                                    poly.args$lty)
+            poly.args$lty <- NULL
+        } else {
+            poly.line.sty <- exargs$lty
+        }
         if ("border" %in% names(poly.args)) {
-            if (vary.col)        poly.line.col <- poly.args$border[var.col.by]
-            else                 poly.line.col <- poly.args$border
-        } else if (col.by.vowel) poly.line.col <- par("fg")
-        else                     poly.line.col <- exargs$col
-    } else                       poly.line.col <- NA[var.col.by]
+            poly.line.col <- ifelse(vary.col, poly.args$border[var.col.by],
+                                    poly.args$border)
+            poly.args$border <- NULL
+        } else if (col.by.vowel) {
+            poly.line.col <- par("fg")
+        } else {
+            poly.line.col <- exargs$col
+        }
+    } else {
+        poly.line.col <- NA[var.col.by]
+        poly.line.sty <- NA[var.style.by]
+    }
     if (poly.fill) {
         if ("col" %in% names(poly.args)) {
             if (vary.col)        poly.fill.col <- poly.args$col[var.col.by]
@@ -405,10 +443,13 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     style=var.style.by,
                     ellipse.fill.col=ellipse.fill.col,
                     ellipse.line.col=ellipse.line.col,
+                    ellipse.line.sty=ellipse.line.sty,
                     poly.fill.col=poly.fill.col,
                     poly.line.col=poly.line.col,
+                    poly.line.sty=poly.line.sty,
                     hull.fill.col=hull.fill.col,
                     hull.line.col=hull.line.col,
+                    hull.line.sty=hull.line.sty,
                     pchmeans=pchm, pchtokens=pcht,
                     stringsAsFactors=FALSE)
     if (diphthong) {
@@ -429,8 +470,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                				unique(style), 1),
                                poly.fill.col=unique(poly.fill.col),
                                poly.line.col=unique(poly.line.col),
+                               poly.line.sty=unique(poly.line.sty),
                                ellipse.fill.col=unique(ellipse.fill.col),
                                ellipse.line.col=unique(ellipse.line.col),
+                               ellipse.line.sty=unique(ellipse.line.sty),
                                pchmeans=unique(pchmeans),
                                stringsAsFactors=FALSE))
     }})
@@ -559,7 +602,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # PLOT HULL #
     # # # # # # #
     if (hull.fill || hull.line) {
-        hull.columns <- c("f2", "f1", "hull.fill.col", "hull.line.col", "style")
+        hull.columns <- c("f2", "f1", "hull.fill.col", "hull.line.col",
+                          "hull.line.sty")
         hh <- by(d, d$gf, function(i) i[!is.na(i$f2) & !is.na(i$f1),])
         if (diphthong) {
             # if diphthong, hull should ignore diph.mean.timept
@@ -569,7 +613,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 hull <- ipts[chull(ipts),]
                 hull$hull.fill.col <- unique(i$hull.fill.col)
                 hull$hull.line.col <- unique(i$hull.line.col)
-                hull$style <- unique(i$style)
+                hull$hull.line.sty <- unique(i$hull.line.sty)
                 return (hull)
             })
         } else {
@@ -577,9 +621,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                             hull.columns]))
         }
         lapply(hulls, function(i) {
-            hull.args$border <- i$hull.line.col
             hull.args$col    <- i$hull.fill.col
-            if (!"lty" %in% names(hull.args))  hull.args$lty <- i$style
+            hull.args$border <- i$hull.line.col
+            hull.args$lty    <- i$hull.line.sty
             hull.args$x      <- cbind(i$f2, i$f1)
             with(i, do.call(polygon, hull.args))
             })
@@ -592,10 +636,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         invisible(lapply(seq_along(ellipse.points),
                          function(i) {
                              ellipse.args$border <- m$ellipse.line.col[i]
+                             ellipse.args$lty    <- m$ellipse.line.sty[i]
                              ellipse.args$col    <- m$ellipse.fill.col[i]
-                             if (!"lty" %in% names(ellipse.args)) {
-                                 ellipse.args$lty <- m$style[i]
-                             }
                              do.call(polygon, c(list(x=ellipse.points[[i]]), ellipse.args))
                              }))
     }
@@ -641,7 +683,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 pargs$type <- type
                 pargs$cex <- 1.2 * cex.means
                 pargs$col <- i$poly.line.col
-                if (!"lty" %in% names(pargs)) pargs$lty <- i$style
+                pargs$lty <- i$poly.line.sty
                 with(i[i$v %in% poly.order,], do.call(points, pargs))
                 }))
     }   }
@@ -832,7 +874,13 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             legend.lty <- NULL
             legend.brd <- NULL
             if (hull.line | poly.line | ellipse.line) {
-                legend.lty <- unique(m$style)
+                if (!is.na(m$ellipse.line.sty[1])) {
+                    legend.lty <- rle(m$ellipse.line.sty)$values
+                } else if (!is.na(m$poly.line.sty[1])) {
+                    legend.lty <- rle(m$poly.line.sty)$values
+                } else {
+                    legend.lty <- rle(m$hull.line.sty)$values
+                }
                 if (!is.na(m$ellipse.line.col[1]))   legend.brd <- unique(m$ellipse.line.col)
                 else if (!is.na(m$poly.line.col[1])) legend.brd <- unique(m$poly.line.col)
                 else                                 legend.brd <- unique(hull.line.col)
