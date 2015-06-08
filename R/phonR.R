@@ -305,12 +305,12 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # colors: use default pallete if none specified and pretty=FALSE
     if (!"col" %in% names(exargs)) exargs$col <- palette()
     if (vary.col) exargs$col <- exargs$col[var.col.by]
-    exargs$col <- rep(exargs$col, length.out=num.col)
+    exargs$col <- rep(exargs$col, length.out=l)
     # linetypes & plotting characters
     if (!"lty" %in% names(exargs)) exargs$lty <- seq_len(num.sty)
     if (!"pch" %in% names(exargs)) exargs$pch <- seq_len(num.sty)
-    exargs$lty <- rep(exargs$lty, length.out=num.sty)
-    exargs$pch <- rep(exargs$pch, length.out=num.sty)
+    exargs$lty <- rep(exargs$lty, length.out=l)
+    exargs$pch <- rep(exargs$pch, length.out=l)
     if (vary.sty) {
         exargs$lty <- exargs$lty[var.style.by]
         exargs$pch <- exargs$pch[var.style.by]
