@@ -325,8 +325,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # ellipse colors
     if (ellipse.line) {
         if ("lty" %in% names(ellipse.args)) {
-            ellipse.line.sty <- ifelse(vary.sty, ellipse.args$lty[var.style.by],
-                                       ellipse.args$lty)
+            ellipse.args$lty <- rep(ellipse.args$lty, length.out=num.col)
+            if (vary.sty) ellipse.line.sty <- ellipse.args$lty[var.style.by]
+            else          ellipse.line.sty <- ellipse.args$lty
             ellipse.args$lty <- NULL
         } else {
             ellipse.line.sty <- exargs$lty
@@ -349,15 +350,15 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # hull colors
     if (hull.line) {
         if ("lty" %in% names(hull.args)) {
-            hull.line.sty <- ifelse(vary.sty, hull.args$lty[var.style.by],
-                                    hull.args$lty)
+            if (vary.sty) hull.line.sty <- hull.args$lty[var.style.by]
+            else          hull.line.sty <- hull.args$lty
             hull.args$lty <- NULL
         } else {
             hull.line.sty <- exargs$lty
         }
         if ("border" %in% names(hull.args)) {
-            hull.line.col <- ifelse(vary.col, hull.args$border[var.col.by],
-                                    hull.args$border)
+            if (vary.col) hull.line.col <- hull.args$border[var.col.by]
+            else          hull.line.col <- hull.args$border
             hull.args$border <- NULL
         } else if (col.by.vowel) {
             hull.line.col <- par("fg")
@@ -378,15 +379,16 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # polygon colors
     if (poly.line) {
         if ("lty" %in% names(poly.args)) {
-            poly.line.sty <- ifelse(vary.sty, poly.args$lty[var.style.by],
-                                    poly.args$lty)
+            poly.args$lty <- rep(poly.args$lty, length.out=num.sty)
+            if (vary.sty) poly.line.sty <- poly.args$lty[var.style.by]
+            else          poly.line.sty <- poly.args$lty
             poly.args$lty <- NULL
         } else {
             poly.line.sty <- exargs$lty
         }
         if ("border" %in% names(poly.args)) {
-            poly.line.col <- ifelse(vary.col, poly.args$border[var.col.by],
-                                    poly.args$border)
+            if (vary.col) poly.line.col <- poly.args$border[var.col.by]
+            else          poly.line.col <- poly.args$border
             poly.args$border <- NULL
         } else if (col.by.vowel) {
             poly.line.col <- par("fg")
@@ -501,7 +503,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         m$mu <- mu
         m$sigma <- sigma
     }
-
+    print(m)
     # # # # # # # # # # # # #
     # DETERMINE PLOT BOUNDS #
     # # # # # # # # # # # # #
