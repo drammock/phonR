@@ -48,16 +48,16 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     diph.label.first.only=TRUE, diph.mean.timept=1, diph.smooth=FALSE,
     heatmap=FALSE, heatmap.args=NULL, heatmap.legend=FALSE, heatmap.legend.args=NULL,
     var.col.by=NULL, var.style.by=NULL, fill.opacity=0.3, label.las=NULL,
-    legend.kwd=NULL, legend.args=NULL, pretty=FALSE, output='screen', ...)
+    legend.kwd=NULL, legend.args=NULL, pretty=FALSE, output="screen", ...)
 {
     # # # # # # # # # # #
     # HANDLE EXTRA ARGS #
     # # # # # # # # # # #
     exargs <- list(...)
-    font.specified <- 'family' %in% names(exargs)
+    font.specified <- "family" %in% names(exargs)
     # two arguments get overridden no matter what
     exargs$ann <- FALSE
-    exargs$type <- 'n'
+    exargs$type <- "n"
     # Some graphical devices only support inches, so we convert here.
     if ("units" %in% names(exargs)) {
         if (!exargs$units %in% c("in", "cm", "mm", "px")) {
@@ -184,7 +184,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         diphthong <- TRUE
     }
     if (!diphthong) {
-        if (length(f2) != length(f1)) stop('Unequal dimensions for "f1" and "f2".')
+        if (length(f2) != length(f1)) stop("Unequal dimensions for 'f1' and 'f2'.")
         else if (!is.null(vowel) && length(vowel) != length(f1)) {
             stop("Unequal dimensions for 'f1' and 'vowel'.")
         }
@@ -229,7 +229,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     if (is.null(vowel)) v <- rep(NA, l)
     else                v <- factor(vowel, levels=unique(vowel))
-    if (is.null(group)) gf <- rep('gf', l)
+    if (is.null(group)) gf <- rep("gf", l)
     else 			    gf <- factor(group, levels=unique(group))
     # used later to set default polygon color when color varies by vowel
     if (identical(as.numeric(factor(var.col.by)),
@@ -255,8 +255,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     num.col <- length(unique(var.col.by))
     num.sty <- length(unique(var.style.by))
     # misc. plotting defaults
-    if (is.null(cex.tokens))    cex.tokens <- par('cex')
-    if (is.null(cex.means))      cex.means <- par('cex')
+    if (is.null(cex.tokens))    cex.tokens <- par("cex")
+    if (is.null(cex.means))      cex.means <- par("cex")
 
     # # # # # # # # # # # # #
     # DEFAULTS FOR "PRETTY" #
@@ -279,9 +279,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         # PCH: filled / open {circ,tri,squ,diam}, plus, x, inverted open tri
         pretty.pch <- rep(c(16,1,17,2,15,0,18,5,3,4,6), length.out=num.sty)
         # LTY: custom linetypes more readily distinguishable
-        pretty.lty <- c('solid', '44', 'F4', '4313', 'F3131313', '23F3',
-                        '232923', '23258385', '282823B3', '13', '82')
-        pretty.args <- list(mgp=c(2,0.5,0), xaxs='i', yaxs='i', axes=FALSE,
+        pretty.lty <- c("solid", "44", "F4", "4313", "F3131313", "23F3",
+                        "232923", "23258385", "282823B3", "13", "82")
+        pretty.args <- list(mgp=c(2,0.5,0), xaxs="i", yaxs="i", axes=FALSE,
                             fg=hcl(0,0,40), tcl=-0.25, xpd=NA,
                             pch=pretty.pch, lty=pretty.lty, col=pretty.col)
         pretty.par.args <- list(mar=c(1,1,5,5), las=1)
@@ -303,11 +303,11 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     vary.col <- ifelse(is.na(var.col.by[1]), FALSE, TRUE)
     vary.sty <- ifelse(is.na(var.style.by[1]), FALSE, TRUE)
     # colors: use default pallete if none specified and pretty=FALSE
-    if (!'col' %in% names(exargs)) exargs$col <- palette()
+    if (!"col" %in% names(exargs)) exargs$col <- palette()
     if (vary.col) exargs$col <- exargs$col[var.col.by]
     # linetypes & plotting characters
-    if (!'lty' %in% names(exargs)) exargs$lty <- seq_len(num.sty)
-    if (!'pch' %in% names(exargs)) exargs$pch <- seq_len(num.sty)
+    if (!"lty" %in% names(exargs)) exargs$lty <- seq_len(num.sty)
+    if (!"pch" %in% names(exargs)) exargs$pch <- seq_len(num.sty)
     if (vary.sty) {
         exargs$lty <- exargs$lty[var.style.by]
         exargs$pch <- exargs$pch[var.style.by]
@@ -318,7 +318,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     else                     pchm <- pch.means
     # transparency
     trans.col <- makeTransparent(exargs$col, fill.opacity)
-    trans.fg <- makeTransparent(par('fg'), fill.opacity)
+    trans.fg <- makeTransparent(par("fg"), fill.opacity)
     # ellipse colors
     if (ellipse.line) {
         if ("border" %in% names(ellipse.args)) {
@@ -375,18 +375,18 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # # # # # # #
     # INITIALIZE OUTPUT DEVICES #
     # # # # # # # # # # # # # # #
-    if      (output=='pdf') do.call(cairo_pdf, file.args)
-    else if (output=='svg') do.call(svg, file.args)
-    else if (output=='jpg') do.call(jpeg, file.args)
-    else if (output=='tif') do.call(tiff, file.args)
-    else if (output=='png') do.call(png, file.args)
-    else if (output=='bmp') do.call(bmp, file.args)
+    if      (output == "pdf") do.call(cairo_pdf, file.args)
+    else if (output == "svg") do.call(svg, file.args)
+    else if (output == "jpg") do.call(jpeg, file.args)
+    else if (output == "tif") do.call(tiff, file.args)
+    else if (output == "png") do.call(png, file.args)
+    else if (output == "bmp") do.call(bmp, file.args)
     # FONT HANDLING FOR WINDOWS
-    is.win <- .Platform$OS.type == 'windows'
+    is.win <- .Platform$OS.type == "windows"
     if (is.win && font.specified && output %in% output.raster) {
         windowsFonts(phonr=windowsFont(par.args$family))
-        par.args$family <- 'phonr'
-        #if (output=='screen') warning("Font specification may fail if saving ",
+        par.args$family <- "phonr"
+        #if (output=="screen") warning("Font specification may fail if saving ",
         #                            "as PDF from onscreen plot window menu. ",
         #                            "To ensure PDF font fidelity, run ",
         #                            "plotVowels() with output='pdf'.")
@@ -413,7 +413,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         d$f1d <- lapply(apply(f1d, 1, list), unlist, recursive=TRUE, use.names=FALSE)
     }
     if (is.null(vowel) && is.null(group))  byd <- list(d=d)
-    else                                   byd <- by(d, d[c('v','gf')], identity)
+    else                                   byd <- by(d, d[c("v", "gf")], identity)
     # DATAFRAME OF MEANS
     m <- lapply(byd, function(i) {
         if (!is.null(i)) {
@@ -462,7 +462,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # TOKEN EXTREMA
     if (diphthong) plot.bounds <- cbind(range(f2d, finite=TRUE),
                                         range(f1d, finite=TRUE))
-    else           plot.bounds <- apply(d[,c('f2','f1')], 2, range, finite=TRUE)
+    else           plot.bounds <- apply(d[,c("f2", "f1")], 2, range, finite=TRUE)
     # ELLIPSE EXTREMA
     if (ellipse.fill || ellipse.line) {
         ellipse.param <- apply(m, 1, function(i) {
@@ -472,7 +472,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                               paste("(", i$gf, ", ", i$v, ")", sep=""))
                 message("No ellipse drawn for ", msg, " because there is only one token.")
             }
-            list('mu'=i$mu, 'sigma'=i$sigma, 'alpha'=1 - ellipse.conf, 'draw'=FALSE)
+            list("mu"=i$mu, "sigma"=i$sigma, "alpha"=1 - ellipse.conf, "draw"=FALSE)
         })
         ellipse.points <- lapply(ellipse.param,
                                  function(i) do.call(ellipse, i))
@@ -535,7 +535,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         if (pretty & !"colormap" %in% names(heatmap.args)) {
             heatmap.args$colormap <- plotrix::color.scale(x=0:100, cs1=c(0, 180),
                                                           cs2=100, cs3=c(25, 100),
-                                                          color.spec='hcl')
+                                                          color.spec="hcl")
         }
         if (!"add" %in% names(heatmap.args)) heatmap.args$add <- TRUE
         with(d, do.call(repulsiveForceHeatmap, c(list(f2, f1, type=v),
@@ -556,7 +556,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # PLOT HULL #
     # # # # # # #
     if (hull.fill || hull.line) {
-        hull.columns <- c('f2', 'f1', 'hull.fill.col', 'hull.line.col', 'style')
+        hull.columns <- c("f2", "f1", "hull.fill.col", "hull.line.col", "style")
         hh <- by(d, d$gf, function(i) i[!is.na(i$f2) & !is.na(i$f1),])
         if (diphthong) {
             # if diphthong, hull should ignore diph.mean.timept
@@ -628,8 +628,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             })
         }
         if (poly.line) {
-            if (plot.means) type <- 'c'
-            else type <- 'l'
+            if (plot.means) type <- "c"
+            else type <- "l"
             bigenough <- sapply(pp, function(i) nrow(i) > 1)
             invisible(lapply(pp[bigenough], function(i) {
                 pargs <- poly.args
@@ -694,7 +694,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             } else if (diph.smooth) {  # timepts > 3
                 apply(d, 1, function(i) {
                     tryCatch({
-                        steep <- with(i, abs(lm(f1d~f2d)$coefficients['f2d']) > 1)
+                        steep <- with(i, abs(lm(f1d~f2d)$coefficients["f2d"]) > 1)
                         if (steep) dat <- with(i, cbind(f1d, f2d))
                         else       dat <- with(i, cbind(f2d, f1d))
                         pc <- prcomp(dat, center=FALSE, scale.=FALSE)
@@ -910,22 +910,22 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
 normVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
                     vowel=NULL, group=NULL, ...) {
     m <- tolower(method)
-    methods <- c('bark', 'mel', 'log', 'erb', 'zscore', 'lobanov',
-                'logmean', 'shared', 'nearey1', 'nearey2', 'scentroid',
-                'wattfabricius')
+    methods <- c("bark", "mel", "log", "erb", "zscore", "lobanov",
+                "logmean", "shared", "nearey1", "nearey2", "scentroid",
+                "wattfabricius")
     if (!(m %in% methods)) {
-        stop('Method must be one of: bark, mel, log, erb, ',
-             'zscore | lobanov, logmean | nearey1, shared | nearey2, ',
-             'scentroid | wattfabricius.')
+        stop("Method must be one of: bark, mel, log, erb, ",
+             "zscore | lobanov, logmean | nearey1, shared | nearey2, ",
+             "scentroid | wattfabricius.")
     }
     f <- cbind(f0=f0, f1=f1, f2=f2, f3=f3)
-    if (m %in% 'bark') return(normBark(f))
-    else if (m %in% 'mel') return(normMel(f))
-    else if (m %in% 'log') return(normLog(f))
-    else if (m %in% 'erb') return(normErb(f))
-    else if (m %in% c('z','zscore','lobanov')) return(normLobanov(f, group))
-    else if (m %in% c('logmean','nearey1')) return(normLogmean(f, group, ...))
-    else if (m %in% c('shared','nearey2')) return(normSharedLogmean(f, group, ...))
+    if (m %in% "bark") return(normBark(f))
+    else if (m %in% "mel") return(normMel(f))
+    else if (m %in% "log") return(normLog(f))
+    else if (m %in% "erb") return(normErb(f))
+    else if (m %in% c("z", "zscore", "lobanov")) return(normLobanov(f, group))
+    else if (m %in% c("logmean", "nearey1")) return(normLogmean(f, group, ...))
+    else if (m %in% c("shared", "nearey2")) return(normSharedLogmean(f, group, ...))
     else {
         f <- as.matrix(cbind(f1=f1, f2=f2))
         return(normWattFabricius(f, vowel, group))
@@ -1036,7 +1036,7 @@ normWattFabricius <- function(f, vowel, group=NULL) {
     maxima <- do.call(rbind, apply(means, 2, function(i) data.frame(t(apply(do.call(rbind, i), 2, max, na.rm=TRUE)))))
     min.id <- apply(means, 2, function(i) apply(do.call(rbind, i), 2, which.min))
     max.id <- apply(means, 2, function(i) apply(do.call(rbind, i), 2, which.max))
-    if (length(unique(min.id['f1',]))>1) {
+    if (length(unique(min.id["f1",]))>1) {
         warning("The vowel with the lowest mean F1 value (usually /i/)",
                 "does not match across all speakers/groups. You'll ",
                 "have to calculate s-centroid manually.")
@@ -1146,7 +1146,7 @@ repulsiveForceHeatmap <- function(x, y, type=NULL, xform=log, exclude.inf=TRUE,
         sg.idxs <- splancs::inpip(grid[,1:2], hull)
         subgrid <- grid[sg.idxs,]
         # which vowel is closest to each grid point?
-        dmat <- apply(subgrid, 1, function(i) apply(as.matrix(vertices[c('x','y')]),
+        dmat <- apply(subgrid, 1, function(i) apply(as.matrix(vertices[c("x", "y")]),
                                                     1, function(j) dist(rbind(i, j))))
         # still need to exclude inf, in case duplicate pts have diff vowels
         if (exclude.inf) dmat[dmat == 0] <- min(dmat[dmat>0]) / 2
