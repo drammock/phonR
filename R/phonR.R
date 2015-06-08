@@ -1,5 +1,5 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# phonR version 1.0-3
+# phonR version 1.0-4
 # Functions for phoneticians and phonologists
 # AUTHOR: Daniel McCloy, drmccloy@uw.edu
 # LICENSED UNDER THE GNU GENERAL PUBLIC LICENSE v3.0:
@@ -232,10 +232,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (is.null(group)) gf <- rep('gf', l)
     else 			    gf <- factor(group, levels=unique(group))
     # used later to set default polygon color when color varies by vowel
-    if (identical(as.numeric(factor(var.col.by)), 
+    if (identical(as.numeric(factor(var.col.by)),
     			  as.numeric(factor(vowel)))) col.by.vowel <- TRUE
     else                                      col.by.vowel <- FALSE
-    # var.col.by & var.style.by
+    # var.col.by
     if (!is.null(var.col.by[1])) {
         if (is.na(var.col.by[1])) legend.col.lab <- NULL
         else                      legend.col.lab <- unique(as.character(var.col.by))
@@ -244,6 +244,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         legend.col.lab <- c()
         var.col.by <- rep(1, l)  # default to black
     }
+    # var.style.by
     if (!is.null(var.style.by[1])) {
         if (is.na(var.style.by[1])) legend.style.lab <- NULL
         else                        legend.style.lab <- unique(as.character(var.style.by))
@@ -304,10 +305,12 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     vary.sty <- ifelse(is.na(var.style.by[1]), FALSE, TRUE)
     # colors: use default pallete if none specified and pretty=FALSE
     if (!'col' %in% names(exargs)) exargs$col <- palette()
+    exargs$col <- rep(exargs$col, length.out=num.col)
     if (vary.col) exargs$col <- exargs$col[var.col.by]
     # linetypes & plotting characters
     if (!'lty' %in% names(exargs)) exargs$lty <- seq_len(num.sty)
     if (!'pch' %in% names(exargs)) exargs$pch <- seq_len(num.sty)
+    exargs$lty <- rep(exargs$lty, length.out=num.sty)
     if (vary.sty) {
         exargs$lty <- exargs$lty[var.style.by]
         exargs$pch <- exargs$pch[var.style.by]
@@ -350,12 +353,19 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     } else                       hull.fill.col <- NA[var.col.by]
     # polygon colors
     if (poly.line) {
+        #if ("lty" %in% names(poly.args)) {
+        #    if (vary.sty) poly.line.sty <- poly.args$lty[var.style.by]
+        #    else          poly.line.sty <- poly.args$lty
+        #} else            poly.line.sty <- exargs$lty
         if ("border" %in% names(poly.args)) {
             if (vary.col)        poly.line.col <- poly.args$border[var.col.by]
             else                 poly.line.col <- poly.args$border
         } else if (col.by.vowel) poly.line.col <- par("fg")
         else                     poly.line.col <- exargs$col
-    } else                       poly.line.col <- NA[var.col.by]
+    } else {
+        poly.line.col <- NA[var.col.by]
+        #poly.line.sty <- NA[var.style.by]
+    }
     if (poly.fill) {
         if ("col" %in% names(poly.args)) {
             if (vary.col)        poly.fill.col <- poly.args$col[var.col.by]
@@ -400,10 +410,12 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     d <- data.frame(f1=f1, f2=f2, v=v, gf=factor(gf, levels=unique(gf)),
                     col.tokens=col.tokens, col.means=col.means,
                     style=var.style.by,
+                    lty=exargs$lty,
                     ellipse.fill.col=ellipse.fill.col,
                     ellipse.line.col=ellipse.line.col,
                     poly.fill.col=poly.fill.col,
                     poly.line.col=poly.line.col,
+                    #poly.line.sty=poly.line.sty,
                     hull.fill.col=hull.fill.col,
                     hull.line.col=hull.line.col,
                     pchmeans=pchm, pchtokens=pcht,
@@ -424,8 +436,11 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                					unique(col.means), par("fg")),
                                style=ifelse(length(unique(style)) == 1,
                                				unique(style), 1),
+                               lty=ifelse(length(unique(lty)) == 1,
+                                          unique(lty), 1),
                                poly.fill.col=unique(poly.fill.col),
                                poly.line.col=unique(poly.line.col),
+                               #poly.line.sty=unique(poly.line.sty),
                                ellipse.fill.col=unique(ellipse.fill.col),
                                ellipse.line.col=unique(ellipse.line.col),
                                pchmeans=unique(pchmeans),
@@ -620,10 +635,11 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         if (poly.fill) {
             bigenough <- sapply(pp, function(i) nrow(i) > 2)
             lapply(pp[bigenough], function(i) {
+                pargs.defaults <- list(x=cbind(i$f2, i$f1), border=NA,
+                                       col=i$poly.fill.col)
                 pargs <- poly.args
-                pargs$x <- cbind(i$f2, i$f1)
-                pargs$col <- i$poly.fill.col
-                pargs$border <- NA
+                missing <- !names(pargs.defaults) %in% names(pargs)
+                pargs[names(pargs.defaults)[missing]] <- pargs.defaults[missing]
                 with(i, do.call(polygon, pargs))
             })
         }
@@ -632,13 +648,13 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             else type <- 'l'
             bigenough <- sapply(pp, function(i) nrow(i) > 1)
             invisible(lapply(pp[bigenough], function(i) {
+                pargs.defaults <- list(x=i$f2, y=i$f1, type=type,
+                                       cex=1.2 * cex.means,
+                                       col=i$poly.line.col, lty=i$lty)
                 pargs <- poly.args
-                pargs$x <- i$f2
-                pargs$y <- i$f1
-                pargs$type <- type
-                pargs$cex <- 1.2 * cex.means
-                pargs$col <- i$poly.line.col
-                if (!"lty" %in% names(pargs)) pargs$lty <- i$style
+                missing <- !names(pargs.defaults) %in% names(pargs)
+                pargs[names(pargs.defaults)[missing]] <- pargs.defaults[missing]
+                pargs$border <- NULL
                 with(i[i$v %in% poly.order,], do.call(points, pargs))
                 }))
     }   }
