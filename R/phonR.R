@@ -845,7 +845,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             legend.lty <- NULL
             legend.brd <- NULL
             if (hull.line | poly.line | ellipse.line) {
-                legend.lty <- unique(m$style)
+                legend.lty <- rle(m$lty)$values
                 if (!is.na(m$ellipse.line.col[1]))   legend.brd <- unique(m$ellipse.line.col)
                 else if (!is.na(m$poly.line.col[1])) legend.brd <- unique(m$poly.line.col)
                 else                                 legend.brd <- unique(hull.line.col)
