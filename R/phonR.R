@@ -868,8 +868,11 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             # legend col
             legend.col <- NULL
             if (length(legend.col.lab)) {
-                if (plot.means)       legend.col <- unique(m$col.means)
-                else if (plot.tokens) legend.col <- unique(d$col.tokens)
+                if (!is.na(m$ellipse.line.col[1]))   legend.col <- rle(m$ellipse.line.col)$values
+                else if (!is.na(m$poly.line.col[1])) legend.col <- rle(m$poly.line.col)$values
+                else if (!is.na(m$hull.line.col[1])) legend.col <- rle(m$hull.line.col)$values
+                else if (plot.means)                 legend.col <- unique(m$col.means)
+                else if (plot.tokens)                legend.col <- unique(d$col.tokens)
             }
             # legend background fill
             legend.bgf <- NULL
