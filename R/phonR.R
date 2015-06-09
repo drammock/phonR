@@ -406,6 +406,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         } else if (col.by.vowel) poly.fill.col <- trans.fg
         else                     poly.fill.col <- trans.col
     } else                       poly.fill.col <- NA[var.col.by]
+    # handle NAs in linetypes (lty=0 means do not draw)
+    ellipse.line.sty[is.na(ellipse.line.sty)] <- 0
+    poly.line.sty[is.na(poly.line.sty)] <- 0
+    hull.line.sty[is.na(hull.line.sty)] <- 0
 
     # # # # # # # # # # # # # # #
     # TOKEN / MEAN TRANSPARENCY #
@@ -473,6 +477,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                poly.fill.col=unique(poly.fill.col),
                                poly.line.col=unique(poly.line.col),
                                poly.line.sty=unique(poly.line.sty),
+                               hull.fill.col=unique(hull.fill.col),
+                               hull.line.col=unique(hull.line.col),
+                               hull.line.sty=unique(hull.line.sty),
                                ellipse.fill.col=unique(ellipse.fill.col),
                                ellipse.line.col=unique(ellipse.line.col),
                                ellipse.line.sty=unique(ellipse.line.sty),
@@ -861,8 +868,11 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             # legend col
             legend.col <- NULL
             if (length(legend.col.lab)) {
-                if (plot.means)       legend.col <- unique(m$col.means)
-                else if (plot.tokens) legend.col <- unique(d$col.tokens)
+                if (!is.na(m$ellipse.line.col[1]))   legend.col <- rle(m$ellipse.line.col)$values
+                else if (!is.na(m$poly.line.col[1])) legend.col <- rle(m$poly.line.col)$values
+                else if (!is.na(m$hull.line.col[1])) legend.col <- rle(m$hull.line.col)$values
+                else if (plot.means)                 legend.col <- unique(m$col.means)
+                else if (plot.tokens)                legend.col <- unique(d$col.tokens)
             }
             # legend background fill
             legend.bgf <- NULL
@@ -875,9 +885,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             legend.lty <- NULL
             legend.brd <- NULL
             if (hull.line | poly.line | ellipse.line) {
-                if (!is.na(m$ellipse.line.sty[1])) {
+                if (!(length(unique(ellipse.line.sty)) == 1 & ellipse.line.sty[1] == 0)) {
                     legend.lty <- rle(m$ellipse.line.sty)$values
-                } else if (!is.na(m$poly.line.sty[1])) {
+                } else if (!(length(unique(poly.line.sty)) == 1 & poly.line.sty[1] == 0)) {
                     legend.lty <- rle(m$poly.line.sty)$values
                 } else {
                     legend.lty <- rle(m$hull.line.sty)$values
@@ -941,6 +951,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 if (!"merge" %in% names(legend.args)) legend.args$merge <- legend.merge
             }
             # draw legend
+
             do.call(legend, legend.args)
         }
     }
