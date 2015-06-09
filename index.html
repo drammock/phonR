@@ -32,7 +32,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <div id="header">
 <h1 class="title">Normalizing and plotting vowels with phonR 1.0.3</h1>
 <h2 class="author">Daniel R. McCloy, <span class="author">University of Washington</span></h2>
-<h4 class="date">Last updated 2015-04-19</h4>
+<h4 class="date">Last updated 2015-06-09</h4>
 </div>
 <!--pandoc
 s:
@@ -53,7 +53,8 @@ include-after: footer.html
 <p><code>phonR</code> is licensed under <a href="http://www.gnu.org/licenses/gpl.html">GPL-3</a>, and has three dependencies: <code>deldir</code> (for Delaunay triangulations), <code>plotrix</code> (for creating color scales), and <code>splancs</code> (for point-in-polygon functions). Plotting vowels with non-ASCII characters (i.e., most vowel symbols in the International Phonetic Alphabet) also requires that the user’s computer have a typeface installed that contains glyphs at the necessary codepoints, and that the user specify that typeface when calling the <code>plotVowels</code> function.</p>
 <p>To run the examples in this tutorial yourself, you need to load <code>phonR</code> and the accompanying sample data:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(phonR)
-<span class="kw">data</span>(indoVowels)  <span class="co"># provides dataframe &#39;indo&#39;</span></code></pre>
+<span class="kw">data</span>(indoVowels)  <span class="co"># provides dataframe &#39;indo&#39;</span>
+<span class="kw">source</span>(<span class="st">&quot;/media/dan/data/Documents/academics/tools/phonR/R/phonR.R&quot;</span>)</code></pre>
 <h2 id="a-note-about-the-examples">A note about the examples</h2>
 <p>All the examples make use of <code>R</code>’s <code>with()</code> syntax. If you’ve never used <code>with</code>, the short explanation is it allows you to access the columns of a dataframe without the <code>$</code> operator. So instead of <code>plotVowels(indo$f1, indo$f2)</code> you can say <code>with(indo, plotVowels(f1, f2))</code>. It functions similar to providing a <code>data</code> argument in functions like <code>lm</code> or older versions of <code>plotVowels</code>.</p>
 <h2 id="changes-from-previous-versions">Changes from previous versions</h2>
