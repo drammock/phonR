@@ -503,7 +503,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         m$mu <- mu
         m$sigma <- sigma
     }
-    print(m)
     # # # # # # # # # # # # #
     # DETERMINE PLOT BOUNDS #
     # # # # # # # # # # # # #
