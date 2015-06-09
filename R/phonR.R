@@ -406,6 +406,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         } else if (col.by.vowel) poly.fill.col <- trans.fg
         else                     poly.fill.col <- trans.col
     } else                       poly.fill.col <- NA[var.col.by]
+    # handle NAs in linetypes (lty=0 means do not draw)
+    ellipse.line.sty[is.na(ellipse.line.sty)] <- 0
+    poly.line.sty[is.na(poly.line.sty)] <- 0
+    hull.line.sty[is.na(hull.line.sty)] <- 0
 
     # # # # # # # # # # # # # # #
     # TOKEN / MEAN TRANSPARENCY #
