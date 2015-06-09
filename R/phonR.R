@@ -477,6 +477,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                poly.fill.col=unique(poly.fill.col),
                                poly.line.col=unique(poly.line.col),
                                poly.line.sty=unique(poly.line.sty),
+                               hull.fill.col=unique(hull.fill.col),
+                               hull.line.col=unique(hull.line.col),
+                               hull.line.sty=unique(hull.line.sty),
                                ellipse.fill.col=unique(ellipse.fill.col),
                                ellipse.line.col=unique(ellipse.line.col),
                                ellipse.line.sty=unique(ellipse.line.sty),
@@ -879,9 +882,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             legend.lty <- NULL
             legend.brd <- NULL
             if (hull.line | poly.line | ellipse.line) {
-                if (!is.na(m$ellipse.line.sty[1])) {
+                if (!(length(unique(ellipse.line.sty)) == 1 & ellipse.line.sty[1] == 0)) {
                     legend.lty <- rle(m$ellipse.line.sty)$values
-                } else if (!is.na(m$poly.line.sty[1])) {
+                } else if (!(length(unique(poly.line.sty)) == 1 & poly.line.sty[1] == 0)) {
                     legend.lty <- rle(m$poly.line.sty)$values
                 } else {
                     legend.lty <- rle(m$hull.line.sty)$values
@@ -945,6 +948,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 if (!"merge" %in% names(legend.args)) legend.args$merge <- legend.merge
             }
             # draw legend
+
             do.call(legend, legend.args)
         }
     }
