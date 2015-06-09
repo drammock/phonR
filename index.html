@@ -4,7 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
-  <title>Normalizing and plotting vowels with phonR 1.0.3</title>
+  <title>Normalizing and plotting vowels with phonR 1.0.4</title>
   <style type="text/css">code{white-space: pre;}</style>
   <style type="text/css">
 table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
@@ -30,7 +30,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 </head>
 <body>
 <div id="header">
-<h1 class="title">Normalizing and plotting vowels with phonR 1.0.3</h1>
+<h1 class="title">Normalizing and plotting vowels with phonR 1.0.4</h1>
 <h2 class="author">Daniel R. McCloy, <span class="author">University of Washington</span></h2>
 <h4 class="date">Last updated 2015-06-09</h4>
 </div>
@@ -49,12 +49,11 @@ include-after: footer.html
 <h1 id="introduction">Introduction</h1>
 <p>The <code>phonR</code> package provides functions for vowel formant frequency and <span class="math">\(f_0\)</span> normalization, as well as a vowel plotting function <code>plotVowels</code> with many advanced features. There are also a few functions for calculating the area of the vowel space (either as a convex polygonal hull or a polygon connecting the mean values of the vowels), and for calculating the repulsive force of the vowel system. <code>phonR</code> also includes sample data in the form of F1 and F2 measurements for eight speakers of Standard Indonesian.</p>
 <h2 id="installation">Installation</h2>
-<p><code>phonR</code> is available through the <a href="http://cran.r-project.org/package=phonR">Comprehensive R Archive Network</a> and can be installed from within <code>R</code> using <code>install.packages(&quot;phonR&quot;)</code>. The source code is hosted on <a href="https://github.com/drammock/phonR">GitHub</a> so the development version of the package is also available via <code>devtools::install_github(&quot;drammock/phonR&quot;)</code>. This tutorial vignette is built with the most current development version, which is 1.0.3. The development version may include bugfixes or minor features not present in the CRAN version. If you think you have found a bug, please install and test with the development version first by running <code>devtools::install_github(&quot;drammock/phonR&quot;)</code>, as your bug may have already been fixed. You can always go back to the CRAN version by running the standard <code>install.packages(&quot;phonR&quot;)</code> later.</p>
+<p><code>phonR</code> is available through the <a href="http://cran.r-project.org/package=phonR">Comprehensive R Archive Network</a> and can be installed from within <code>R</code> using <code>install.packages(&quot;phonR&quot;)</code>. The source code is hosted on <a href="https://github.com/drammock/phonR">GitHub</a> so the development version of the package is also available via <code>devtools::install_github(&quot;drammock/phonR&quot;)</code>. This tutorial vignette is built with the most current development version, which is 1.0.4. The development version may include bugfixes or minor features not present in the CRAN version. If you think you have found a bug, please install and test with the development version first by running <code>devtools::install_github(&quot;drammock/phonR&quot;)</code>, as your bug may have already been fixed. You can always go back to the CRAN version by running the standard <code>install.packages(&quot;phonR&quot;)</code> later.</p>
 <p><code>phonR</code> is licensed under <a href="http://www.gnu.org/licenses/gpl.html">GPL-3</a>, and has three dependencies: <code>deldir</code> (for Delaunay triangulations), <code>plotrix</code> (for creating color scales), and <code>splancs</code> (for point-in-polygon functions). Plotting vowels with non-ASCII characters (i.e., most vowel symbols in the International Phonetic Alphabet) also requires that the user’s computer have a typeface installed that contains glyphs at the necessary codepoints, and that the user specify that typeface when calling the <code>plotVowels</code> function.</p>
 <p>To run the examples in this tutorial yourself, you need to load <code>phonR</code> and the accompanying sample data:</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(phonR)
-<span class="kw">data</span>(indoVowels)  <span class="co"># provides dataframe &#39;indo&#39;</span>
-<span class="kw">source</span>(<span class="st">&quot;/media/dan/data/Documents/academics/tools/phonR/R/phonR.R&quot;</span>)</code></pre>
+<span class="kw">data</span>(indoVowels)  <span class="co"># provides dataframe &#39;indo&#39;</span></code></pre>
 <h2 id="a-note-about-the-examples">A note about the examples</h2>
 <p>All the examples make use of <code>R</code>’s <code>with()</code> syntax. If you’ve never used <code>with</code>, the short explanation is it allows you to access the columns of a dataframe without the <code>$</code> operator. So instead of <code>plotVowels(indo$f1, indo$f2)</code> you can say <code>with(indo, plotVowels(f1, f2))</code>. It functions similar to providing a <code>data</code> argument in functions like <code>lm</code> or older versions of <code>plotVowels</code>.</p>
 <h2 id="changes-from-previous-versions">Changes from previous versions</h2>
