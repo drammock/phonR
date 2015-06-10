@@ -280,10 +280,10 @@ If you want to plot polygons, ellipses, or hulls with your diphthong data, an ad
 Here are a few more worked examples, mostly based on emails from phonR users asking “how can I do...?”
 
 ## Grayscale
-Sometimes we need plots to be grayscale for print publication. Generally this is accomplished with the `col` argument, which will be recycled as necessary if it is shorter than the number of groups. This plot also shows recycling of line types via the `lty` argument.
+Sometimes we need plots to be grayscale for print publication. Generally this is accomplished with the `col` argument, which will be recycled as necessary if it is shorter than the number of groups. R’s built-in color names for shades of gray come in handy here. This plot also shows recycling of line types via the `lty` argument.
 
 ```{r grayscale, dependson=c("load-phonR"), fig.width=6, fig.height=6}
-with(indo, plotVowels(f1, f2, vowel, group=subj, var.col.by=subj, var.style.by=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=3, pretty=TRUE, poly.line=TRUE, poly.order=c("i", "e", "a", "o", "u"), legend.kwd="bottomleft", legend.args=list(seg.len=4), col=c("gray70", "gray55", "gray40", "gray25"), lty=c("solid", "dashed", "dotted")))
+with(indo, plotVowels(f1, f2, vowel, group=subj, var.col.by=subj, var.style.by=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, pretty=TRUE, poly.line=TRUE, poly.order=c("i", "e", "a", "o", "u"), legend.kwd="bottomleft", legend.args=list(seg.len=4, cex=1.5), col=c("gray70", "gray55", "gray40", "gray25"), lty=c("solid", "dashed", "dotted")))
 ```
 
 ## Overlaying plots
@@ -305,17 +305,17 @@ with(males, plotVowels(f1, f2, vowel, pretty=TRUE, alpha.tokens=0.2, xlim=c(3500
 
 In such cases you can also pass `axes=FALSE, ann=FALSE` to one of the two calls to `plotVowels` to avoid drawing the axes and axis labels twice. However, this approach is somewhat dangerous, because it makes it easy to accidentally change the axis limits for one phase of the overplotting but not the other, and to not notice the mistake because the axes are not being drawn with one of the `plotVowels` calls. The danger can be somewhat mitigated by defining the axis limits externally to the function calls, e.g.:
 
-```{r dry, dependson=c("overlays-one"), eval=FALSE}
+```{r dry, dependson=c("overlays-one"), fig.width=6, fig.height=6}
 xlim <- c(3500, 500)
 ylim <- c(1200, 200)
 with(females, plotVowels(f1, f2, vowel, pretty=TRUE, alpha.tokens=0.2, col="red", col.axis="red", xlim=xlim, ylim=ylim, axes=FALSE, ann=FALSE))
 par(new=TRUE)
-with(males, plotVowels(f1, f2, vowel, pretty=TRUE, alpha.tokens=0.2, xlim=xlim, ylim=ylim, main="BETTER...", sub="xlim & ylim defined externally to the two plotVowels calls"))
+with(males, plotVowels(f1, f2, vowel, pretty=TRUE, alpha.tokens=0.2, xlim=xlim, ylim=ylim, main="BEST?", sub="just like the last plot, without the overplotted axes"))
 ```
 
 A different approach is to plot the overlay in a single call to `plotVowels` after pre-calculating things like color, plotting character to be used, etc. This will generally work for basic plots of tokens and means, but it doesn’t always work for ellipses, polygons, etc.
 
-```{r overlays-two, dependson=c("overlays-one"), fig.width=6, fig.height=6}
+```{r overlays-two, dependson=c("overlays-one"), fig.width=9, fig.height=9}
 # pre-calculate colors (the [-1] at the end avoids duplicate hues 0 and 360)
 hues <- seq(0, 360, length.out=length(unique(females$vowel)) + 1)[-1]
 mycolors <- hcl(h=hues, c=100, l=60)
@@ -333,7 +333,7 @@ females$alph <- 0.5
 # character sizes
 females$cex <- 1.2
 males$cex <- 1.5
-females$meancex <- 4
+females$meancex <- 5
 males$meancex <- 2.5
 with(rbind(males, females), plotVowels(f1, f2, vowel, group=gender, col=color, alpha.tokens=alph, pch.tokens=pch, cex.tokens=cex, plot.means=TRUE, pch.means=meanpch, cex.means=meancex, var.col.by=NA, pretty=TRUE))
 ```
