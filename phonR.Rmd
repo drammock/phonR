@@ -30,8 +30,15 @@ options(width=90)
 # Introduction
 The `phonR` package provides functions for vowel formant frequency and $f_0$ normalization, as well as a vowel plotting function `plotVowels` with many advanced features. There are also a few functions for calculating the area of the vowel space (either as a convex polygonal hull or a polygon connecting the mean values of the vowels), and for calculating the repulsive force of the vowel system. `phonR` also includes sample data in the form of F1 and F2 measurements for eight speakers of Standard Indonesian.
 
+```{r get-cran-version, echo=FALSE}
+cranurl <- "http://cran.r-project.org/web/packages/phonR/index.html"
+cranhtml <- XML::htmlTreeParse(cranurl, useInternalNodes=TRUE)
+xpathquery <- "//td[text()='Version:']/following-sibling::td[1]"
+cranversion <- XML::xpathSApply(cranhtml, xpathquery, XML::xmlValue)
+```
+
 ## Installation
-`phonR` is available through the [Comprehensive R Archive Network](http://cran.r-project.org/package=phonR) and can be installed from within `R` using `install.packages("phonR")`. The source code is hosted on [GitHub](https://github.com/drammock/phonR) so the development version of the package is also available via `devtools::install_github("drammock/phonR")`. This tutorial vignette is built with the most current development version, which is `r packageVersion("phonR")`. The development version may include bugfixes or minor features not present in the CRAN version. If you think you have found a bug, please install and test with the development version first by running `devtools::install_github("drammock/phonR")`, as your bug may have already been fixed. You can always go back to the CRAN version by running the standard `install.packages("phonR")` later.
+`phonR` is available through the [Comprehensive R Archive Network](http://cran.r-project.org/package=phonR) and can be installed from within `R` using `install.packages("phonR")`. The current version available on CRAN is version `r cranversion`. The source code is hosted on [GitHub](https://github.com/drammock/phonR) so the development version of the package is also available via `devtools::install_github("drammock/phonR")`. This tutorial vignette is built with the most current development version, which is `r packageVersion("phonR")`. The development version may include bugfixes or minor features not present in the CRAN version. If you think you have found a bug, please install and test with the development version first by running `devtools::install_github("drammock/phonR")`, as your bug may have already been fixed. You can always go back to the CRAN version by running the standard `install.packages("phonR")` later.
 
 `phonR` is licensed under [GPL-3](http://www.gnu.org/licenses/gpl.html), and has three dependencies: `deldir` (for Delaunay triangulations), `plotrix` (for creating color scales), and `splancs` (for point-in-polygon functions). Plotting vowels with non-ASCII characters (i.e., most vowel symbols in the International Phonetic Alphabet) also requires that the user’s computer have a typeface installed that contains glyphs at the necessary codepoints, and that the user specify that typeface when calling the `plotVowels` function.
 
