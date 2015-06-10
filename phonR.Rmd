@@ -40,6 +40,7 @@ cranurl <- "http://cran.r-project.org/web/packages/phonR/index.html"
 cranhtml <- XML::htmlTreeParse(cranurl, useInternalNodes=TRUE)
 xpathquery <- "//td[text()='Version:']/following-sibling::td[1]"
 cranversion <- XML::xpathSApply(cranhtml, xpathquery, XML::xmlValue)
+cranversion <- gsub(x=cranversion, pattern="-", replacement=".", fixed=TRUE)
 ```
 
 ## Installation
@@ -279,16 +280,16 @@ If you want to plot polygons, ellipses, or hulls with your diphthong data, an ad
 Here are a few more worked examples, mostly based on emails from phonR users asking “how can I do...?”
 
 ## Grayscale
-Sometimes we need plots to be grayscale for print publication. Generally this is accomplished with the `col` argument, which will be recycled as necessary if it is shorter than the number of groups.
+Sometimes we need plots to be grayscale for print publication. Generally this is accomplished with the `col` argument, which will be recycled as necessary if it is shorter than the number of groups. This plot also shows recycling of line types via the `lty` argument.
 
-```{r grayscale, dependson=c("load-phonR")}
-with(indo, plotVowels(f1, f2, vowel, group=subj, var.col.by=subj, var.style.by=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, pretty=TRUE, poly.line=TRUE, poly.order=c("i", "e", "a", "o", "u"), legend.kwd="bottomleft", legend.args=list(seg.len=4), col=c("gray70", "gray55", "gray40", "gray25"), lty=c("solid", "dashed", "dotted")))
+```{r grayscale, dependson=c("load-phonR"), fig.width=6, fig.height=6}
+with(indo, plotVowels(f1, f2, vowel, group=subj, var.col.by=subj, var.style.by=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=3, pretty=TRUE, poly.line=TRUE, poly.order=c("i", "e", "a", "o", "u"), legend.kwd="bottomleft", legend.args=list(seg.len=4), col=c("gray70", "gray55", "gray40", "gray25"), lty=c("solid", "dashed", "dotted")))
 ```
 
 ## Overlaying plots
 In some cases you may find it necessary to overlay two `plotVowels` plots. For example, you may want to plot just tokens and ellipses for one group of subjects, and overlay another group’s data with means and polygons. One way to accomplish this is to make a complete call to `plotVowels`, followed by `par(new=TRUE)`, followed by the second call to `plotVowels`.  This is usually fine as long as you explicitly pass the same values for `pretty`, `xlim` and `ylim` in *both* calls to `plotVowels`; otherwise the overplotted data will be on potentially different axis scales. 
 
-```{r overlays-one, dependson=c("load-phonR")}
+```{r overlays-one, dependson=c("load-phonR"), fig.height=6}
 males <- indo[indo$gender %in% "m",]
 females <- indo[indo$gender %in% "f",]
 par(mfrow=c(1, 2))
@@ -314,7 +315,7 @@ with(males, plotVowels(f1, f2, vowel, pretty=TRUE, alpha.tokens=0.2, xlim=xlim, 
 
 A different approach is to plot the overlay in a single call to `plotVowels` after pre-calculating things like color, plotting character to be used, etc. This will generally work for basic plots of tokens and means, but it doesn’t always work for ellipses, polygons, etc.
 
-```{r overlays-two, dependson=c("overlays-one")}
+```{r overlays-two, dependson=c("overlays-one"), fig.width=6, fig.height=6}
 # pre-calculate colors (the [-1] at the end avoids duplicate hues 0 and 360)
 hues <- seq(0, 360, length.out=length(unique(females$vowel)) + 1)[-1]
 mycolors <- hcl(h=hues, c=100, l=60)
@@ -330,9 +331,11 @@ males$meanpch <- males$vowel
 males$alph <- 0.2
 females$alph <- 0.5
 # character sizes
-females$cex <- 0.8
-males$cex <- 1.1
-with(rbind(males, females), plotVowels(f1, f2, vowel, group=gender, col=color, alpha.tokens=alph, pch.tokens=pch, cex.tokens=cex, plot.means=TRUE, pch.means=meanpch, cex.means=3, var.col.by=NA, pretty=TRUE))
+females$cex <- 1.2
+males$cex <- 1.5
+females$meancex <- 4
+males$meancex <- 2.5
+with(rbind(males, females), plotVowels(f1, f2, vowel, group=gender, col=color, alpha.tokens=alph, pch.tokens=pch, cex.tokens=cex, plot.means=TRUE, pch.means=meanpch, cex.means=meancex, var.col.by=NA, pretty=TRUE))
 ```
 
 
