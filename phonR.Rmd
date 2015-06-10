@@ -275,6 +275,60 @@ By default, `plotVowels` will only label the first point of each diphthong when 
 
 If you want to plot polygons, ellipses, or hulls with your diphthong data, an additional argument `diph.mean.timept` allows you to specify which timepoint you want to use to calculate and draw those measures. The default is to use the first timepoint, but if (for example) you had measurements at 20%, 50%, and 80% through the duration of each vowel, you could specify `diph.mean.timept=2` to base the mean calculations on the midpoint values.
 
+# Additional examples
+Here are a few more worked examples, mostly based on emails from phonR users asking “how can I do...?”
+
+## Overlaying plots
+In some cases you may find it necessary to overlay two `plotVowels` plots. For example, you may want to plot just tokens and ellipses for one group of subjects, and overlay another group’s data with means and polygons. One way to accomplish this is to make a complete call to `plotVowels`, followed by `par(new=TRUE)`, followed by the second call to `plotVowels`.  This is usually fine as long as you explicitly pass the same values for `pretty`, `xlim` and `ylim` in *both* calls to `plotVowels`; otherwise the overplotted data will be on potentially different axis scales. 
+
+```{r overlays-one, dependson=c("load-phonR")}
+males <- indo[indo$gender %in% "m",]
+females <- indo[indo$gender %in% "f",]
+par(mfrow=c(1, 2))
+# this is bad: note the different axis scales (colored differently for emphasis)
+with(females, plotVowels(f1, f2, vowel, pretty=TRUE, alpha.tokens=0.2, col="red", col.axis="red"))
+par(new=TRUE)
+with(males, plotVowels(f1, f2, vowel, pretty=TRUE, alpha.tokens=0.2, main="BAD!", sub="different axis scales for the overlaid data sets"))
+# this is okay: explicitly setting the axis scales to be equal.
+with(females, plotVowels(f1, f2, vowel, pretty=TRUE, alpha.tokens=0.2, col="red", col.axis="red", xlim=c(3500, 500), ylim=c(1200, 200)))
+par(new=TRUE)
+with(males, plotVowels(f1, f2, vowel, pretty=TRUE, alpha.tokens=0.2, xlim=c(3500, 500), ylim=c(1200, 200), main="OKAY...", sub="explicit xlim & ylim for both calls to plotVowels"))
+```
+
+In such cases you can also pass `axes=FALSE, ann=FALSE` to one of the two calls to `plotVowels` to avoid drawing the axes and axis labels twice. However, this approach is somewhat dangerous, because it makes it easy to accidentally change the axis limits for one phase of the overplotting but not the other, and to not notice the mistake because the axes are not being drawn with one of the `plotVowels` calls. The danger can be somewhat mitigated by defining the axis limits externally to the function calls, e.g.:
+
+```{r dry, dependson=c("overlays-one"), eval=FALSE}
+xlim <- c(3500, 500)
+ylim <- c(1200, 200)
+with(females, plotVowels(f1, f2, vowel, pretty=TRUE, alpha.tokens=0.2, col="red", col.axis="red", xlim=xlim, ylim=ylim, axes=FALSE, ann=FALSE))
+par(new=TRUE)
+with(males, plotVowels(f1, f2, vowel, pretty=TRUE, alpha.tokens=0.2, xlim=xlim, ylim=ylim, main="BETTER...", sub="xlim & ylim defined externally to the two plotVowels calls"))
+```
+
+A different approach is to plot the overlay in a single call to `plotVowels` after pre-calculating things like color, plotting character to be used, etc. This will generally work for basic plots of tokens and means, but it doesn’t always work for ellipses, polygons, etc.
+
+```{r overlays-two, dependson=c("overlays-one")}
+# pre-calculate colors (the [-1] at the end avoids duplicate hues 0 and 360)
+hues <- seq(0, 360, length.out=length(unique(females$vowel)) + 1)[-1]
+mycolors <- hcl(h=hues, c=100, l=60)
+females$color <- mycolors[factor(females$vowel)]
+males$color <- "gray30"
+# plotting characters
+mysymbols <- c("\u25cd", "\u25b7", "\u25b1", "\u25d8", "\u25a2")
+females$pch <- mysymbols[factor(females$vowel)]
+males$pch <- "\u25CF"  # solid circle
+females$meanpch <- "\u2640"  # female (venus) symbol
+males$meanpch <- males$vowel
+# token transparency
+males$alph <- 0.2
+females$alph <- 0.5
+# character sizes
+females$cex <- 0.8
+males$cex <- 1.1
+with(rbind(males, females), plotVowels(f1, f2, vowel, group=gender, col=color, alpha.tokens=alph, pch.tokens=pch, cex.tokens=cex, plot.means=TRUE, pch.means=meanpch, cex.means=3, var.col.by=NA, pretty=TRUE))
+```
+
+
 # Appendix: Fonts, IPA, and Unicode
 It would be quite a shame to put so much effort into creating beautiful vowel plots only to use crude ASCII shorthand on the plots to represent vowel quality, instead of proper IPA vowel symbols. There are a couple of good IPA character pickers out there (such as [this one](http://rishida.net/scripts/pickers/ipa/) and [this one](http://westonruter.github.io/ipa-chart/keyboard/)) that make it easy to copy-and-paste any vowel symbol or diacritic you might need. There are even input methods that allow you to type unicode-compliant IPA symbols on a normal keyboard by using various control keys (see [here](http://scripts.sil.org/uniipakeyboard)). Given that these options exist and are free (and most are open-source), there is in my mind no longer any good reason to use ASCII shorthand on vowel plots.
 
