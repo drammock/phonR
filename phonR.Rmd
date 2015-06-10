@@ -27,6 +27,11 @@ knitr::opts_chunk$set(collapse=TRUE, cache=TRUE, comment="#>", warning=FALSE, me
 options(width=90)
 ```
 
+```{r install-phonR, echo=FALSE}
+# install.packages("phonR")                 # uncomment to use CRAN version
+devtools::install_github("drammock/phonR")  # development version
+```
+
 # Introduction
 The `phonR` package provides functions for vowel formant frequency and $f_0$ normalization, as well as a vowel plotting function `plotVowels` with many advanced features. There are also a few functions for calculating the area of the vowel space (either as a convex polygonal hull or a polygon connecting the mean values of the vowels), and for calculating the repulsive force of the vowel system. `phonR` also includes sample data in the form of F1 and F2 measurements for eight speakers of Standard Indonesian.
 
