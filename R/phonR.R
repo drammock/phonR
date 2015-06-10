@@ -232,9 +232,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (is.null(group)) gf <- rep("gf", l)
     else 			    gf <- factor(group, levels=unique(group))
     # used later to set default polygon color when color varies by vowel
-    if (identical(as.numeric(factor(var.col.by)),
-    			  as.numeric(factor(vowel)))) col.by.vowel <- TRUE
-    else                                      col.by.vowel <- FALSE
+    col.by.vowel <- identical(as.numeric(factor(var.col.by)),
+                              as.numeric(factor(vowel)))
     # var.col.by & var.style.by
     if (!is.null(var.col.by[1])) {
         if (is.na(var.col.by[1])) legend.col.lab <- NULL
@@ -302,19 +301,16 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     # # # # # # # # # #
     vary.col <- ifelse(is.na(var.col.by[1]), FALSE, TRUE)
     vary.sty <- ifelse(is.na(var.style.by[1]), FALSE, TRUE)
-    # colors: use default pallete if none specified and pretty=FALSE
+    # color: use default pallete if none specified and pretty=FALSE
     if (!"col" %in% names(exargs)) exargs$col <- palette()
-    if (vary.col) exargs$col <- exargs$col[var.col.by]
-    exargs$col <- rep(exargs$col, length.out=l)
     # linetypes & plotting characters
     if (!"lty" %in% names(exargs)) exargs$lty <- seq_len(num.sty)
     if (!"pch" %in% names(exargs)) exargs$pch <- seq_len(num.sty)
-    if (vary.sty) {
-        exargs$lty <- rep(exargs$lty, length.out=num.sty)[var.style.by]
-        exargs$pch <- rep(exargs$pch, length.out=num.sty)[var.style.by]
-    }
-    exargs$lty <- rep(exargs$lty, length.out=l)
-    exargs$pch <- rep(exargs$pch, length.out=l)
+    # recycle user-specified colors to the length we need
+    if (vary.col) exargs$col <- rep(exargs$col, length.out=num.col)[var.col.by]
+    if (vary.sty) exargs$lty <- rep(exargs$lty, length.out=num.sty)[var.style.by]
+    if (vary.sty) exargs$pch <- rep(exargs$pch, length.out=num.sty)[var.style.by]
+    # set defaults for token and mean plotting characters
     if (is.null(pch.tokens)) pcht <- exargs$pch
     else                     pcht <- pch.tokens
     if (is.null(pch.means))  pchm <- exargs$pch
@@ -864,15 +860,14 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     legend.pch <- unique(m$pchmeans)
                 } else if (plot.tokens && all(grepl("[[:digit:]]", pch.tokens))) {
                     legend.pch <- unique(d$pchtokens)
-            }   }
+                }
+            }
+
             # legend col
             legend.col <- NULL
             if (length(legend.col.lab)) {
-                if (!is.na(m$ellipse.line.col[1]))   legend.col <- rle(m$ellipse.line.col)$values
-                else if (!is.na(m$poly.line.col[1])) legend.col <- rle(m$poly.line.col)$values
-                else if (!is.na(m$hull.line.col[1])) legend.col <- rle(m$hull.line.col)$values
-                else if (plot.means)                 legend.col <- unique(m$col.means)
-                else if (plot.tokens)                legend.col <- unique(d$col.tokens)
+                if (plot.means)       legend.col <- unique(m$col.means)
+                else if (plot.tokens) legend.col <- unique(d$col.tokens)
             }
             # legend background fill
             legend.bgf <- NULL
