@@ -333,7 +333,7 @@ females$alph <- 0.5
 # character sizes
 females$cex <- 1.2
 males$cex <- 1.5
-females$meancex <- 5
+females$meancex <- 6
 males$meancex <- 2.5
 with(rbind(males, females), plotVowels(f1, f2, vowel, group=gender, col=color, alpha.tokens=alph, pch.tokens=pch, cex.tokens=cex, plot.means=TRUE, pch.means=meanpch, cex.means=meancex, var.col.by=NA, pretty=TRUE))
 ```
