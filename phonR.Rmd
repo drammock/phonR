@@ -278,6 +278,13 @@ If you want to plot polygons, ellipses, or hulls with your diphthong data, an ad
 # Additional examples
 Here are a few more worked examples, mostly based on emails from phonR users asking “how can I do...?”
 
+## Grayscale
+Sometimes we need plots to be grayscale for print publication. Generally this is accomplished with the `col` argument, which will be recycled as necessary if it is shorter than the number of groups.
+
+```{r grayscale, dependson=c("load-phonR")}
+with(indo, plotVowels(f1, f2, vowel, group=subj, var.col.by=subj, var.style.by=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, pretty=TRUE, poly.line=TRUE, poly.order=c("i", "e", "a", "o", "u"), legend.kwd="bottomleft", legend.args=list(seg.len=4), col=c("gray70", "gray55", "gray40", "gray25"), lty=c("solid", "dashed", "dotted")))
+```
+
 ## Overlaying plots
 In some cases you may find it necessary to overlay two `plotVowels` plots. For example, you may want to plot just tokens and ellipses for one group of subjects, and overlay another group’s data with means and polygons. One way to accomplish this is to make a complete call to `plotVowels`, followed by `par(new=TRUE)`, followed by the second call to `plotVowels`.  This is usually fine as long as you explicitly pass the same values for `pretty`, `xlim` and `ylim` in *both* calls to `plotVowels`; otherwise the overplotted data will be on potentially different axis scales. 
 
