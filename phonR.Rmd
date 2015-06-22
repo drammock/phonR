@@ -1,6 +1,6 @@
 ---
 title: "Normalizing and plotting vowels with phonR `r packageVersion("phonR")`"
-runningtitle: "phonR 1.0-3 vignette"
+runningtitle: "phonR vignette"
 author:
 - name: Daniel R. McCloy
   affiliation:
@@ -280,10 +280,12 @@ If you want to plot polygons, ellipses, or hulls with your diphthong data, an ad
 Here are a few more worked examples, mostly based on emails from phonR users asking “how can I do...?”
 
 ## Grayscale
-Sometimes we need plots to be grayscale for print publication. Generally this is accomplished with the `col` argument, which will be recycled as necessary if it is shorter than the number of groups. R’s built-in color names for shades of gray come in handy here. This plot also shows recycling of line types via the `lty` argument.
+Sometimes we need plots to be grayscale for print publication. Generally this is accomplished with the `col` argument, which will be recycled as necessary if it is shorter than the number of groups. R’s built-in color names for shades of gray come in handy here. The second plot also shows recycling of line types via the `lty` argument.
 
-```{r grayscale, dependson=c("load-phonR"), fig.width=6, fig.height=6}
-with(indo, plotVowels(f1, f2, vowel, group=subj, var.col.by=subj, var.style.by=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, pretty=TRUE, poly.line=TRUE, poly.order=c("i", "e", "a", "o", "u"), legend.kwd="bottomleft", legend.args=list(seg.len=4, cex=1.5), col=c("gray70", "gray55", "gray40", "gray25"), lty=c("solid", "dashed", "dotted")))
+```{r grayscale, dependson=c("load-phonR"), fig.height=6}
+par(mfrow=c(1, 2))
+with(indo, plotVowels(f1, f2, vowel, group=subj, var.col.by=subj, var.style.by=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, pretty=TRUE, poly.line=TRUE, poly.order=c("i", "e", "a", "o", "u"), legend.kwd="bottomleft", legend.args=list(seg.len=3, cex=1.2, lwd=2), col=c("gray70", "gray40", "gray10"), lty=c("solid", "solid", "dotdash", "dotdash", "dotted", "longdash", "dashed", "dotted")))
+with(indo, plotVowels(f1, f2, vowel, group=subj, var.col.by=subj, var.style.by=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, pretty=TRUE, poly.line=TRUE, poly.order=c("i", "e", "a", "o", "u"), legend.kwd="bottomleft", legend.args=list(seg.len=3, cex=1.2, lwd=2), col=c("gray70", "black", "gray40", "black"), lty=c("solid", "dashed", "dotted")))
 ```
 
 ## Overlaying plots
