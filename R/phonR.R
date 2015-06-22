@@ -883,12 +883,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             legend.pch <- NULL
             if (length(legend.style.lab)) {
                 if (plot.means && all(grepl("[[:digit:]]", pch.means))) {
-                    legend.pch <- sapply(bym, function(i) unique(i$pch.means))
-                    #legend.pch <- unique(m$pchmeans)
+                    legend.pch <- unique(m$pchmeans)
                 } else if (plot.tokens &&
                                all(grepl("[[:digit:]]", pch.tokens))) {
-                    legend.pch <- sapply(byd, function(i) unique(i$pch.tokens))
-                    #legend.pch <- unique(d$pchtokens)
+                    legend.pch <- unique(d$pchtokens)
                 }
             }
             ## legend col
@@ -917,20 +915,17 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             if (hull.line || poly.line || ellipse.line) {
                 if (!(length(unique(ellipse.line.sty)) == 1 &&
                           ellipse.line.sty[1] == 0)) {
-                    legend.lty <- sapply(mm, function(i) unique(i$ellipse.line.sty))
+                    legend.lty <- sapply(bym, function(i) unique(i$ellipse.line.sty))
                 } else if (!(length(unique(poly.line.sty)) == 1 &&
                                  poly.line.sty[1] == 0)) {
                     legend.lty <- sapply(bym, function(i) unique(i$poly.line.sty))
                 } else {
-                    #legend.lty <- sapply(bym, function(i) unique(i$hull.line.sty))
                     legend.lty <- unique(hull.line.sty)
                 }
                 if (!is.na(m$ellipse.line.col[1])) {
                     legend.brd <- sapply(bym, function(i) unique(i$ellipse.line.col))
-                    #legend.brd <- unique(m$ellipse.line.col)
                 } else if (!is.na(m$poly.line.col[1])) {
                     legend.brd <- sapply(bym, function(i) unique(i$poly.line.col))
-                    #legend.brd <- unique(m$poly.line.col)
                 } else {
                     legend.brd <- unique(hull.line.col)
                 }
