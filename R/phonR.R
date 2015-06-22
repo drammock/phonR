@@ -27,12 +27,15 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     heatmap=FALSE, heatmap.args=NULL, heatmap.legend=FALSE,
     heatmap.legend.args=NULL,
     ## color, style
-    var.col.by=NULL, var.sty.by=NULL, fill.opacity=0.3, label.las=NULL,
+    var.col.by=NULL, var.style.by=NULL, fill.opacity=0.3, label.las=NULL,
     ## legend
     legend.kwd=NULL, legend.args=NULL,
     ## misc
     pretty=FALSE, output="screen", ...)
 {
+    ## to-be-deprecated items
+    var.sty.by <- var.style.by
+
     ## ## ## ## ## ## ## ##
     ## HANDLE EXTRA ARGS ##
     ## ## ## ## ## ## ## ##
@@ -867,7 +870,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ##  LEGEND  ##
     ## ## ## ## ##
     if (!is.null(legend.kwd)) {
-        if (is.null(legend.col.lab) & is.null(legend.style.lab)) {
+        if (is.null(legend.col.lab) && is.null(legend.style.lab)) {
             warning("Legend will not be drawn because var.col.by and ",
                     "var.sty.by are both NULL or NA. You will have to use ",
                     "the legend() function.")
@@ -904,15 +907,16 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             ## legend linteype & border color
             legend.lty <- NULL
             legend.brd <- NULL
-            if (hull.line | poly.line | ellipse.line) {
+            if (hull.line || poly.line || ellipse.line) {
+                mm <- by(m, m$gfn, identity)
                 if (!(length(unique(ellipse.line.sty)) == 1 &&
                           ellipse.line.sty[1] == 0)) {
-                    legend.lty <- rle(m$ellipse.line.sty)$values
+                    legend.lty <- sapply(mm, function(i) unique(i$ellipse.line.sty))
                 } else if (!(length(unique(poly.line.sty)) == 1 &&
                                  poly.line.sty[1] == 0)) {
-                    legend.lty <- rle(m$poly.line.sty)$values
+                    legend.lty <- sapply(mm, function(i) unique(i$poly.line.sty))
                 } else {
-                    legend.lty <- rle(m$hull.line.sty)$values
+                    legend.lty <- sapply(mm, function(i) unique(i$hull.line.sty))
                 }
                 if (!is.na(m$ellipse.line.col[1])) {
                     legend.brd <- unique(m$ellipse.line.col)
