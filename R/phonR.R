@@ -1,5 +1,5 @@
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-## phonR version 1.0-6
+## phonR version 1.0-7
 ## Functions for phoneticians and phonologists
 ## AUTHOR: Daniel McCloy, drmccloy@uw.edu
 ## LICENSED UNDER THE GNU GENERAL PUBLIC LICENSE v3.0:
@@ -446,6 +446,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     hull.line.col=hull.line.col,
                     hull.line.sty=hull.line.sty,
                     pchmeans=pchm, pchtokens=pcht,
+                    #diph.args.tokens=as.data.frame(diph.args.tokens),
                     stringsAsFactors=FALSE)
     if (diphthong) {
         d$f2d <- lapply(apply(f2d, 1, list), unlist, use.names=FALSE)
@@ -459,6 +460,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## dataframe of means
     m <- lapply(byd, function(i) {
         if (!is.null(i)) {
+            #ix <- !duplicated(i$gf)
             with(i, data.frame(f2=mean(f2, na.rm=TRUE),
                                f1=mean(f1, na.rm=TRUE),
                                v=unique(v), gf=unique(gf),
@@ -466,6 +468,16 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                                 unique(col.means), par("fg")),
                                style=ifelse(length(unique(style)) == 1,
                                             unique(style), 1),
+                               #poly.fill.col=poly.fill.col[ix],
+                               #poly.line.col=poly.line.col[ix],
+                               #poly.line.sty=poly.line.sty[ix],
+                               #hull.fill.col=hull.fill.col[ix],
+                               #hull.line.col=hull.line.col[ix],
+                               #hull.line.sty=hull.line.sty[ix],
+                               #ellipse.fill.col=ellipse.fill.col[ix],
+                               #ellipse.line.col=ellipse.line.col[ix],
+                               #ellipse.line.sty=ellipse.line.sty[ix],
+                               #pchmeans=pchmeans[ix],
                                poly.fill.col=unique(poly.fill.col),
                                poly.line.col=unique(poly.line.col),
                                poly.line.sty=unique(poly.line.sty),
@@ -834,29 +846,52 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     with(m, points(f2, f1, pch=pchmeans, col=col.means,
                                    cex=cex.means))
                 }
+                ## if diph.label.first.only, ignore cex and pch from now on
                 diph.args.means$type <- "l"
+                diph.arrow.means$type <- "l"
             }
-            ## plot lines
-            apply(m, 1, function(i) {
-                ## if diph.label.first.only, cex and pch will get ignored
-                with(i, do.call(points, c(list(t(f2d)[line.range],
-                                               t(f1d)[line.range],
-                                               pch=pchmeans,
-                                               cex=cex.means,
-                                               col=col.means),
-                                          diph.args.means)))
+            ## prepare means args
+            m.args <- apply(m, 1, function(i) {
+                with(i, list(t(f2d)[line.range], t(f1d)[line.range],
+                             pch=pchmeans, cex=cex.means, col=col.means))
             })
+            ## combine diph.args.means with m
+            m.diph <- as.data.frame(lapply(diph.args.means, function(i) {
+                if (length(i) < length(unique(m$gf))) {
+                    rep(i, length_out=nrow(m))
+                } else {
+                    i[m$gfn]
+                }
+            }))
+            m.diph <- split(m.diph, seq(nrow(m.diph)))
+            m.diph <- mapply(function(i, j) {
+                i[names(j)] <- j
+                list(i)
+            }, m.args, m.diph)
+            ## plot lines
+            invisible(lapply(m.diph, function(i) do.call(points, i)))
             ## plot arrowheads
             if (diph.arrows) {
-                apply(m, 1, function(i) {
-                    with(i, do.call(arrows, c(list(x0=t(f2d)[timepts-1],
-                                                   y0=t(f1d)[timepts-1],
-                                                   x1=t(f2d)[timepts],
-                                                   y1=t(f1d)[timepts],
-                                                   col=col.means),
-                                              diph.arrow.means)
-                    ))
+                ## prepare arrow args
+                m.arr.args <- apply(m, 1, function(i) {
+                    with(i, list(x0=t(f2d)[timepts-1], y0=t(f1d)[timepts-1],
+                                 x1=t(f2d)[timepts], y1=t(f1d)[timepts],
+                                 col=col.means))
                 })
+                ## combine diph.arrow.means with m
+                m.arr <- as.data.frame(lapply(diph.arrow.means, function(i) {
+                    if (length(i) < length(unique(m$gf))) {
+                        rep(i, length_out=nrow(m))
+                    } else {
+                        i[m$gfn]
+                    }
+                }))
+                m.arr <- split(m.arr, seq(nrow(m.arr)))
+                m.arr <- mapply(function(i, j) {
+                    i[names(j)] <- j
+                    list(i)
+                }, m.arr.args, m.arr)
+                invisible(lapply(m.arr, function(i) do.call(arrows, i)))
             }
         } else {
             if (is.null(pch.means)) {
