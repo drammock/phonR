@@ -189,8 +189,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         arrow.only <- c("angle", "length")
         line.only <- c("type")
         if (pretty) {
-            if (is.null(pch.means)) type <- "l"
-            else                    type <- "o"
+            type <- ifelse(is.null(pch.means), "l", "o")
             pretty.diph.tokens <- list(length=0.1, angle=20, type=type)
             pretty.diph.means  <- list(length=0.1, angle=20, type=type,
                                        lwd=2*par("lwd"))
@@ -446,48 +445,43 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     hull.line.col=hull.line.col,
                     hull.line.sty=hull.line.sty,
                     pchmeans=pchm, pchtokens=pcht,
-                    #diph.args.tokens=as.data.frame(diph.args.tokens),
                     stringsAsFactors=FALSE)
     if (diphthong) {
         d$f2d <- lapply(apply(f2d, 1, list), unlist, use.names=FALSE)
         d$f1d <- lapply(apply(f1d, 1, list), unlist, use.names=FALSE)
+        #d.diph <- d
+        #d.diph$f2d <- lapply(apply(f2d, 1, list), unlist, use.names=FALSE)
+        #d.diph$f1d <- lapply(apply(f1d, 1, list), unlist, use.names=FALSE)
+        #d.diph[names(diph.args.tokens)] <- diph.args.tokens
     }
     if (is.null(vowel) && is.null(group)) {
         byd <- list(d=d)
     } else {
         byd <- by(d, d[c("v", "gf")], identity)
     }
-    ## dataframe of means
+    ## dataframe of means. at this point each element of "byd" should have
+    ## exactly 1 vowel and 1 grouping factor (gf) value
     m <- lapply(byd, function(i) {
         if (!is.null(i)) {
-            #ix <- !duplicated(i$gf)
+            idx <- !duplicated(i$gf)
+            fg <- par("fg")
+            tfg <- makeTransparent(fg, fill.opacity)
             with(i, data.frame(f2=mean(f2, na.rm=TRUE),
                                f1=mean(f1, na.rm=TRUE),
-                               v=unique(v), gf=unique(gf),
-                               col.means=ifelse(length(unique(col.means)) == 1,
-                                                unique(col.means), par("fg")),
-                               style=ifelse(length(unique(style)) == 1,
-                                            unique(style), 1),
-                               #poly.fill.col=poly.fill.col[ix],
-                               #poly.line.col=poly.line.col[ix],
-                               #poly.line.sty=poly.line.sty[ix],
-                               #hull.fill.col=hull.fill.col[ix],
-                               #hull.line.col=hull.line.col[ix],
-                               #hull.line.sty=hull.line.sty[ix],
-                               #ellipse.fill.col=ellipse.fill.col[ix],
-                               #ellipse.line.col=ellipse.line.col[ix],
-                               #ellipse.line.sty=ellipse.line.sty[ix],
-                               #pchmeans=pchmeans[ix],
-                               poly.fill.col=unique(poly.fill.col),
-                               poly.line.col=unique(poly.line.col),
-                               poly.line.sty=unique(poly.line.sty),
-                               hull.fill.col=unique(hull.fill.col),
-                               hull.line.col=unique(hull.line.col),
-                               hull.line.sty=unique(hull.line.sty),
-                               ellipse.fill.col=unique(ellipse.fill.col),
-                               ellipse.line.col=unique(ellipse.line.col),
-                               ellipse.line.sty=unique(ellipse.line.sty),
-                               pchmeans=unique(pchmeans),
+                               v=v[idx], gf=gf[idx],
+                               ## mean of a color / style?
+                               col.means=uniquify(col.means, fg),
+                               style=uniquify(style, 1),
+                               poly.fill.col=uniquify(poly.fill.col, tfg),
+                               hull.fill.col=uniquify(hull.fill.col, tfg),
+                               ellipse.fill.col=uniquify(ellipse.fill.col, tfg),
+                               poly.line.col=uniquify(poly.line.col, fg),
+                               hull.line.col=uniquify(hull.line.col, fg),
+                               ellipse.line.col=uniquify(ellipse.line.col, fg),
+                               poly.line.sty=uniquify(poly.line.sty, 1),
+                               hull.line.sty=uniquify(hull.line.sty, 1),
+                               ellipse.line.sty=uniquify(ellipse.line.sty, 1),
+                               pchmeans=uniquify(pchmeans, 1),
                                stringsAsFactors=FALSE))
     }})
     m <- do.call(rbind, m)
@@ -834,8 +828,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             ## TODO: implement smoothing splines for means
             ## setup
             timepts <- length(m$f2d[[1]])
-            if (diph.arrows) line.range <- 1:(timepts-1)
-            else             line.range <- 1:timepts
+            #if (diph.arrows) line.range <- 1:(timepts-1)
+            #else             line.range <- 1:timepts
 
             ## plot first point
             if (diph.label.first.only) {
@@ -848,50 +842,36 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 }
                 ## if diph.label.first.only, ignore cex and pch from now on
                 diph.args.means$type <- "l"
-                diph.arrow.means$type <- "l"
+                if (diph.arrows) diph.arrow.means$type <- "l"
             }
             ## prepare means args
-            m.args <- apply(m, 1, function(i) {
-                with(i, list(t(f2d)[line.range], t(f1d)[line.range],
-                             pch=pchmeans, cex=cex.means, col=col.means))
+            m.split <- split(m, seq(nrow(m)))
+            m.args <- lapply(m.split, function(i) {
+                with(i, list(f2d[[1]], f1d[[1]], pch=pchmeans, cex=cex.means,
+                             col=col.means, lty=style))
             })
-            ## combine diph.args.means with m
-            m.diph <- as.data.frame(lapply(diph.args.means, function(i) {
-                if (length(i) < length(unique(m$gf))) {
-                    rep(i, length_out=nrow(m))
-                } else {
-                    i[m$gfn]
-                }
-            }))
-            m.diph <- split(m.diph, seq(nrow(m.diph)))
-            m.diph <- mapply(function(i, j) {
-                i[names(j)] <- j
-                list(i)
-            }, m.args, m.diph)
-            ## plot lines
-            invisible(lapply(m.diph, function(i) do.call(points, i)))
+            ## combine diph.args.means with m.args and plot
+            invisible(lapply(m.args, function(i) {
+                i[names(diph.args.means)] <- diph.args.means
+                do.call(points, i)
+                }))
             ## plot arrowheads
             if (diph.arrows) {
                 ## prepare arrow args
-                m.arr.args <- apply(m, 1, function(i) {
-                    with(i, list(x0=t(f2d)[timepts-1], y0=t(f1d)[timepts-1],
-                                 x1=t(f2d)[timepts], y1=t(f1d)[timepts],
+                m.arr.args <- lapply(m.split, function(i) {
+                    xd <- 0.01*diff(i$f2d[[1]][(timepts-1):timepts])
+                    yd <- 0.01*diff(i$f1d[[1]][(timepts-1):timepts])
+                    with(i, list(x0=f2d[[1]][timepts]-xd, y0=f1d[[1]][timepts]-yd,
+                                 x1=f2d[[1]][timepts], y1=f1d[[1]][timepts],
                                  col=col.means))
                 })
-                ## combine diph.arrow.means with m
-                m.arr <- as.data.frame(lapply(diph.arrow.means, function(i) {
-                    if (length(i) < length(unique(m$gf))) {
-                        rep(i, length_out=nrow(m))
-                    } else {
-                        i[m$gfn]
-                    }
+                ## combine with diph.arrow.means and plot
+                invisible(lapply(m.arr.args, function(i){
+                    i[names(diph.arrow.means)] <- diph.arrow.means
+                    i$lty <- "solid"
+                    if ("type" %in% names(i)) i$type <- NULL
+                    do.call(arrows, i)
                 }))
-                m.arr <- split(m.arr, seq(nrow(m.arr)))
-                m.arr <- mapply(function(i, j) {
-                    i[names(j)] <- j
-                    list(i)
-                }, m.arr.args, m.arr)
-                invisible(lapply(m.arr, function(i) do.call(arrows, i)))
             }
         } else {
             if (is.null(pch.means)) {
@@ -1374,6 +1354,12 @@ makeTransparent <- function (color, opacity) {
     rgba[,4] <- round(255 * opacity)
     colnames(rgba) <- c("red", "green", "blue", "alpha")
     trans.color <- do.call(rgb, c(as.data.frame(rgba), maxColorValue=255))
+}
+
+uniquify <- function(x, default.val) {
+    ## x should be a vector
+    ux <- unique(x)
+    ifelse(length(ux) == 1, ux, default.val)
 }
 
 fillTriangle <- function(x, y, vertices) {
