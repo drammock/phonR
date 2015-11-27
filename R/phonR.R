@@ -289,8 +289,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## ## ## ## ## ## ##
     ## OTHER DEFAULTS ##
     ## ## ## ## ## ## ##
-    vary.col <- ifelse(is.na(var.col.by[1]), FALSE, TRUE)
-    vary.sty <- ifelse(is.na(var.sty.by[1]), FALSE, TRUE)
+    vary.col <- !is.na(var.col.by[1])
+    vary.sty <- !is.na(var.sty.by[1])
     ## color: use default pallete if none specified and pretty=FALSE
     if (!"col" %in% names(exargs)) exargs$col <- palette()
     ## linetypes & plotting characters
@@ -434,7 +434,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## ## ## ## ## ## ## ## ## ##
     d <- data.frame(f1=f1, f2=f2, v=v, gf=factor(gf, levels=unique(gf)),
                     col.tokens=col.tokens, col.means=col.means,
-                    style=var.sty.by,
+                    style=var.sty.by, lty=exargs$lty,
                     ellipse.fill.col=ellipse.fill.col,
                     ellipse.line.col=ellipse.line.col,
                     ellipse.line.sty=ellipse.line.sty,
@@ -444,7 +444,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     hull.fill.col=hull.fill.col,
                     hull.line.col=hull.line.col,
                     hull.line.sty=hull.line.sty,
-                    pchmeans=pchm, pchtokens=pcht,
+                    diph.line.sty=exargs$lty,
+                    pchm=pchm, pch.tokens=pcht,
                     stringsAsFactors=FALSE)
     if (diphthong) {
         d$f2d <- lapply(apply(f2d, 1, list), unlist, use.names=FALSE)
@@ -481,7 +482,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                poly.line.sty=uniquify(poly.line.sty, 1),
                                hull.line.sty=uniquify(hull.line.sty, 1),
                                ellipse.line.sty=uniquify(ellipse.line.sty, 1),
-                               pchmeans=uniquify(pchmeans, 1),
+                               pchm=uniquify(pchm, 1),
+                               lty.means=uniquify(lty, 1),
                                stringsAsFactors=FALSE))
     }})
     m <- do.call(rbind, m)
@@ -828,16 +830,13 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             ## TODO: implement smoothing splines for means
             ## setup
             timepts <- length(m$f2d[[1]])
-            #if (diph.arrows) line.range <- 1:(timepts-1)
-            #else             line.range <- 1:timepts
-
             ## plot first point
             if (diph.label.first.only) {
                 if (!is.null(pch.means)) {
-                    with(m, text(f2, f1, labels=pchmeans, col=col.means,
+                    with(m, text(f2, f1, labels=pchm, col=col.means,
                                  cex=cex.means))
                 } else {
-                    with(m, points(f2, f1, pch=pchmeans, col=col.means,
+                    with(m, points(f2, f1, pch=pchm, col=col.means,
                                    cex=cex.means))
                 }
                 ## if diph.label.first.only, ignore cex and pch from now on
@@ -847,8 +846,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             ## prepare means args
             m.split <- split(m, seq(nrow(m)))
             m.args <- lapply(m.split, function(i) {
-                with(i, list(f2d[[1]], f1d[[1]], pch=pchmeans, cex=cex.means,
-                             col=col.means, lty=style))
+                with(i, list(f2d[[1]], f1d[[1]], pch=pchm, cex=cex.means,
+                             col=col.means, lty=lty.means))
             })
             ## combine diph.args.means with m.args and plot
             invisible(lapply(m.args, function(i) {
@@ -875,10 +874,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             }
         } else {
             if (is.null(pch.means)) {
-                with(m, points(f2, f1, col=col.means, pch=pchmeans,
+                with(m, points(f2, f1, col=col.means, pch=pchm,
                                cex=cex.means))
             } else {
-                with(m, text(f2, f1, labels=pchmeans, col=col.means,
+                with(m, text(f2, f1, labels=pchm, col=col.means,
                              cex=cex.means))
             }
         }
@@ -898,7 +897,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             legend.pch <- NULL
             if (length(legend.style.lab)) {
                 if (plot.means && all(grepl("[[:digit:]]", pch.means))) {
-                    legend.pch <- unique(m$pchmeans)
+                    legend.pch <- unique(m$pchm)
                 } else if (plot.tokens &&
                                all(grepl("[[:digit:]]", pch.tokens))) {
                     legend.pch <- unique(d$pchtokens)
