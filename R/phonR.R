@@ -296,6 +296,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## linetypes & plotting characters
     if (!"lty" %in% names(exargs)) exargs$lty <- seq_len(num.sty)
     if (!"pch" %in% names(exargs)) exargs$pch <- seq_len(num.sty)
+    if (!"lwd" %in% names(exargs)) exargs$lwd <- par("lwd")
     ## recycle user-specified colors to the length we need
     if (vary.col) exargs$col <- rep(exargs$col, length.out=num.col)[var.col.by]
     if (vary.sty) exargs$lty <- rep(exargs$lty, length.out=num.sty)[var.sty.by]
@@ -434,7 +435,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## ## ## ## ## ## ## ## ## ##
     d <- data.frame(f1=f1, f2=f2, v=v, gf=factor(gf, levels=unique(gf)),
                     col.tokens=col.tokens, col.means=col.means,
-                    style=var.sty.by, lty=exargs$lty,
+                    style=var.sty.by, lty=exargs$lty, lwd=exargs$lwd,
                     ellipse.fill.col=ellipse.fill.col,
                     ellipse.line.col=ellipse.line.col,
                     ellipse.line.sty=ellipse.line.sty,
@@ -444,7 +445,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     hull.fill.col=hull.fill.col,
                     hull.line.col=hull.line.col,
                     hull.line.sty=hull.line.sty,
-                    diph.line.sty=exargs$lty,
                     pchm=pchm, pch.tokens=pcht,
                     stringsAsFactors=FALSE)
     if (diphthong) {
@@ -484,6 +484,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                ellipse.line.sty=uniquify(ellipse.line.sty, 1),
                                pchm=uniquify(pchm, 1),
                                lty.means=uniquify(lty, 1),
+                               lwd.means=uniquify(lwd, par("lwd")),
                                stringsAsFactors=FALSE))
     }})
     m <- do.call(rbind, m)
@@ -719,8 +720,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         if (diphthong) {
             ## setup
             timepts <- length(d$f2d[[1]])
-            if (diph.arrows) line.range <- 1:(timepts-1)
-            else             line.range <- 1:timepts
             ## no smoothing splines
             if (!diph.smooth || timepts < 4) {
                 if (diph.smooth) warning("Cannot smooth diphthong traces with ",
@@ -729,35 +728,43 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 ## plot first point
                 if (diph.label.first.only) {
                     if (!is.null(pch.tokens)) {
-                        with(d, text(f2, f1, labels=pchtokens, col=col.tokens,
+                        with(d, text(f2, f1, labels=pch.tokens, col=col.tokens,
                                      cex=cex.tokens))
                     } else {
-                        with(d, points(f2, f1, pch=pchtokens, col=col.tokens,
+                        with(d, points(f2, f1, pch=pch.tokens, col=col.tokens,
                                        cex=cex.tokens))
                     }
+                    ## if diph.label.first.only, ignore cex and pch from now on
                     diph.args.tokens$type <- "l"
+                    if (diph.arrows) diph.arrow.tokens$type <- "l"
                 }
-                ## plot lines
-                apply(d, 1, function(i) {
-                    ## if diph.label.first.only, cex and pch will get ignored
-                    with(i, do.call(points, c(list(t(f2d)[line.range],
-                                                   t(f1d)[line.range],
-                                                   pch=pchtokens,
-                                                   cex=cex.tokens,
-                                                   col=col.tokens),
-                                              diph.args.tokens)))
-                    })
-                ## plot arrowheads
+                ## prepare tokens args
+                d.split <- split(d, seq(nrow(d)))
+                d.args <- lapply(d.split, function(i) {
+                    with(i, list(f2d[[1]], f1d[[1]], pch=pch.tokens,
+                                 cex=cex.tokens, col=col.tokens, lty=lty))
+                })
+                ## combine diph.args.means with m.args and plot
+                invisible(lapply(d.args, function(i) {
+                    i[names(diph.args.tokens)] <- diph.args.tokens
+                    do.call(points, i)
+                }))
                 if (diph.arrows) {
-                    apply(d, 1, function(i) {
-                        with(i, do.call(arrows, c(list(x0=t(f2d)[timepts-1],
-                                                       y0=t(f1d)[timepts-1],
-                                                       x1=t(f2d)[timepts],
-                                                       y1=t(f1d)[timepts],
-                                                       col=col.tokens),
-                                                  diph.arrow.tokens)
-                        ))
+                    ## prepare arrow args
+                    d.arr.args <- lapply(d.split, function(i) {
+                        xd <- 0.01*diff(i$f2d[[1]][(timepts-1):timepts])
+                        yd <- 0.01*diff(i$f1d[[1]][(timepts-1):timepts])
+                        with(i, list(x0=f2d[[1]][timepts]-xd, y0=f1d[[1]][timepts]-yd,
+                                     x1=f2d[[1]][timepts], y1=f1d[[1]][timepts],
+                                     col=col.tokens, lwd=lwd))
                     })
+                    ## combine with diph.arrow.means and plot
+                    invisible(lapply(d.arr.args, function(i){
+                        i[names(diph.arrow.tokens)] <- diph.arrow.tokens
+                        i$lty <- "solid"
+                        if ("type" %in% names(i)) i$type <- NULL
+                        do.call(arrows, i)
+                    }))
                 }
             ## diphthong smoothing spline
             } else if (diph.smooth) {  # timepts > 3
@@ -794,7 +801,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                         if (diph.arrows) {
                             end <- nrow(i)
                             with(i, points(f2[1:end-1], f1[1:end-1],
-                                           col=col.tokens, pch=pchtokens,
+                                           col=col.tokens, pch=pch.tokens,
                                            cex=cex.tokens, type="o"))
                             with(i, do.call(arrows, c(list(x0=f2[end-1],
                                                            y0=f1[end-1],
@@ -804,7 +811,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                                       diph.arrow.args)))
                         } else {
                             with(i, points(f2, f1, col=col.tokens,
-                                           pch=pchtokens, cex=cex.tokens,
+                                           pch=pch.tokens, cex=cex.tokens,
                                            type="o"))
                         }
                     },
@@ -815,10 +822,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             }
         } else {  # !diphthong
             if (is.null(pch.tokens)) {
-                with(d, points(f2, f1, pch=pchtokens, cex=cex.tokens,
+                with(d, points(f2, f1, pch=pch.tokens, cex=cex.tokens,
                                col=col.tokens))
             } else {
-                with(d, text(f2, f1, labels=pchtokens, cex=cex.tokens,
+                with(d, text(f2, f1, labels=pch.tokens, cex=cex.tokens,
                              col=col.tokens))
     }   }   }
 
@@ -862,7 +869,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     yd <- 0.01*diff(i$f1d[[1]][(timepts-1):timepts])
                     with(i, list(x0=f2d[[1]][timepts]-xd, y0=f1d[[1]][timepts]-yd,
                                  x1=f2d[[1]][timepts], y1=f1d[[1]][timepts],
-                                 col=col.means))
+                                 col=col.means, lwd=lwd.means))
                 })
                 ## combine with diph.arrow.means and plot
                 invisible(lapply(m.arr.args, function(i){
@@ -900,7 +907,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     legend.pch <- unique(m$pchm)
                 } else if (plot.tokens &&
                                all(grepl("[[:digit:]]", pch.tokens))) {
-                    legend.pch <- unique(d$pchtokens)
+                    legend.pch <- unique(d$pch.tokens)
                 }
             }
             ## legend col
