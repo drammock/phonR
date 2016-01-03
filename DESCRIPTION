@@ -1,8 +1,8 @@
 Package: phonR
 Type: Package
 Title: Tools for Phoneticians and Phonologists
-Version: 1.0-6
-Date: 2015-06-22
+Version: 1.0-7
+Date: 2016-01-03
 Author: Daniel R. McCloy
 Maintainer: Daniel R. McCloy <drmccloy@uw.edu>
 Depends: R (>= 2.10)
