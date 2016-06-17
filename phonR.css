@@ -85,6 +85,7 @@ table {
 	border: none;
 	margin: 1.5em 0;
 	border-spacing: 0px;
+	width: inherit;
 }
 
 tr:nth-child(even) { background: #EEE; }
