@@ -469,7 +469,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             tfg <- makeTransparent(fg, fill.opacity)
             with(i, data.frame(f2=mean(f2, na.rm=TRUE),
                                f1=mean(f1, na.rm=TRUE),
-                               v=v[idx], gf=gf[idx],
+                               v=v[idx], gf=gf[idx], n=nrow(i),
                                ## mean of a color / style?
                                col.means=uniquify(col.means, fg),
                                style=uniquify(style, 1),
@@ -501,9 +501,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             with(i, list(colMeans(cbind(f2, f1), na.rm=TRUE)))
         }})
         mu <- do.call(rbind, mu)
-        sigma <- lapply(byd, function(i) { if (!(is.null(i))) {
-            with(i[!(is.na(i$f2)) && !(is.na(i$f1)),],
-                 list(cov(cbind(f2, f1))))
+        sigma <- lapply(byd, function(i) { if (!is.null(i)) {
+            with(na.omit(i[c('f2', 'f1')]), list(cov(cbind(f2, f1))))
         }})
         ## the covariance calculation above still may yield an NA covariance
         ## matrix if a vowel has only 1 token. This is handled later.
@@ -529,11 +528,11 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             if (any(is.na(i$sigma))) {
                 i$sigma <- matrix(rep(0, 4), nrow=2)
                 msg <- ifelse(i$gf == "gf", as.character(i$v),
-                              paste("(", i$gf, ", ", i$v, ")", sep=""))
+                              paste0("(", i$gf, ", ", i$v, ")"))
                 message("No ellipse drawn for ", msg,
                         " because there is only one token.")
             }
-            list("mu"=i$mu, "sigma"=i$sigma, "alpha"=1 - ellipse.conf,
+            list("mu"=i$mu, "sigma"=i$sigma, "n"=i$n, "alpha"=1 - ellipse.conf,
                  "draw"=FALSE)
         })
         ellipse.points <- lapply(ellipse.param,
@@ -1339,12 +1338,15 @@ prettyTicks <- function(lim) {
     seq(lims[1],lims[2],step)
 }
 
-ellipse <- function(mu, sigma, alpha=0.05, npoints=250, draw=TRUE, ...) {
-    ## adapted from the (now-defunct) mixtools package
+ellipse <- function(mu, sigma, n, alpha=0.05, npoints=250, draw=TRUE, ...) {
     if (all(sigma == matrix(rep(0, 4), nrow=2))) return(rbind(mu, mu))
     es <- eigen(sigma)
     e1 <- es$vec %*% diag(sqrt(es$val))
-    r1 <- sqrt(qchisq(1 - alpha, 2))
+    # use hotelling's t^2 to compute ellipse (confidence in mean location)
+    p <- length(mu)
+    tsquared <- n * t(mu) %*% solve(sigma) %*% mu
+    coef <- p * (n - 1) / (n - p)
+    r1 <- sqrt(coef * qf(1 - alpha, df1=p, df2=n-p))
     theta <- seq(0, 2 * pi, len=npoints)
     v1 <- cbind(r1 * cos(theta), r1 * sin(theta))
     pts <- t(mu - (e1 %*% t(v1)))

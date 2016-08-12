@@ -59,8 +59,8 @@
     \item{hull.args,poly.args,ellipse.args}{Named list of arguments to be passed
                                             to \code{\link[graphics]{polygon}}.
                                             Useful for controlling line width,
-                                            etc. See "Details" for notes about
-                                            color handling.}
+                                            etc. See \dQuote{Details} for notes
+                                            about color handling.}
     \item{poly.line}{Logical; should a line be drawn tracing the polygon
                      connecting the mean values for each vowel (separately for
                      each level of \code{group})?}
@@ -74,10 +74,12 @@
     \item{ellipse.line}{Logical; should vowel density ellipses be drawn with an
                         outer line?}
     \item{ellipse.fill}{Logical; should vowel density ellipses be filled?}
-    \item{ellipse.conf}{Size of the ellipse (0,1] expressed as a confidence level
-                        (i.e., 0.95 gives a 95\% confidence ellipse).  Defaults
-                        to a confidence level of 0.6827 (equivalent to
-                        plus-or-minus 1 sample standard deviation).}
+    \item{ellipse.conf}{Numeric in range (0,1]; the size of the ellipse
+                        expressed as a confidence level of the estimate of the
+                        true mean (i.e., 0.95 gives a 95\% confidence ellipse).
+                        The default value (0.6827) corresponds to plus-or-minus
+                        one sample standard deviation along the major and minor
+                        axes of the bivariate normal density contour.}
     \item{diph.arrows}{Logical; should the last timepoint of each vowel be
                        marked with an arrowhead?}
     \item{diph.args.tokens,diph.args.means}{List of named arguments to be passed
