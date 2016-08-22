@@ -502,7 +502,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         }})
         mu <- do.call(rbind, mu)
         sigma <- lapply(byd, function(i) { if (!is.null(i)) {
-            with(na.omit(i[c('f2', 'f1')]), list(cov(cbind(f2, f1))))
+            with(i, list(var(cbind(f2, f1), na.rm=TRUE)))
         }})
         ## the covariance calculation above still may yield an NA covariance
         ## matrix if a vowel has only 1 token. This is handled later.
@@ -1340,16 +1340,20 @@ prettyTicks <- function(lim) {
 
 ellipse <- function(mu, sigma, n, alpha=0.05, npoints=250, draw=TRUE, ...) {
     if (all(sigma == matrix(rep(0, 4), nrow=2))) return(rbind(mu, mu))
-    es <- eigen(sigma)
-    e1 <- es$vec %*% diag(sqrt(es$val))
-    # use hotelling's t^2 to compute ellipse (confidence in mean location)
     p <- length(mu)
-    tsquared <- n * t(mu) %*% solve(sigma) %*% mu
-    coef <- p * (n - 1) / (n - p)
-    r1 <- sqrt(coef * qf(1 - alpha, df1=p, df2=n-p))
-    theta <- seq(0, 2 * pi, len=npoints)
-    v1 <- cbind(r1 * cos(theta), r1 * sin(theta))
-    pts <- t(mu - (e1 %*% t(v1)))
+    es <- eigen(sigma)
+    e1 <- es$vectors %*% diag(sqrt(es$values))
+    theta <- seq(from=0, to=2 * pi, length.out=npoints)
+    unit.circle <- cbind(cos(theta), sin(theta))
+    ## for small n, confidence ellipses for multivariate sample means are
+    ## distributed as Hotelling's T^2, which is (with appropriate scale factor)
+    ## equivalent to an F distribution (hence the qf() function). For large n,
+    ## this asymptotically approaches qchisq(1-alpha, p)
+    scale.factor <- p * (n - 1) / (n - p)
+    critical.radius <- sqrt(scale.factor * qf(1-alpha, df1=p, df2=n-p))
+    ## if we needed it, this would be the t-squared statistic
+    # tsquared <- n * t(mu) %*% solve(sigma) %*% mu
+    pts <- t(mu - (e1 %*% t(critical.radius * unit.circle)))
     if (draw) {
         colnames(pts) <- c("x", "y")
         polygon(pts, ...)
