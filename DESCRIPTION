@@ -6,10 +6,10 @@ Date: 2016-08-22
 Author: Daniel R. McCloy
 Maintainer: Daniel R. McCloy <drmccloy@uw.edu>
 Depends: R (>= 2.10)
-Imports: splancs, deldir, plotrix
+Imports: splancs, deldir, plotrix, stats, grDevices, graphics
 Description: Tools for phoneticians and phonologists, including functions for normalization and plotting of vowels.
 License: GPL-3
 URL: http://drammock.github.io/phonR/
-BugReports: https://github.com/drammock/phonR/issues 
+BugReports: https://github.com/drammock/phonR/issues
 LazyLoad: yes
 LazyData: yes
