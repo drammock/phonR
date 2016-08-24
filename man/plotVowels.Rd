@@ -22,7 +22,7 @@
                diph.mean.timept=1, diph.smooth=FALSE,
                heatmap=FALSE, heatmap.args=NULL,
                heatmap.legend=FALSE, heatmap.legend.args=NULL,
-               var.col.by=NULL, var.style.by=NULL,
+               var.col.by=NULL, var.sty.by=NULL,
                fill.opacity=0.3, label.las=NULL,
                legend.kwd=NULL, legend.args=NULL,
                pretty=FALSE, output='screen', ...)
@@ -135,8 +135,8 @@
                                a more complete description of the available arguments.}
     \item{var.col.by}{Vector or factor indicating the dimension along which to vary
                       color.}
-    \item{var.style.by}{Vector or factor indicating the dimension along which to
-                        vary linetype and plotting symbol.}
+    \item{var.sty.by}{Vector or factor indicating the dimension along which to
+                      vary linetype and plotting symbol.}
     \item{fill.opacity}{Number in the range [0, 1] indicating the opacity of
                         color fills for ellipses, hulls, and polygons (if drawn).
                         Does not affect \code{force.heatmap} colors, which are
@@ -186,7 +186,7 @@ data(indoVowels)
 with(indo, plotVowels(f1, f2, vowel, group=gender, plot.means=TRUE,
                       pch.means=vowel, ellipse.line=TRUE, poly.line=TRUE,
                       poly.order=c('i','e','a','o','u'), var.col.by=vowel,
-                      var.style.by=gender, pretty=TRUE, alpha.tokens=0.3,
+                      var.sty.by=gender, pretty=TRUE, alpha.tokens=0.3,
                       cex.means=2))
 # simulate some diphthongs
 f1delta <- sample(c(-10:-5, 5:15), nrow(indo), replace=TRUE)
@@ -204,7 +204,7 @@ indo <- within(indo, {
 with(indo, plotVowels(cbind(f1, f1a, f1b), cbind(f2, f2a, f2b), vowel,
                       group=gender, plot.tokens=TRUE, pch.tokens=NA,
                       alpha.tokens=0.3, plot.means=TRUE, pch.means=vowel,
-                      var.col.by=vowel, var.style.by=gender, pretty=TRUE,
+                      var.col.by=vowel, var.sty.by=gender, pretty=TRUE,
                       diph.arrows=TRUE, diph.args.tokens=list(lwd=0.8),
                       diph.args.means=list(lwd=2)))
 }
