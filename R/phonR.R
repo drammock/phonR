@@ -27,28 +27,39 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     heatmap=FALSE, heatmap.args=NULL, heatmap.legend=FALSE,
     heatmap.legend.args=NULL,
     ## color, style
-    var.col.by=NULL, var.style.by=NULL, fill.opacity=0.3, label.las=NULL,
+    var.col.by=NULL, var.sty.by=NULL, fill.opacity=0.3, label.las=NULL,
     ## legend
     legend.kwd=NULL, legend.args=NULL,
     ## misc
     pretty=FALSE, output="screen", ...)
 {
-    ## to-be-deprecated items
-    var.sty.by <- var.style.by
-
     ## ## ## ## ## ## ## ##
     ## HANDLE EXTRA ARGS ##
     ## ## ## ## ## ## ## ##
     exargs <- list(...)
     font.specified <- "family" %in% names(exargs)
-    # two arguments get overridden no matter what
+    ## to-be-deprecated items
+    if ("var.style.by" %in% names(exargs)) {
+    	message("Argument 'var.style.by' has been deprecated and renamed ",
+    		    "'var.sty.by'. In future versions 'var.style.by' will no ",
+    		    "longer work; please update your code.")
+    	if (!is.null(var.sty.by)) {
+    		message("Additionally, you have passed both the old 'var.style.by'",
+    			    " and the new 'var.sty.by' arguments; the old one will be ",
+    			    "ignored.")
+    	} else {
+    		var.sty.by <- exargs$var.style.by
+    		exargs$var.style.by <- NULL
+    	}
+    }
+    ## two arguments get overridden no matter what
     exargs$ann <- FALSE
     exargs$type <- "n"
-    # Some graphical devices only support inches, so we convert here.
+    ## Some graphical devices only support inches, so we convert here.
     if ("units" %in% names(exargs)) {
         if (!exargs$units %in% c("in", "cm", "mm", "px")) {
-            warning("Unsupported argument value '", units, "': 'units' must be ",
-                    "one of 'in', 'cm', 'mm', or 'px'. Using default ('in').")
+            warning("Unsupported argument value '", units, "': 'units' must be",
+                    " one of 'in', 'cm', 'mm', or 'px'. Using default ('in').")
             exargs$units <- "in"
         }
         if (output %in% c("pdf", "svg", "screen")) {
@@ -302,10 +313,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (vary.sty) exargs$lty <- rep(exargs$lty, length.out=num.sty)[var.sty.by]
     if (vary.sty) exargs$pch <- rep(exargs$pch, length.out=num.sty)[var.sty.by]
     ## set defaults for token and mean plotting characters
-    if (is.null(pch.tokens)) pcht <- exargs$pch
-    else                     pcht <- pch.tokens
-    if (is.null(pch.means))  pchm <- exargs$pch
-    else                     pchm <- pch.means
+    if (is.null(pch.tokens)) pch.t <- exargs$pch
+    else                     pch.t <- pch.tokens
+    if (is.null(pch.means))  pch.m <- exargs$pch
+    else                     pch.m <- pch.means
     ## transparency
     trans.col <- makeTransparent(exargs$col, fill.opacity)
     trans.fg <- makeTransparent(par("fg"), fill.opacity)
@@ -445,7 +456,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     hull.fill.col=hull.fill.col,
                     hull.line.col=hull.line.col,
                     hull.line.sty=hull.line.sty,
-                    pchm=pchm, pch.tokens=pcht,
+                    pch.m=pch.m, pch.t=pch.t,
                     stringsAsFactors=FALSE)
     if (diphthong) {
         d$f2d <- lapply(apply(f2d, 1, list), unlist, use.names=FALSE)
@@ -482,7 +493,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                poly.line.sty=uniquify(poly.line.sty, 1),
                                hull.line.sty=uniquify(hull.line.sty, 1),
                                ellipse.line.sty=uniquify(ellipse.line.sty, 1),
-                               pchm=uniquify(pchm, 1),
+                               pch.m=uniquify(pch.m, 1),
                                lty.means=uniquify(lty, 1),
                                lwd.means=uniquify(lwd, par("lwd")),
                                stringsAsFactors=FALSE))
@@ -531,6 +542,11 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                               paste0("(", i$gf, ", ", i$v, ")"))
                 message("No ellipse drawn for ", msg,
                         " because there is only one token.")
+            } else if (i$n == 2) {
+                msg <- ifelse(i$gf == "gf", as.character(i$v),
+                              paste0("(", i$gf, ", ", i$v, ")"))
+                message("No ellipse drawn for ", msg,
+                        " because there are only two tokens.")
             }
             list("mu"=i$mu, "sigma"=i$sigma, "n"=i$n, "alpha"=1 - ellipse.conf,
                  "draw"=FALSE)
@@ -727,10 +743,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 ## plot first point
                 if (diph.label.first.only) {
                     if (!is.null(pch.tokens)) {
-                        with(d, text(f2, f1, labels=pch.tokens, col=col.tokens,
+                        with(d, text(f2, f1, labels=pch.t, col=col.tokens,
                                      cex=cex.tokens))
                     } else {
-                        with(d, points(f2, f1, pch=pch.tokens, col=col.tokens,
+                        with(d, points(f2, f1, pch=pch.t, col=col.tokens,
                                        cex=cex.tokens))
                     }
                     ## if diph.label.first.only, ignore cex and pch from now on
@@ -740,7 +756,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 ## prepare tokens args
                 d.split <- split(d, seq(nrow(d)))
                 d.args <- lapply(d.split, function(i) {
-                    with(i, list(f2d[[1]], f1d[[1]], pch=pch.tokens,
+                    with(i, list(f2d[[1]], f1d[[1]], pch=pch.t,
                                  cex=cex.tokens, col=col.tokens, lty=lty))
                 })
                 ## combine diph.args.means with m.args and plot
@@ -753,7 +769,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     d.arr.args <- lapply(d.split, function(i) {
                         xd <- 0.01*diff(i$f2d[[1]][(timepts-1):timepts])
                         yd <- 0.01*diff(i$f1d[[1]][(timepts-1):timepts])
-                        with(i, list(x0=f2d[[1]][timepts]-xd, y0=f1d[[1]][timepts]-yd,
+                        with(i, list(x0=f2d[[1]][timepts] - xd,
+                                     y0=f1d[[1]][timepts] - yd,
                                      x1=f2d[[1]][timepts], y1=f1d[[1]][timepts],
                                      col=col.tokens, lwd=lwd))
                     })
@@ -800,7 +817,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                         if (diph.arrows) {
                             end <- nrow(i)
                             with(i, points(f2[1:end-1], f1[1:end-1],
-                                           col=col.tokens, pch=pch.tokens,
+                                           col=col.tokens, pch=pch.t,
                                            cex=cex.tokens, type="o"))
                             with(i, do.call(arrows, c(list(x0=f2[end-1],
                                                            y0=f1[end-1],
@@ -810,7 +827,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                                       diph.arrow.args)))
                         } else {
                             with(i, points(f2, f1, col=col.tokens,
-                                           pch=pch.tokens, cex=cex.tokens,
+                                           pch=pch.t, cex=cex.tokens,
                                            type="o"))
                         }
                     },
@@ -821,10 +838,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             }
         } else {  # !diphthong
             if (is.null(pch.tokens)) {
-                with(d, points(f2, f1, pch=pch.tokens, cex=cex.tokens,
+                with(d, points(f2, f1, pch=pch.t, cex=cex.tokens,
                                col=col.tokens))
             } else {
-                with(d, text(f2, f1, labels=pch.tokens, cex=cex.tokens,
+                with(d, text(f2, f1, labels=pch.t, cex=cex.tokens,
                              col=col.tokens))
     }   }   }
 
@@ -839,10 +856,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             ## plot first point
             if (diph.label.first.only) {
                 if (!is.null(pch.means)) {
-                    with(m, text(f2, f1, labels=pchm, col=col.means,
+                    with(m, text(f2, f1, labels=pch.m, col=col.means,
                                  cex=cex.means))
                 } else {
-                    with(m, points(f2, f1, pch=pchm, col=col.means,
+                    with(m, points(f2, f1, pch=pch.m, col=col.means,
                                    cex=cex.means))
                 }
                 ## if diph.label.first.only, ignore cex and pch from now on
@@ -852,7 +869,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             ## prepare means args
             m.split <- split(m, seq(nrow(m)))
             m.args <- lapply(m.split, function(i) {
-                with(i, list(f2d[[1]], f1d[[1]], pch=pchm, cex=cex.means,
+                with(i, list(f2d[[1]], f1d[[1]], pch=pch.m, cex=cex.means,
                              col=col.means, lty=lty.means))
             })
             ## combine diph.args.means with m.args and plot
@@ -880,10 +897,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             }
         } else {
             if (is.null(pch.means)) {
-                with(m, points(f2, f1, col=col.means, pch=pchm,
+                with(m, points(f2, f1, col=col.means, pch=pch.m,
                                cex=cex.means))
             } else {
-                with(m, text(f2, f1, labels=pchm, col=col.means,
+                with(m, text(f2, f1, labels=pch.m, col=col.means,
                              cex=cex.means))
             }
         }
@@ -903,10 +920,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             legend.pch <- NULL
             if (length(legend.style.lab)) {
                 if (plot.means && all(grepl("[[:digit:]]", pch.means))) {
-                    legend.pch <- unique(m$pchm)
+                    legend.pch <- unique(m$pch.m)
                 } else if (plot.tokens &&
                                all(grepl("[[:digit:]]", pch.tokens))) {
-                    legend.pch <- unique(d$pch.tokens)
+                    legend.pch <- unique(d$pch.t)
                 }
             }
             ## legend col
@@ -1340,6 +1357,7 @@ prettyTicks <- function(lim) {
 
 ellipse <- function(mu, sigma, n, alpha=0.05, npoints=250, draw=TRUE, ...) {
     if (all(sigma == matrix(rep(0, 4), nrow=2))) return(rbind(mu, mu))
+    else if (n < 3) return(rbind(mu, mu))
     p <- length(mu)
     es <- eigen(sigma)
     e1 <- es$vectors %*% diag(sqrt(es$values))
@@ -1350,7 +1368,7 @@ ellipse <- function(mu, sigma, n, alpha=0.05, npoints=250, draw=TRUE, ...) {
     ## equivalent to an F distribution (hence the qf() function). For large n,
     ## this asymptotically approaches qchisq(1-alpha, p)
     scale.factor <- p * (n - 1) / (n - p)
-    critical.radius <- sqrt(scale.factor * qf(1-alpha, df1=p, df2=n-p))
+    critical.radius <- sqrt(scale.factor * qf(1 - alpha, df1=p, df2=n - p))
     ## if we needed it, this would be the t-squared statistic
     # tsquared <- n * t(mu) %*% solve(sigma) %*% mu
     pts <- t(mu - (e1 %*% t(critical.radius * unit.circle)))
@@ -1369,8 +1387,8 @@ makeTransparent <- function (color, opacity) {
 }
 
 uniquify <- function(x, default.val) {
-    ## x should be a vector
-    ux <- unique(x)
+    ## x should be a numeric/character vector or factor
+    ux <- unique(as.character(x))
     ifelse(length(ux) == 1, ux, default.val)
 }
 
