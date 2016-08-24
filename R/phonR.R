@@ -40,17 +40,17 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     font.specified <- "family" %in% names(exargs)
     ## to-be-deprecated items
     if ("var.style.by" %in% names(exargs)) {
-    	message("Argument 'var.style.by' has been deprecated and renamed ",
-    		    "'var.sty.by'. In future versions 'var.style.by' will no ",
-    		    "longer work; please update your code.")
-    	if (!is.null(var.sty.by)) {
-    		message("Additionally, you have passed both the old 'var.style.by'",
-    			    " and the new 'var.sty.by' arguments; the old one will be ",
-    			    "ignored.")
-    	} else {
-    		var.sty.by <- exargs$var.style.by
-    		exargs$var.style.by <- NULL
-    	}
+        message("[phonR]: Argument 'var.style.by' has been deprecated and ",
+                "renamed 'var.sty.by'. In future versions 'var.style.by' will ",
+                "no longer work; please update your code.")
+        if (!is.null(var.sty.by)) {
+            message("Additionally, you have passed both the old 'var.style.by'",
+                    " and the new 'var.sty.by' arguments; the old one will be ",
+                    "ignored.")
+        } else {
+            var.sty.by <- exargs$var.style.by
+            exargs$var.style.by <- NULL
+        }
     }
     ## two arguments get overridden no matter what
     exargs$ann <- FALSE
@@ -58,8 +58,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## Some graphical devices only support inches, so we convert here.
     if ("units" %in% names(exargs)) {
         if (!exargs$units %in% c("in", "cm", "mm", "px")) {
-            warning("Unsupported argument value '", units, "': 'units' must be",
-                    " one of 'in', 'cm', 'mm', or 'px'. Using default ('in').")
+            message("[phonR]: Unsupported argument value '", units, "': ",
+                    "'units' must be one of 'in', 'cm', 'mm', or 'px'. Using ",
+                    "default ('in').")
             exargs$units <- "in"
         }
         if (output %in% c("pdf", "svg", "screen")) {
@@ -139,7 +140,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     output.types <- c("pdf", "svg", "jpg", "tif", "png", "bmp", "screen")
     output.raster <- c("jpg", "tif", "png", "bmp", "screen")
     if (!(output %in% output.types)) {
-        warning("Unknown argument value '", output, "': 'output' ",
+        message("[phonR]: Unknown argument value '", output, "': 'output' ",
                 "must be one of 'pdf', 'svg', 'png', 'tif', 'bmp', ",
                 "'jpg', or 'screen'. Using default ('screen').")
         output <- "screen"
@@ -227,7 +228,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (is.null(vowel)) v <- rep(NA, l)
     else                v <- factor(vowel, levels=unique(vowel))
     if (is.null(group)) gf <- rep("gf", l)
-    else 			    gf <- factor(group, levels=unique(group))
+    else                gf <- factor(group, levels=unique(group))
     ## used later to set default polygon color when color varies by vowel
     col.by.vowel <- identical(as.numeric(factor(var.col.by)),
                               as.numeric(factor(vowel)))
@@ -540,12 +541,12 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 i$sigma <- matrix(rep(0, 4), nrow=2)
                 msg <- ifelse(i$gf == "gf", as.character(i$v),
                               paste0("(", i$gf, ", ", i$v, ")"))
-                message("No ellipse drawn for ", msg,
+                message("[phonR]: No ellipse drawn for ", msg,
                         " because there is only one token.")
             } else if (i$n == 2) {
                 msg <- ifelse(i$gf == "gf", as.character(i$v),
                               paste0("(", i$gf, ", ", i$v, ")"))
-                message("No ellipse drawn for ", msg,
+                message("[phonR]: No ellipse drawn for ", msg,
                         " because there are only two tokens.")
             }
             list("mu"=i$mu, "sigma"=i$sigma, "n"=i$n, "alpha"=1 - ellipse.conf,
@@ -687,14 +688,14 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## ## ## ## ## ## ##
     if (!is.na(poly.order[1]) && (poly.fill || poly.line)) {
         if (length(poly.order) != length(unique(poly.order))) {
-            message("Duplicate entries in 'poly.order' detected; they will be ",
-                    "ignored.")
+            message("[phonR]: Duplicate entries in 'poly.order' detected; they",
+                    " will be ignored.")
         }
         poly.order <- as.character(poly.order) # as.character in case factor
         v <- unique(as.character(m$v))
         if (length(setdiff(poly.order, v)) > 0) {
-            message("There are vowels in 'poly.order' that are not in ",
-                    "'vowel'; they will be ignored.")
+            message("[phonR]: There are vowels in 'poly.order' that are not in",
+                    " 'vowel'; they will be ignored.")
         }
         poly.order <- intersect(poly.order, v)
         pp <- m
@@ -737,9 +738,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             timepts <- length(d$f2d[[1]])
             ## no smoothing splines
             if (!diph.smooth || timepts < 4) {
-                if (diph.smooth) warning("Cannot smooth diphthong traces with ",
-                                         "fewer than 4 timepoints. Plotting ",
-                                         "connecting segments instead.")
+                if (diph.smooth) message("[phonR]: Cannot smooth diphthong ",
+                                         "traces with fewer than 4 timepoints.",
+                                         " Plotting connecting segments ",
+                                         "instead.")
                 ## plot first point
                 if (diph.label.first.only) {
                     if (!is.null(pch.tokens)) {
@@ -811,7 +813,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                          diph.args.tokens))
                     },
                     error=function(e){
-                        message("Warning: could not plot diphthong smoother. ",
+                        message("[phonR]: Could not plot diphthong smoother. ",
                                 "Plotting connecting segments instead.")
                         message(paste(e, ""))
                         if (diph.arrows) {
@@ -883,8 +885,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 m.arr.args <- lapply(m.split, function(i) {
                     xd <- 0.01*diff(i$f2d[[1]][(timepts-1):timepts])
                     yd <- 0.01*diff(i$f1d[[1]][(timepts-1):timepts])
-                    with(i, list(x0=f2d[[1]][timepts]-xd, y0=f1d[[1]][timepts]-yd,
-                                 x1=f2d[[1]][timepts], y1=f1d[[1]][timepts],
+                    with(i, list(x0=f2d[[1]][timepts] - xd,
+                                 y0=f1d[[1]][timepts] - yd,
+                                 x1=f2d[[1]][timepts],
+                                 y1=f1d[[1]][timepts],
                                  col=col.means, lwd=lwd.means))
                 })
                 ## combine with diph.arrow.means and plot
@@ -911,7 +915,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## ## ## ## ##
     if (!is.null(legend.kwd)) {
         if (is.null(legend.col.lab) && is.null(legend.style.lab)) {
-            warning("Legend will not be drawn because var.col.by and ",
+            message("[phonR]: Legend will not be drawn because var.col.by and ",
                     "var.sty.by are both NULL or NA. You will have to use ",
                     "the legend() function.")
         } else {
@@ -1078,7 +1082,7 @@ normVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
     else {
         f <- as.matrix(cbind(f1=f1, f2=f2))
         return(normWattFabricius(f, vowel, group))
-}	}
+}    }
 
 
 ## ## ## ## ## ## ## ## ## ## ## ## ## ##
@@ -1089,7 +1093,7 @@ normBark <- function(f) {
     bark <- 26.81 * f / (1960 + f) - 0.53
     bark[bark < 2] <- bark[bark < 2] + 0.15 * (2 - bark[bark < 2])
     bark[bark > 20.1] <- bark[bark > 20.1] + 0.22 * (bark[bark > 20.1] - 20.1)
-	return(bark)
+    return(bark)
 }
 
 #' @export
@@ -1116,7 +1120,7 @@ normLobanov <- function(f, group=NULL) {
         groups <- split(f, group)
         scaled <- lapply(groups, function(x) as.data.frame(scale(x)))
         return(unsplit(scaled, group))
-}	}
+}    }
 
 #' @export
 normLogmean <- function(f, group=NULL, exp=FALSE, ...) {
@@ -1190,7 +1194,7 @@ normWattFabricius <- function(f, vowel, group=NULL) {
     min.id <- apply(means, 2, function(i) apply(do.call(rbind, i), 2, which.min))
     max.id <- apply(means, 2, function(i) apply(do.call(rbind, i), 2, which.max))
     if (length(unique(min.id["f1",]))>1) {
-        warning("The vowel with the lowest mean F1 value (usually /i/)",
+        message("[phonR]: The vowel with the lowest mean F1 value (usually /i/)",
                 "does not match across all speakers/groups. You'll ",
                 "have to calculate s-centroid manually.")
         print(data.frame(minF1=minima["f1",],
@@ -1198,7 +1202,7 @@ normWattFabricius <- function(f, vowel, group=NULL) {
                 group=dimnames(means)[[2]]))
         stop()
     } else if (length(unique(max.id["f1",]))>1) {
-        warning("The vowel with the highest mean F1 value (usually /a/) ",
+        message("[phonR]: The vowel with the highest mean F1 value (usually /a/) ",
                 "does not match across all speakers/groups. You'll ",
                 "have to calculate s-centroid manually.")
         print(data.frame(maxF1=round(maxima["f1",]),
@@ -1220,13 +1224,13 @@ normWattFabricius <- function(f, vowel, group=NULL) {
 #' @export
 vowelMeansPolygonArea <- function(f1, f2, vowel, poly.order, group=NULL) {
     if (length(poly.order) != length(unique(poly.order))) {
-        warning("Duplicate entries in 'poly.order' detected; they will be ",
-                "ignored.")
+        message("[phonR]: Duplicate entries in 'poly.order' detected; they ",
+                "will be ignored.")
     }
     poly.order <- unique(as.character(poly.order)) # as.character in case factor
     v <- unique(as.character(vowel))
     if (length(setdiff(poly.order, v)) > 0) {
-        warning("There are vowels in 'poly.order' that are not in ",
+        message("[phonR]: There are vowels in 'poly.order' that are not in ",
                 "'vowel'; they will be ignored.")
         poly.order <- intersect(poly.order, v)
     }
@@ -1387,8 +1391,11 @@ makeTransparent <- function (color, opacity) {
 }
 
 uniquify <- function(x, default.val) {
-    ## x should be a numeric/character vector or factor
-    ux <- unique(as.character(x))
+    ## handle factors smartly
+    y <- suppressWarnings(as.numeric(as.character(x)))
+    if (any(is.na(y))) x <- as.character(x)
+    else x <- y
+    ux <- unique(x)
     ifelse(length(ux) == 1, ux, default.val)
 }
 
