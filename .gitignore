@@ -10,7 +10,6 @@ phonR.pdf
 phonR.Rproj
 TODO.txt
 .Rhistory
-images/*.pdf
 
 # File types
 *.gz
