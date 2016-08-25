@@ -1,5 +1,5 @@
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-## phonR version 1.0-6
+## phonR version 1.0-7
 ## Functions for phoneticians and phonologists
 ## AUTHOR: Daniel McCloy, drmccloy@uw.edu
 ## LICENSED UNDER THE GNU GENERAL PUBLIC LICENSE v3.0:
@@ -27,28 +27,40 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     heatmap=FALSE, heatmap.args=NULL, heatmap.legend=FALSE,
     heatmap.legend.args=NULL,
     ## color, style
-    var.col.by=NULL, var.style.by=NULL, fill.opacity=0.3, label.las=NULL,
+    var.col.by=NULL, var.sty.by=NULL, fill.opacity=0.3, label.las=NULL,
     ## legend
     legend.kwd=NULL, legend.args=NULL,
     ## misc
     pretty=FALSE, output="screen", ...)
 {
-    ## to-be-deprecated items
-    var.sty.by <- var.style.by
-
     ## ## ## ## ## ## ## ##
     ## HANDLE EXTRA ARGS ##
     ## ## ## ## ## ## ## ##
     exargs <- list(...)
     font.specified <- "family" %in% names(exargs)
-    # two arguments get overridden no matter what
+    ## to-be-deprecated items
+    if ("var.style.by" %in% names(exargs)) {
+        message("[phonR]: Argument 'var.style.by' has been deprecated and ",
+                "renamed 'var.sty.by'. In future versions 'var.style.by' will ",
+                "no longer work; please update your code.")
+        if (!is.null(var.sty.by)) {
+            message("Additionally, you have passed both the old 'var.style.by'",
+                    " and the new 'var.sty.by' arguments; the old one will be ",
+                    "ignored.")
+        } else {
+            var.sty.by <- exargs$var.style.by
+            exargs$var.style.by <- NULL
+        }
+    }
+    ## two arguments get overridden no matter what
     exargs$ann <- FALSE
     exargs$type <- "n"
-    # Some graphical devices only support inches, so we convert here.
+    ## Some graphical devices only support inches, so we convert here.
     if ("units" %in% names(exargs)) {
         if (!exargs$units %in% c("in", "cm", "mm", "px")) {
-            warning("Unsupported argument value '", units, "': 'units' must be ",
-                    "one of 'in', 'cm', 'mm', or 'px'. Using default ('in').")
+            message("[phonR]: Unsupported argument value '", units, "': ",
+                    "'units' must be one of 'in', 'cm', 'mm', or 'px'. Using ",
+                    "default ('in').")
             exargs$units <- "in"
         }
         if (output %in% c("pdf", "svg", "screen")) {
@@ -128,7 +140,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     output.types <- c("pdf", "svg", "jpg", "tif", "png", "bmp", "screen")
     output.raster <- c("jpg", "tif", "png", "bmp", "screen")
     if (!(output %in% output.types)) {
-        warning("Unknown argument value '", output, "': 'output' ",
+        message("[phonR]: Unknown argument value '", output, "': 'output' ",
                 "must be one of 'pdf', 'svg', 'png', 'tif', 'bmp', ",
                 "'jpg', or 'screen'. Using default ('screen').")
         output <- "screen"
@@ -189,8 +201,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         arrow.only <- c("angle", "length")
         line.only <- c("type")
         if (pretty) {
-            if (is.null(pch.means)) type <- "l"
-            else                    type <- "o"
+            type <- ifelse(is.null(pch.means), "l", "o")
             pretty.diph.tokens <- list(length=0.1, angle=20, type=type)
             pretty.diph.means  <- list(length=0.1, angle=20, type=type,
                                        lwd=2*par("lwd"))
@@ -217,7 +228,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (is.null(vowel)) v <- rep(NA, l)
     else                v <- factor(vowel, levels=unique(vowel))
     if (is.null(group)) gf <- rep("gf", l)
-    else 			    gf <- factor(group, levels=unique(group))
+    else                gf <- factor(group, levels=unique(group))
     ## used later to set default polygon color when color varies by vowel
     col.by.vowel <- identical(as.numeric(factor(var.col.by)),
                               as.numeric(factor(vowel)))
@@ -290,22 +301,23 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## ## ## ## ## ## ##
     ## OTHER DEFAULTS ##
     ## ## ## ## ## ## ##
-    vary.col <- ifelse(is.na(var.col.by[1]), FALSE, TRUE)
-    vary.sty <- ifelse(is.na(var.sty.by[1]), FALSE, TRUE)
+    vary.col <- !is.na(var.col.by[1])
+    vary.sty <- !is.na(var.sty.by[1])
     ## color: use default pallete if none specified and pretty=FALSE
     if (!"col" %in% names(exargs)) exargs$col <- palette()
     ## linetypes & plotting characters
     if (!"lty" %in% names(exargs)) exargs$lty <- seq_len(num.sty)
     if (!"pch" %in% names(exargs)) exargs$pch <- seq_len(num.sty)
+    if (!"lwd" %in% names(exargs)) exargs$lwd <- par("lwd")
     ## recycle user-specified colors to the length we need
     if (vary.col) exargs$col <- rep(exargs$col, length.out=num.col)[var.col.by]
     if (vary.sty) exargs$lty <- rep(exargs$lty, length.out=num.sty)[var.sty.by]
     if (vary.sty) exargs$pch <- rep(exargs$pch, length.out=num.sty)[var.sty.by]
     ## set defaults for token and mean plotting characters
-    if (is.null(pch.tokens)) pcht <- exargs$pch
-    else                     pcht <- pch.tokens
-    if (is.null(pch.means))  pchm <- exargs$pch
-    else                     pchm <- pch.means
+    if (is.null(pch.tokens)) pch.t <- exargs$pch
+    else                     pch.t <- pch.tokens
+    if (is.null(pch.means))  pch.m <- exargs$pch
+    else                     pch.m <- pch.means
     ## transparency
     trans.col <- makeTransparent(exargs$col, fill.opacity)
     trans.fg <- makeTransparent(par("fg"), fill.opacity)
@@ -435,7 +447,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## ## ## ## ## ## ## ## ## ##
     d <- data.frame(f1=f1, f2=f2, v=v, gf=factor(gf, levels=unique(gf)),
                     col.tokens=col.tokens, col.means=col.means,
-                    style=var.sty.by,
+                    style=var.sty.by, lty=exargs$lty, lwd=exargs$lwd,
                     ellipse.fill.col=ellipse.fill.col,
                     ellipse.line.col=ellipse.line.col,
                     ellipse.line.sty=ellipse.line.sty,
@@ -445,37 +457,46 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     hull.fill.col=hull.fill.col,
                     hull.line.col=hull.line.col,
                     hull.line.sty=hull.line.sty,
-                    pchmeans=pchm, pchtokens=pcht,
+                    pch.m=pch.m, pch.t=pch.t,
                     stringsAsFactors=FALSE)
     if (diphthong) {
         d$f2d <- lapply(apply(f2d, 1, list), unlist, use.names=FALSE)
         d$f1d <- lapply(apply(f1d, 1, list), unlist, use.names=FALSE)
+        #d.diph <- d
+        #d.diph$f2d <- lapply(apply(f2d, 1, list), unlist, use.names=FALSE)
+        #d.diph$f1d <- lapply(apply(f1d, 1, list), unlist, use.names=FALSE)
+        #d.diph[names(diph.args.tokens)] <- diph.args.tokens
     }
     if (is.null(vowel) && is.null(group)) {
         byd <- list(d=d)
     } else {
         byd <- by(d, d[c("v", "gf")], identity)
     }
-    ## dataframe of means
+    ## dataframe of means. at this point each element of "byd" should have
+    ## exactly 1 vowel and 1 grouping factor (gf) value
     m <- lapply(byd, function(i) {
         if (!is.null(i)) {
+            idx <- !duplicated(i$gf)
+            fg <- par("fg")
+            tfg <- makeTransparent(fg, fill.opacity)
             with(i, data.frame(f2=mean(f2, na.rm=TRUE),
                                f1=mean(f1, na.rm=TRUE),
-                               v=unique(v), gf=unique(gf),
-                               col.means=ifelse(length(unique(col.means)) == 1,
-                                                unique(col.means), par("fg")),
-                               style=ifelse(length(unique(style)) == 1,
-                                            unique(style), 1),
-                               poly.fill.col=unique(poly.fill.col),
-                               poly.line.col=unique(poly.line.col),
-                               poly.line.sty=unique(poly.line.sty),
-                               hull.fill.col=unique(hull.fill.col),
-                               hull.line.col=unique(hull.line.col),
-                               hull.line.sty=unique(hull.line.sty),
-                               ellipse.fill.col=unique(ellipse.fill.col),
-                               ellipse.line.col=unique(ellipse.line.col),
-                               ellipse.line.sty=unique(ellipse.line.sty),
-                               pchmeans=unique(pchmeans),
+                               v=v[idx], gf=gf[idx], n=nrow(i),
+                               ## mean of a color / style?
+                               col.means=uniquify(col.means, fg),
+                               style=uniquify(style, 1),
+                               poly.fill.col=uniquify(poly.fill.col, tfg),
+                               hull.fill.col=uniquify(hull.fill.col, tfg),
+                               ellipse.fill.col=uniquify(ellipse.fill.col, tfg),
+                               poly.line.col=uniquify(poly.line.col, fg),
+                               hull.line.col=uniquify(hull.line.col, fg),
+                               ellipse.line.col=uniquify(ellipse.line.col, fg),
+                               poly.line.sty=uniquify(poly.line.sty, 1),
+                               hull.line.sty=uniquify(hull.line.sty, 1),
+                               ellipse.line.sty=uniquify(ellipse.line.sty, 1),
+                               pch.m=uniquify(pch.m, 1),
+                               lty.means=uniquify(lty, 1),
+                               lwd.means=uniquify(lwd, par("lwd")),
                                stringsAsFactors=FALSE))
     }})
     m <- do.call(rbind, m)
@@ -492,9 +513,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             with(i, list(colMeans(cbind(f2, f1), na.rm=TRUE)))
         }})
         mu <- do.call(rbind, mu)
-        sigma <- lapply(byd, function(i) { if (!(is.null(i))) {
-            with(i[!(is.na(i$f2)) && !(is.na(i$f1)),],
-                 list(cov(cbind(f2, f1))))
+        sigma <- lapply(byd, function(i) { if (!is.null(i)) {
+            with(i, list(var(cbind(f2, f1), na.rm=TRUE)))
         }})
         ## the covariance calculation above still may yield an NA covariance
         ## matrix if a vowel has only 1 token. This is handled later.
@@ -520,11 +540,16 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             if (any(is.na(i$sigma))) {
                 i$sigma <- matrix(rep(0, 4), nrow=2)
                 msg <- ifelse(i$gf == "gf", as.character(i$v),
-                              paste("(", i$gf, ", ", i$v, ")", sep=""))
-                message("No ellipse drawn for ", msg,
+                              paste0("(", i$gf, ", ", i$v, ")"))
+                message("[phonR]: No ellipse drawn for ", msg,
                         " because there is only one token.")
+            } else if (i$n == 2) {
+                msg <- ifelse(i$gf == "gf", as.character(i$v),
+                              paste0("(", i$gf, ", ", i$v, ")"))
+                message("[phonR]: No ellipse drawn for ", msg,
+                        " because there are only two tokens.")
             }
-            list("mu"=i$mu, "sigma"=i$sigma, "alpha"=1 - ellipse.conf,
+            list("mu"=i$mu, "sigma"=i$sigma, "n"=i$n, "alpha"=1 - ellipse.conf,
                  "draw"=FALSE)
         })
         ellipse.points <- lapply(ellipse.param,
@@ -663,14 +688,14 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## ## ## ## ## ## ##
     if (!is.na(poly.order[1]) && (poly.fill || poly.line)) {
         if (length(poly.order) != length(unique(poly.order))) {
-            message("Duplicate entries in 'poly.order' detected; they will be ",
-                    "ignored.")
+            message("[phonR]: Duplicate entries in 'poly.order' detected; they",
+                    " will be ignored.")
         }
         poly.order <- as.character(poly.order) # as.character in case factor
         v <- unique(as.character(m$v))
         if (length(setdiff(poly.order, v)) > 0) {
-            message("There are vowels in 'poly.order' that are not in ",
-                    "'vowel'; they will be ignored.")
+            message("[phonR]: There are vowels in 'poly.order' that are not in",
+                    " 'vowel'; they will be ignored.")
         }
         poly.order <- intersect(poly.order, v)
         pp <- m
@@ -711,45 +736,53 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         if (diphthong) {
             ## setup
             timepts <- length(d$f2d[[1]])
-            if (diph.arrows) line.range <- 1:(timepts-1)
-            else             line.range <- 1:timepts
             ## no smoothing splines
             if (!diph.smooth || timepts < 4) {
-                if (diph.smooth) warning("Cannot smooth diphthong traces with ",
-                                         "fewer than 4 timepoints. Plotting ",
-                                         "connecting segments instead.")
+                if (diph.smooth) message("[phonR]: Cannot smooth diphthong ",
+                                         "traces with fewer than 4 timepoints.",
+                                         " Plotting connecting segments ",
+                                         "instead.")
                 ## plot first point
                 if (diph.label.first.only) {
                     if (!is.null(pch.tokens)) {
-                        with(d, text(f2, f1, labels=pchtokens, col=col.tokens,
+                        with(d, text(f2, f1, labels=pch.t, col=col.tokens,
                                      cex=cex.tokens))
                     } else {
-                        with(d, points(f2, f1, pch=pchtokens, col=col.tokens,
+                        with(d, points(f2, f1, pch=pch.t, col=col.tokens,
                                        cex=cex.tokens))
                     }
+                    ## if diph.label.first.only, ignore cex and pch from now on
                     diph.args.tokens$type <- "l"
+                    if (diph.arrows) diph.arrow.tokens$type <- "l"
                 }
-                ## plot lines
-                apply(d, 1, function(i) {
-                    ## if diph.label.first.only, cex and pch will get ignored
-                    with(i, do.call(points, c(list(t(f2d)[line.range],
-                                                   t(f1d)[line.range],
-                                                   pch=pchtokens,
-                                                   cex=cex.tokens,
-                                                   col=col.tokens),
-                                              diph.args.tokens)))
-                    })
-                ## plot arrowheads
+                ## prepare tokens args
+                d.split <- split(d, seq(nrow(d)))
+                d.args <- lapply(d.split, function(i) {
+                    with(i, list(f2d[[1]], f1d[[1]], pch=pch.t,
+                                 cex=cex.tokens, col=col.tokens, lty=lty))
+                })
+                ## combine diph.args.means with m.args and plot
+                invisible(lapply(d.args, function(i) {
+                    i[names(diph.args.tokens)] <- diph.args.tokens
+                    do.call(points, i)
+                }))
                 if (diph.arrows) {
-                    apply(d, 1, function(i) {
-                        with(i, do.call(arrows, c(list(x0=t(f2d)[timepts-1],
-                                                       y0=t(f1d)[timepts-1],
-                                                       x1=t(f2d)[timepts],
-                                                       y1=t(f1d)[timepts],
-                                                       col=col.tokens),
-                                                  diph.arrow.tokens)
-                        ))
+                    ## prepare arrow args
+                    d.arr.args <- lapply(d.split, function(i) {
+                        xd <- 0.01*diff(i$f2d[[1]][(timepts-1):timepts])
+                        yd <- 0.01*diff(i$f1d[[1]][(timepts-1):timepts])
+                        with(i, list(x0=f2d[[1]][timepts] - xd,
+                                     y0=f1d[[1]][timepts] - yd,
+                                     x1=f2d[[1]][timepts], y1=f1d[[1]][timepts],
+                                     col=col.tokens, lwd=lwd))
                     })
+                    ## combine with diph.arrow.means and plot
+                    invisible(lapply(d.arr.args, function(i){
+                        i[names(diph.arrow.tokens)] <- diph.arrow.tokens
+                        i$lty <- "solid"
+                        if ("type" %in% names(i)) i$type <- NULL
+                        do.call(arrows, i)
+                    }))
                 }
             ## diphthong smoothing spline
             } else if (diph.smooth) {  # timepts > 3
@@ -780,13 +813,13 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                          diph.args.tokens))
                     },
                     error=function(e){
-                        message("Warning: could not plot diphthong smoother. ",
+                        message("[phonR]: Could not plot diphthong smoother. ",
                                 "Plotting connecting segments instead.")
                         message(paste(e, ""))
                         if (diph.arrows) {
                             end <- nrow(i)
                             with(i, points(f2[1:end-1], f1[1:end-1],
-                                           col=col.tokens, pch=pchtokens,
+                                           col=col.tokens, pch=pch.t,
                                            cex=cex.tokens, type="o"))
                             with(i, do.call(arrows, c(list(x0=f2[end-1],
                                                            y0=f1[end-1],
@@ -796,7 +829,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                                                       diph.arrow.args)))
                         } else {
                             with(i, points(f2, f1, col=col.tokens,
-                                           pch=pchtokens, cex=cex.tokens,
+                                           pch=pch.t, cex=cex.tokens,
                                            type="o"))
                         }
                     },
@@ -807,10 +840,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             }
         } else {  # !diphthong
             if (is.null(pch.tokens)) {
-                with(d, points(f2, f1, pch=pchtokens, cex=cex.tokens,
+                with(d, points(f2, f1, pch=pch.t, cex=cex.tokens,
                                col=col.tokens))
             } else {
-                with(d, text(f2, f1, labels=pchtokens, cex=cex.tokens,
+                with(d, text(f2, f1, labels=pch.t, cex=cex.tokens,
                              col=col.tokens))
     }   }   }
 
@@ -822,48 +855,56 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             ## TODO: implement smoothing splines for means
             ## setup
             timepts <- length(m$f2d[[1]])
-            if (diph.arrows) line.range <- 1:(timepts-1)
-            else             line.range <- 1:timepts
-
             ## plot first point
             if (diph.label.first.only) {
                 if (!is.null(pch.means)) {
-                    with(m, text(f2, f1, labels=pchmeans, col=col.means,
+                    with(m, text(f2, f1, labels=pch.m, col=col.means,
                                  cex=cex.means))
                 } else {
-                    with(m, points(f2, f1, pch=pchmeans, col=col.means,
+                    with(m, points(f2, f1, pch=pch.m, col=col.means,
                                    cex=cex.means))
                 }
+                ## if diph.label.first.only, ignore cex and pch from now on
                 diph.args.means$type <- "l"
+                if (diph.arrows) diph.arrow.means$type <- "l"
             }
-            ## plot lines
-            apply(m, 1, function(i) {
-                ## if diph.label.first.only, cex and pch will get ignored
-                with(i, do.call(points, c(list(t(f2d)[line.range],
-                                               t(f1d)[line.range],
-                                               pch=pchmeans,
-                                               cex=cex.means,
-                                               col=col.means),
-                                          diph.args.means)))
+            ## prepare means args
+            m.split <- split(m, seq(nrow(m)))
+            m.args <- lapply(m.split, function(i) {
+                with(i, list(f2d[[1]], f1d[[1]], pch=pch.m, cex=cex.means,
+                             col=col.means, lty=lty.means))
             })
+            ## combine diph.args.means with m.args and plot
+            invisible(lapply(m.args, function(i) {
+                i[names(diph.args.means)] <- diph.args.means
+                do.call(points, i)
+                }))
             ## plot arrowheads
             if (diph.arrows) {
-                apply(m, 1, function(i) {
-                    with(i, do.call(arrows, c(list(x0=t(f2d)[timepts-1],
-                                                   y0=t(f1d)[timepts-1],
-                                                   x1=t(f2d)[timepts],
-                                                   y1=t(f1d)[timepts],
-                                                   col=col.means),
-                                              diph.arrow.means)
-                    ))
+                ## prepare arrow args
+                m.arr.args <- lapply(m.split, function(i) {
+                    xd <- 0.01*diff(i$f2d[[1]][(timepts-1):timepts])
+                    yd <- 0.01*diff(i$f1d[[1]][(timepts-1):timepts])
+                    with(i, list(x0=f2d[[1]][timepts] - xd,
+                                 y0=f1d[[1]][timepts] - yd,
+                                 x1=f2d[[1]][timepts],
+                                 y1=f1d[[1]][timepts],
+                                 col=col.means, lwd=lwd.means))
                 })
+                ## combine with diph.arrow.means and plot
+                invisible(lapply(m.arr.args, function(i){
+                    i[names(diph.arrow.means)] <- diph.arrow.means
+                    i$lty <- "solid"
+                    if ("type" %in% names(i)) i$type <- NULL
+                    do.call(arrows, i)
+                }))
             }
         } else {
             if (is.null(pch.means)) {
-                with(m, points(f2, f1, col=col.means, pch=pchmeans,
+                with(m, points(f2, f1, col=col.means, pch=pch.m,
                                cex=cex.means))
             } else {
-                with(m, text(f2, f1, labels=pchmeans, col=col.means,
+                with(m, text(f2, f1, labels=pch.m, col=col.means,
                              cex=cex.means))
             }
         }
@@ -874,7 +915,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## ## ## ## ##
     if (!is.null(legend.kwd)) {
         if (is.null(legend.col.lab) && is.null(legend.style.lab)) {
-            warning("Legend will not be drawn because var.col.by and ",
+            message("[phonR]: Legend will not be drawn because var.col.by and ",
                     "var.sty.by are both NULL or NA. You will have to use ",
                     "the legend() function.")
         } else {
@@ -883,10 +924,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             legend.pch <- NULL
             if (length(legend.style.lab)) {
                 if (plot.means && all(grepl("[[:digit:]]", pch.means))) {
-                    legend.pch <- unique(m$pchmeans)
+                    legend.pch <- unique(m$pch.m)
                 } else if (plot.tokens &&
                                all(grepl("[[:digit:]]", pch.tokens))) {
-                    legend.pch <- unique(d$pchtokens)
+                    legend.pch <- unique(d$pch.t)
                 }
             }
             ## legend col
@@ -1041,7 +1082,7 @@ normVowels <- function(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
     else {
         f <- as.matrix(cbind(f1=f1, f2=f2))
         return(normWattFabricius(f, vowel, group))
-}	}
+}    }
 
 
 ## ## ## ## ## ## ## ## ## ## ## ## ## ##
@@ -1052,7 +1093,7 @@ normBark <- function(f) {
     bark <- 26.81 * f / (1960 + f) - 0.53
     bark[bark < 2] <- bark[bark < 2] + 0.15 * (2 - bark[bark < 2])
     bark[bark > 20.1] <- bark[bark > 20.1] + 0.22 * (bark[bark > 20.1] - 20.1)
-	return(bark)
+    return(bark)
 }
 
 #' @export
@@ -1079,7 +1120,7 @@ normLobanov <- function(f, group=NULL) {
         groups <- split(f, group)
         scaled <- lapply(groups, function(x) as.data.frame(scale(x)))
         return(unsplit(scaled, group))
-}	}
+}    }
 
 #' @export
 normLogmean <- function(f, group=NULL, exp=FALSE, ...) {
@@ -1153,7 +1194,7 @@ normWattFabricius <- function(f, vowel, group=NULL) {
     min.id <- apply(means, 2, function(i) apply(do.call(rbind, i), 2, which.min))
     max.id <- apply(means, 2, function(i) apply(do.call(rbind, i), 2, which.max))
     if (length(unique(min.id["f1",]))>1) {
-        warning("The vowel with the lowest mean F1 value (usually /i/)",
+        message("[phonR]: The vowel with the lowest mean F1 value (usually /i/)",
                 "does not match across all speakers/groups. You'll ",
                 "have to calculate s-centroid manually.")
         print(data.frame(minF1=minima["f1",],
@@ -1161,7 +1202,7 @@ normWattFabricius <- function(f, vowel, group=NULL) {
                 group=dimnames(means)[[2]]))
         stop()
     } else if (length(unique(max.id["f1",]))>1) {
-        warning("The vowel with the highest mean F1 value (usually /a/) ",
+        message("[phonR]: The vowel with the highest mean F1 value (usually /a/) ",
                 "does not match across all speakers/groups. You'll ",
                 "have to calculate s-centroid manually.")
         print(data.frame(maxF1=round(maxima["f1",]),
@@ -1183,13 +1224,13 @@ normWattFabricius <- function(f, vowel, group=NULL) {
 #' @export
 vowelMeansPolygonArea <- function(f1, f2, vowel, poly.order, group=NULL) {
     if (length(poly.order) != length(unique(poly.order))) {
-        warning("Duplicate entries in 'poly.order' detected; they will be ",
-                "ignored.")
+        message("[phonR]: Duplicate entries in 'poly.order' detected; they ",
+                "will be ignored.")
     }
     poly.order <- unique(as.character(poly.order)) # as.character in case factor
     v <- unique(as.character(vowel))
     if (length(setdiff(poly.order, v)) > 0) {
-        warning("There are vowels in 'poly.order' that are not in ",
+        message("[phonR]: There are vowels in 'poly.order' that are not in ",
                 "'vowel'; they will be ignored.")
         poly.order <- intersect(poly.order, v)
     }
@@ -1318,15 +1359,23 @@ prettyTicks <- function(lim) {
     seq(lims[1],lims[2],step)
 }
 
-ellipse <- function(mu, sigma, alpha=0.05, npoints=250, draw=TRUE, ...) {
-    ## adapted from the (now-defunct) mixtools package
+ellipse <- function(mu, sigma, n, alpha=0.05, npoints=250, draw=TRUE, ...) {
     if (all(sigma == matrix(rep(0, 4), nrow=2))) return(rbind(mu, mu))
+    else if (n < 3) return(rbind(mu, mu))
+    p <- length(mu)
     es <- eigen(sigma)
-    e1 <- es$vec %*% diag(sqrt(es$val))
-    r1 <- sqrt(qchisq(1 - alpha, 2))
-    theta <- seq(0, 2 * pi, len=npoints)
-    v1 <- cbind(r1 * cos(theta), r1 * sin(theta))
-    pts <- t(mu - (e1 %*% t(v1)))
+    e1 <- es$vectors %*% diag(sqrt(es$values))
+    theta <- seq(from=0, to=2 * pi, length.out=npoints)
+    unit.circle <- cbind(cos(theta), sin(theta))
+    ## for small n, confidence ellipses for multivariate sample means are
+    ## distributed as Hotelling's T^2, which is (with appropriate scale factor)
+    ## equivalent to an F distribution (hence the qf() function). For large n,
+    ## this asymptotically approaches qchisq(1-alpha, p)
+    scale.factor <- p * (n - 1) / (n - p)
+    critical.radius <- sqrt(scale.factor * qf(1 - alpha, df1=p, df2=n - p))
+    ## if we needed it, this would be the t-squared statistic
+    # tsquared <- n * t(mu) %*% solve(sigma) %*% mu
+    pts <- t(mu - (e1 %*% t(critical.radius * unit.circle)))
     if (draw) {
         colnames(pts) <- c("x", "y")
         polygon(pts, ...)
@@ -1339,6 +1388,15 @@ makeTransparent <- function (color, opacity) {
     rgba[,4] <- round(255 * opacity)
     colnames(rgba) <- c("red", "green", "blue", "alpha")
     trans.color <- do.call(rgb, c(as.data.frame(rgba), maxColorValue=255))
+}
+
+uniquify <- function(x, default.val) {
+    ## handle factors smartly
+    y <- suppressWarnings(as.numeric(as.character(x)))
+    if (any(is.na(y))) x <- as.character(x)
+    else x <- y
+    ux <- unique(x)
+    ifelse(length(ux) == 1, ux, default.val)
 }
 
 fillTriangle <- function(x, y, vertices) {

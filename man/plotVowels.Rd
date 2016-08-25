@@ -22,7 +22,7 @@
                diph.mean.timept=1, diph.smooth=FALSE,
                heatmap=FALSE, heatmap.args=NULL,
                heatmap.legend=FALSE, heatmap.legend.args=NULL,
-               var.col.by=NULL, var.style.by=NULL,
+               var.col.by=NULL, var.sty.by=NULL,
                fill.opacity=0.3, label.las=NULL,
                legend.kwd=NULL, legend.args=NULL,
                pretty=FALSE, output='screen', ...)
@@ -59,8 +59,8 @@
     \item{hull.args,poly.args,ellipse.args}{Named list of arguments to be passed
                                             to \code{\link[graphics]{polygon}}.
                                             Useful for controlling line width,
-                                            etc. See "Details" for notes about
-                                            color handling.}
+                                            etc. See \dQuote{Details} for notes
+                                            about color handling.}
     \item{poly.line}{Logical; should a line be drawn tracing the polygon
                      connecting the mean values for each vowel (separately for
                      each level of \code{group})?}
@@ -74,10 +74,12 @@
     \item{ellipse.line}{Logical; should vowel density ellipses be drawn with an
                         outer line?}
     \item{ellipse.fill}{Logical; should vowel density ellipses be filled?}
-    \item{ellipse.conf}{Size of the ellipse (0,1] expressed as a confidence level
-                        (i.e., 0.95 gives a 95\% confidence ellipse).  Defaults
-                        to a confidence level of 0.6827 (equivalent to
-                        plus-or-minus 1 sample standard deviation).}
+    \item{ellipse.conf}{Numeric in range (0,1]; the size of the ellipse
+                        expressed as a confidence level of the estimate of the
+                        true mean (i.e., 0.95 gives a 95\% confidence ellipse).
+                        The default value (0.6827) corresponds to plus-or-minus
+                        one sample standard deviation along the major and minor
+                        axes of the bivariate normal density contour.}
     \item{diph.arrows}{Logical; should the last timepoint of each vowel be
                        marked with an arrowhead?}
     \item{diph.args.tokens,diph.args.means}{List of named arguments to be passed
@@ -133,8 +135,8 @@
                                a more complete description of the available arguments.}
     \item{var.col.by}{Vector or factor indicating the dimension along which to vary
                       color.}
-    \item{var.style.by}{Vector or factor indicating the dimension along which to
-                        vary linetype and plotting symbol.}
+    \item{var.sty.by}{Vector or factor indicating the dimension along which to
+                      vary linetype and plotting symbol.}
     \item{fill.opacity}{Number in the range [0, 1] indicating the opacity of
                         color fills for ellipses, hulls, and polygons (if drawn).
                         Does not affect \code{force.heatmap} colors, which are
@@ -184,7 +186,7 @@ data(indoVowels)
 with(indo, plotVowels(f1, f2, vowel, group=gender, plot.means=TRUE,
                       pch.means=vowel, ellipse.line=TRUE, poly.line=TRUE,
                       poly.order=c('i','e','a','o','u'), var.col.by=vowel,
-                      var.style.by=gender, pretty=TRUE, alpha.tokens=0.3,
+                      var.sty.by=gender, pretty=TRUE, alpha.tokens=0.3,
                       cex.means=2))
 # simulate some diphthongs
 f1delta <- sample(c(-10:-5, 5:15), nrow(indo), replace=TRUE)
@@ -202,7 +204,7 @@ indo <- within(indo, {
 with(indo, plotVowels(cbind(f1, f1a, f1b), cbind(f2, f2a, f2b), vowel,
                       group=gender, plot.tokens=TRUE, pch.tokens=NA,
                       alpha.tokens=0.3, plot.means=TRUE, pch.means=vowel,
-                      var.col.by=vowel, var.style.by=gender, pretty=TRUE,
+                      var.col.by=vowel, var.sty.by=gender, pretty=TRUE,
                       diph.arrows=TRUE, diph.args.tokens=list(lwd=0.8),
                       diph.args.means=list(lwd=2)))
 }

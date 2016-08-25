@@ -27,7 +27,7 @@
     normNearey2(f, group=NULL, exp=FALSE, ...)
     normSharedLogmean(f, group=NULL, exp=FALSE, ...)
     normWattFabricius(f, vowel, group=NULL)
-    normVowels(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL, 
+    normVowels(method, f0=NULL, f1=NULL, f2=NULL, f3=NULL,
                vowel=NULL, group=NULL, ...)
 }
 \arguments{
@@ -106,7 +106,7 @@ Glasberg, B. R., & Moore, B. C. J. 1990 \dQuote{Derivation of auditory filter sh
 
 Lobanov, B. M. 1971 \dQuote{Classification of Russian vowels spoken by different speakers.} \emph{The Journal of the Acoustical Society of America}, 49(2), 606-608. \url{http://dx.doi.org/10.1121/1.1912396}
 
-McCloy, D. R. 2012 \dQuote{Normalizing and plotting vowels with the phonR package.} \emph{Technical Reports of the UW Linguistic Phonetics Laboratory}. \url{http://depts.washington.edu/phonlab/pubs/McCloy2012_phonR.pdf}
+McCloy, D. R. 2012 \dQuote{Normalizing and plotting vowels with the phonR package.} \emph{Technical Reports of the UW Linguistic Phonetics Laboratory}. \url{http://dan.mccloy.info/pubs/McCloy2012_phonR.pdf}
 
 Nearey, T. M. 1978 \dQuote{Phonetic feature systems for vowels} (Doctoral dissertation, University of Alberta). Reprinted by the Indiana University Linguistics Club. \url{http://www.ualberta.ca/~tnearey/Nearey1978_compressed.pdf}
 
