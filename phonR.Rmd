@@ -106,21 +106,21 @@ Of course, there is little point in plotting all the vowels with the same symbol
 with(indo, plotVowels(f1, f2, vowel=vowel, group=gender))
 ```
 
-## The arguments `vowel`, `group`, `var.col.by` and `var.style.by`
-The next plot solves this problem by specifying various ways to assign colors and styles to the plot, using the `var.col.by` and `var.style.by` arguments. On the top left, both color and symbol redundantly encode vowel identity. On the top right, color encodes the gender of the talker, and symbol type again encodes vowel identity. On the bottom left, color varies by talker and symbol varies by gender; on the bottom right, color varies by whether the vowel is rounded or not, and symbol varies by talker.
+## The arguments `vowel`, `group`, `var.col.by` and `var.sty.by`
+The next plot solves this problem by specifying various ways to assign colors and styles to the plot, using the `var.col.by` and `var.sty.by` arguments. On the top left, both color and symbol redundantly encode vowel identity. On the top right, color encodes the gender of the talker, and symbol type again encodes vowel identity. On the bottom left, color varies by talker and symbol varies by gender; on the bottom right, color varies by whether the vowel is rounded or not, and symbol varies by talker.
 
-```{r var-by-ugly, dependson=c("load-phonR"), fig.cap="Four different combinations of `var.col.by` and `var.style.by`"}
+```{r var-by-ugly, dependson=c("load-phonR"), fig.cap="Four different combinations of `var.col.by` and `var.sty.by`"}
 par(mfrow=c(2, 2))
 rounded <- ifelse(indo$vowel %in% c("o", "u"), "round", "unround")
-with(indo, plotVowels(f1, f2, var.style.by=vowel,  var.col.by=vowel))
-with(indo, plotVowels(f1, f2, var.style.by=vowel,  var.col.by=gender))
-with(indo, plotVowels(f1, f2, var.style.by=gender, var.col.by=subj))
-with(indo, plotVowels(f1, f2, var.style.by=subj,   var.col.by=rounded))
+with(indo, plotVowels(f1, f2, var.sty.by=vowel,  var.col.by=vowel))
+with(indo, plotVowels(f1, f2, var.sty.by=vowel,  var.col.by=gender))
+with(indo, plotVowels(f1, f2, var.sty.by=gender, var.col.by=subj))
+with(indo, plotVowels(f1, f2, var.sty.by=subj,   var.col.by=rounded))
 ```
 
-Notice that in none of these plots are we making use of the `vowel` and `group` arguments; as we will see later, these are used for the calculation of vowel means and the drawing of ellipses and polygons based on those calculations. It is important to remember that the `vowel` and `group` arguments are functionally independent from the way `plotVowels` controls color and style (viz. `var.col.by` and `var.style.by`).
+Notice that in none of these plots are we making use of the `vowel` and `group` arguments; as we will see later, these are used for the calculation of vowel means and the drawing of ellipses and polygons based on those calculations. It is important to remember that the `vowel` and `group` arguments are functionally independent from the way `plotVowels` controls color and style (viz. `var.col.by` and `var.sty.by`).
 
-Another important aspect of `var.col.by` and `var.style.by` is the ability to override their function by passing them the value `NA`.  One reason you might want this is if you want color to represent some other dimension of each data point, such as vowel length or repulsive force. In such cases, you can pre-calculate the color that you want for each vowel (e.g., with the `plotrix::color.scale` function) and pass the vector of color values to `plotVowels` as the `col` argument. When doing this, you must also pass `var.col.by=NA`, otherwise the default behavior of `plotVowels` (when `var.col.by=NULL`) is to assume that you don’t want to vary color at all, and it will apply the first value of `col` to all the data points and ignore the rest of `col` (note that `var.col.by=NA` also affects the interpretation of `col` arguments passed as part of `ellipse.args`, `hull.args`, and `poly.args` in the same way). To demonstrate this, the plots below vary color smoothly based on F2 values (left) or distance from the centroid of the vowel space (right):
+Another important aspect of `var.col.by` and `var.sty.by` is the ability to override their function by passing them the value `NA`.  One reason you might want this is if you want color to represent some other dimension of each data point, such as vowel length or repulsive force. In such cases, you can pre-calculate the color that you want for each vowel (e.g., with the `plotrix::color.scale` function) and pass the vector of color values to `plotVowels` as the `col` argument. When doing this, you must also pass `var.col.by=NA`, otherwise the default behavior of `plotVowels` (when `var.col.by=NULL`) is to assume that you don’t want to vary color at all, and it will apply the first value of `col` to all the data points and ignore the rest of `col` (note that `var.col.by=NA` also affects the interpretation of `col` arguments passed as part of `ellipse.args`, `hull.args`, and `poly.args` in the same way). To demonstrate this, the plots below vary color smoothly based on F2 values (left) or distance from the centroid of the vowel space (right):
 
 ```{r custom-point-cols, dependson=c("load-phonR"), fig.height=6, fig.cap="Using `col` and `var.col.by=NA` to specify unique colors for each data point."}
 par(mfrow=c(1, 2))
@@ -133,14 +133,14 @@ with(indo, plotVowels(f1, f2, var.col.by=NA, col=cdistcol))
 ```
 
 ## The `pretty` argument
-By now you will have noticed that the default colors and symbols are ugly, and the axes are on the wrong sides of the plot (from a phonetician’s perspective, anyway). `plotVowels` has a wonderful argument called `pretty` that sets a whole bunch of default color and style options all at once, as a shortcut to getting plots that are easy on the eyes. Here are the four plots used above to introduce `var.col.by` and `var.style.by`, but this time they are `pretty`:
+By now you will have noticed that the default colors and symbols are ugly, and the axes are on the wrong sides of the plot (from a phonetician’s perspective, anyway). `plotVowels` has a wonderful argument called `pretty` that sets a whole bunch of default color and style options all at once, as a shortcut to getting plots that are easy on the eyes. Here are the four plots used above to introduce `var.col.by` and `var.sty.by`, but this time they are `pretty`:
 
 ```{r var-by-pretty, dependson=c("var-by-ugly"), fig.cap="Default appearance with pretty=TRUE"}
 par(mfrow=c(2, 2))
-with(indo, plotVowels(f1, f2, var.style.by=vowel, var.col.by=vowel, pretty=TRUE))
-with(indo, plotVowels(f1, f2, var.style.by=vowel, var.col.by=gender, pretty=TRUE))
-with(indo, plotVowels(f1, f2, var.style.by=gender, var.col.by=subj, pretty=TRUE))
-with(indo, plotVowels(f1, f2, var.style.by=subj, var.col.by=rounded, pretty=TRUE))
+with(indo, plotVowels(f1, f2, var.sty.by=vowel, var.col.by=vowel, pretty=TRUE))
+with(indo, plotVowels(f1, f2, var.sty.by=vowel, var.col.by=gender, pretty=TRUE))
+with(indo, plotVowels(f1, f2, var.sty.by=gender, var.col.by=subj, pretty=TRUE))
+with(indo, plotVowels(f1, f2, var.sty.by=subj, var.col.by=rounded, pretty=TRUE))
 ```
 
 Don’t worry if you don’t love the colors, or want different symbols or a different symbol size: anything that `pretty` changes can be overridden by explicitly including extra graphical parameters as arguments in the `plotVowels` function call, while leaving the remaining `pretty` options in place. The only thing you can’t undo is the axis placement on the top and right instead of bottom and left — that one is hard-wired (though you can pass the `axes=FALSE` argument to suppress them). We’ll be leaving `pretty=TRUE` from now on, so you’ll see how it affects other aspects of the plots as we proceed.
@@ -150,8 +150,8 @@ As we have seen, the default for `plotVowels` is to plot each individual vowel t
 
 ```{r plot-means, dependson=c("load-phonR"), fig.height=6, fig.cap="Mean F1 and F2 values for each vowel, plotted with different grouping factors"}
 par(mfrow=c(1, 2))
-with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE, var.col.by=gender, var.style.by=vowel, pretty=TRUE, xlim=c(2900, 600), ylim=c(1000, 250)))
-with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE, var.col.by=gender, var.style.by=vowel, pretty=TRUE, xlim=c(2900, 600), ylim=c(1000, 250)))
+with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE, var.col.by=gender, var.sty.by=vowel, pretty=TRUE, xlim=c(2900, 600), ylim=c(1000, 250)))
+with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE, var.col.by=gender, var.sty.by=vowel, pretty=TRUE, xlim=c(2900, 600), ylim=c(1000, 250)))
 ```
 
 ## Plotting with IPA glyphs
@@ -169,28 +169,28 @@ Notice that the glyphs used to plot the tokens and means need not be the same, a
 An important note here is that using non-ASCII symbols in R can be somewhat challenging when using R in Microsoft Windows, particularly when using Microsoft Excel to organize and store the data. See the Appendix for advice on how to minimize problems when dealing with non-ASCII glyphs on computers running Windows.
 
 ## Ellipses, polygons, and hulls
-Although seeing the cloud of individual tokens for each vowel is sometimes informative, the plot may become hard to read if there is too much overlap (e.g., due to plotting several different talkers on the same graph). The ability to specify `alpha.tokens` mitigates this to some extent, but in some cases even this is not enough and the plot becomes unreadable. In such cases, ellipses summarizing the range of variation of each vowel can provide a convenient summary of the underlying data with less visual clutter. The next plot shows (in the top row) two plots showing the effect of the `ellipse.conf` argument. The default is `ellipse.conf=0.6827`, which is a confidence level corresponding to ±1 standard deviation from the bivariate mean. The upper right-hand plot shows `ellipse.conf=0.95`, which gives 95% confidence ellipses. The individual tokens are left visible to show their relationship with the ellipse extents. The bottom row shows how ellipses can be drawn as lines, fills, or both; how plotting ellipses interacts with the `group` argument; how the `var.style.by` argument affects the ellipse lines; and the utility of reducing the `fill.opacity` argument when lots of filled objects overlap.
+Although seeing the cloud of individual tokens for each vowel is sometimes informative, the plot may become hard to read if there is too much overlap (e.g., due to plotting several different talkers on the same graph). The ability to specify `alpha.tokens` mitigates this to some extent, but in some cases even this is not enough and the plot becomes unreadable. In such cases, ellipses summarizing the range of variation of each vowel can provide a convenient summary of the underlying data with less visual clutter. The next plot shows (in the top row) two plots showing the effect of the `ellipse.conf` argument. The default is `ellipse.conf=0.6827`, which is a confidence level corresponding to ±1 standard deviation from the bivariate mean. The upper right-hand plot shows `ellipse.conf=0.95`, which gives 95% confidence ellipses. The individual tokens are left visible to show their relationship with the ellipse extents. The bottom row shows how ellipses can be drawn as lines, fills, or both; how plotting ellipses interacts with the `group` argument; how the `var.sty.by` argument affects the ellipse lines; and the utility of reducing the `fill.opacity` argument when lots of filled objects overlap.
 
 ```{r plot-ellipses, dependson=c("load-phonR"), fig.cap="Ellipses in various configurations"}
 par(mfrow=c(2, 2))
 with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, cex.tokens=1.2, alpha.tokens=0.2, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, ellipse.line=TRUE, pretty=TRUE))
 with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, cex.tokens=1.2, alpha.tokens=0.2, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, ellipse.line=TRUE, ellipse.conf=0.95, pretty=TRUE))
 with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, ellipse.fill=TRUE, pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=subj, ellipse.line=TRUE, ellipse.fill=TRUE, fill.opacity=0.1, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.sty.by=subj, ellipse.line=TRUE, ellipse.fill=TRUE, fill.opacity=0.1, pretty=TRUE))
 ```
 
-In the lower-left plot above, we know from the function call that the two sets of ellipses correspond to talker gender, but it is not clear which ellipses “go together” (especially in the high back region). We can regain this information by passing arguments `ellipse.line=TRUE, var.style.by=gender` or by adding a legend, but we can achieve the same thing by drawing connecting lines between the vowel means. We’ll omit the low vowel for demonstration purposes; the ability to omit certain vowels from the polygon is useful for vowel systems with pairs (short/long, oral/nasal, etc) or if the plot includes central vowels and you only want to connect the peripheral vowels.
+In the lower-left plot above, we know from the function call that the two sets of ellipses correspond to talker gender, but it is not clear which ellipses “go together” (especially in the high back region). We can regain this information by passing arguments `ellipse.line=TRUE, var.sty.by=gender` or by adding a legend, but we can achieve the same thing by drawing connecting lines between the vowel means. We’ll omit the low vowel for demonstration purposes; the ability to omit certain vowels from the polygon is useful for vowel systems with pairs (short/long, oral/nasal, etc) or if the plot includes central vowels and you only want to connect the peripheral vowels.
 
 ```{r plot-poly-line, dependson=c("load-phonR"), fig.width=6, fig.height=6, fig.cap="The “vowel means” polygon"}
-with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=gender, ellipse.fill=TRUE, poly.line=TRUE, poly.order=c("i", "e", "o", "u"), pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.sty.by=gender, ellipse.fill=TRUE, poly.line=TRUE, poly.order=c("i", "e", "o", "u"), pretty=TRUE))
 ```
 
 The vowel polygon lines above (and also convex hulls, seen below) are drawn in black color if the `var.col.by` argument is `vowel` (because the polygonal boundary line is a property of the entire *vowel space*, not of any one vowel). If `var.col.by` is something else (like gender or talker) then the polygonal or hull line follows the color coding of the tokens and means. Just like ellipses (and hulls), vowel polygons may also have lines, fills, or both (controlled by the boolean `poly.line` and `poly.fill` arguments).
 
 ```{r convex-hull, dependson=c("load-phonR"), fig.height=6, fig.width=12, fig.cap="Convex hulls with different values for the `color.by` argument"}
 par(mfrow=c(1, 2))
-with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, cex.tokens=1.2, alpha.tokens=0.3, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=gender, hull.fill=TRUE, hull.line=TRUE, fill.opacity=0.1, pretty=TRUE))
-with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, cex.tokens=1.2, alpha.tokens=0.3, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=gender, var.style.by=gender, hull.fill=TRUE, hull.line=TRUE, fill.opacity=0.1, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, cex.tokens=1.2, alpha.tokens=0.3, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.sty.by=gender, hull.fill=TRUE, hull.line=TRUE, fill.opacity=0.1, pretty=TRUE))
+with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, cex.tokens=1.2, alpha.tokens=0.3, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=gender, var.sty.by=gender, hull.fill=TRUE, hull.line=TRUE, fill.opacity=0.1, pretty=TRUE))
 ```
 
 ## Vowel heatmaps and repulsive force
@@ -241,13 +241,13 @@ In most cases, legends can be added automatically to plots created using `plotVo
 
 ```{r plot-legends, dependson=c("plot-ipa"), fig.cap="Illustration of automatic legend creation."}
 par(mfrow=c(2, 2))
-with(indo, plotVowels(f1, f2, var.style.by=gender, var.col.by=subj, pretty=TRUE, legend.kwd="bottomright"))
+with(indo, plotVowels(f1, f2, var.sty.by=gender, var.col.by=subj, pretty=TRUE, legend.kwd="bottomright"))
 with(indo, plotVowels(f1, f2, vowel, plot.tokens=TRUE, pch.tokens=vowel, cex.tokens=1.2, alpha.tokens=0.4, plot.means=TRUE, pch.means=unicodevowel, cex.means=4, var.col.by=unicodevowel, family="Charis SIL", pretty=TRUE, legend.kwd="bottomright"))
-with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, cex.tokens=1.2, alpha.tokens=0.3, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=gender, hull.fill=TRUE, hull.line=TRUE, fill.opacity=0.1, pretty=TRUE, legend.kwd="bottomright"))
-with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.style.by=subj, ellipse.line=TRUE, ellipse.fill=TRUE, fill.opacity=0.1, pretty=TRUE, legend.kwd="bottomright"))
+with(indo, plotVowels(f1, f2, vowel, group=gender, pch.tokens=vowel, cex.tokens=1.2, alpha.tokens=0.3, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.sty.by=gender, hull.fill=TRUE, hull.line=TRUE, fill.opacity=0.1, pretty=TRUE, legend.kwd="bottomright"))
+with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.sty.by=subj, ellipse.line=TRUE, ellipse.fill=TRUE, fill.opacity=0.1, pretty=TRUE, legend.kwd="bottomright"))
 ```
 
-Note that the text in the legends is taken from the arguments `var.col.by` and `var.style.by`, so in the upper-right plot above, the legend shows the `unicodevowel` strings instead of the `vowel` strings. It is possible to override these strings using the `legend.args` argument, for example: `legend.args=list(legend=c("foo", "bar", "baz", "etc", "etc"))`. The elements of `legend.args` are passed to `legend` and can be used to further customize the legend by specifying `seg.len`, `inset`, etc. See `?legend` for further details.
+Note that the text in the legends is taken from the arguments `var.col.by` and `var.sty.by`, so in the upper-right plot above, the legend shows the `unicodevowel` strings instead of the `vowel` strings. It is possible to override these strings using the `legend.args` argument, for example: `legend.args=list(legend=c("foo", "bar", "baz", "etc", "etc"))`. The elements of `legend.args` are passed to `legend` and can be used to further customize the legend by specifying `seg.len`, `inset`, etc. See `?legend` for further details.
 
 ## Diphthongs
 Vowels are not instantaneous phenomena, and all phoneticians know that vowel formants are usually not stationary over time. To accommodate this, `plotVowels` allows you to supply `f1` and `f2` arguments as matrices where the values across a given row are the measurements at different timepoints for the same vowel. The timepoints for the vowels are connected with line segments, and you can add arrowheads to the last segment via the `diph.arrows` argument. Controlling the style of the diphthong lines is achieved through the `diph.args.tokens` and `diph.args.means` arguments, which take named lists of graphical parameters.
@@ -284,8 +284,8 @@ Sometimes we need plots to be grayscale for print publication. Generally this is
 
 ```{r grayscale, dependson=c("load-phonR"), fig.height=6}
 par(mfrow=c(1, 2))
-with(indo, plotVowels(f1, f2, vowel, group=subj, var.col.by=subj, var.style.by=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, pretty=TRUE, poly.line=TRUE, poly.order=c("i", "e", "a", "o", "u"), legend.kwd="bottomleft", legend.args=list(seg.len=3, cex=1.2, lwd=2), col=c("gray70", "gray40", "gray10"), lty=c("solid", "solid", "dotdash", "dotdash", "dotted", "longdash", "dashed", "dotted")))
-with(indo, plotVowels(f1, f2, vowel, group=subj, var.col.by=subj, var.style.by=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, pretty=TRUE, poly.line=TRUE, poly.order=c("i", "e", "a", "o", "u"), legend.kwd="bottomleft", legend.args=list(seg.len=3, cex=1.2, lwd=2), col=c("gray70", "black", "gray40", "black"), lty=c("solid", "dashed", "dotted")))
+with(indo, plotVowels(f1, f2, vowel, group=subj, var.col.by=subj, var.sty.by=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, pretty=TRUE, poly.line=TRUE, poly.order=c("i", "e", "a", "o", "u"), legend.kwd="bottomleft", legend.args=list(seg.len=3, cex=1.2, lwd=2), col=c("gray70", "gray40", "gray10"), lty=c("solid", "solid", "dotdash", "dotdash", "dotted", "longdash", "dashed", "dotted")))
+with(indo, plotVowels(f1, f2, vowel, group=subj, var.col.by=subj, var.sty.by=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, pretty=TRUE, poly.line=TRUE, poly.order=c("i", "e", "a", "o", "u"), legend.kwd="bottomleft", legend.args=list(seg.len=3, cex=1.2, lwd=2), col=c("gray70", "black", "gray40", "black"), lty=c("solid", "dashed", "dotted")))
 ```
 
 ## Overlaying plots
