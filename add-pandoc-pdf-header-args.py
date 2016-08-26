@@ -14,7 +14,7 @@ output:
 '''
 
 with open('phonR.Rmd', 'r') as f:
-	with open('phonR_tex.Rmd', 'w') as g:
+	with open('tex.Rmd', 'w') as g:
 		pandoc_header = False
 		header_written = False
 		for line in f:

@@ -1,6 +1,5 @@
 ---
 title: "Normalizing and plotting vowels with phonR `r packageVersion("phonR")`"
-runningtitle: "phonR vignette"
 author:
 - name: Daniel R. McCloy
   affiliation:
@@ -169,7 +168,9 @@ Notice that the glyphs used to plot the tokens and means need not be the same, a
 An important note here is that using non-ASCII symbols in R can be somewhat challenging when using R in Microsoft Windows, particularly when using Microsoft Excel to organize and store the data. See the Appendix for advice on how to minimize problems when dealing with non-ASCII glyphs on computers running Windows.
 
 ## Ellipses, polygons, and hulls
-Although seeing the cloud of individual tokens for each vowel is sometimes informative, the plot may become hard to read if there is too much overlap (e.g., due to plotting several different talkers on the same graph). The ability to specify `alpha.tokens` mitigates this to some extent, but in some cases even this is not enough and the plot becomes unreadable. In such cases, ellipses summarizing the range of variation of each vowel can provide a convenient summary of the underlying data with less visual clutter. The next plot shows (in the top row) two plots showing the effect of the `ellipse.conf` argument. The default is `ellipse.conf=0.6827`, which is a confidence level corresponding to ±1 standard deviation from the bivariate mean. The upper right-hand plot shows `ellipse.conf=0.95`, which gives 95% confidence ellipses. The individual tokens are left visible to show their relationship with the ellipse extents. The bottom row shows how ellipses can be drawn as lines, fills, or both; how plotting ellipses interacts with the `group` argument; how the `var.sty.by` argument affects the ellipse lines; and the utility of reducing the `fill.opacity` argument when lots of filled objects overlap.
+Although seeing the cloud of individual tokens for each vowel is sometimes informative, the plot may become hard to read if there is too much overlap (e.g., due to plotting several different talkers on the same graph). The ability to specify `alpha.tokens` mitigates this to some extent, but in some cases even this is not enough and the plot becomes unreadable. In such cases, ellipses showing degree of confidence in the location of the mean of each vowel/group can provide a convenient summary of the underlying data with less visual clutter. Ellipses are calculated based on the covariance of the tokens and a supplied confidence level (`ellipse.conf`), using Hotelling’s $T^2$ distribution (a multivariate analog of the $t$ distribution) to account for uncertainty when the number of tokens is low. If there are fewer than 3 tokens for any given vowel/group combination, no ellipse will be drawn.
+
+The next plot shows (in the top row) the effect of the `ellipse.conf` argument. The default is `ellipse.conf=0.6827`, which is a roughly 68% confidence level corresponding to ±1 standard deviation of the normal density contour estimated from the data. The upper right-hand plot shows `ellipse.conf=0.95`, which gives 95% confidence ellipses (i.e., ±1.96 standard deviations on the normal density contour). The individual tokens are left visible to show their relationship with the ellipse extents. The bottom row shows how ellipses can be drawn as lines, fills, or both; how plotting ellipses interacts with the `group` argument; how the `var.sty.by` argument affects the ellipse lines; and the utility of reducing the `fill.opacity` argument when lots of filled objects overlap.
 
 ```{r plot-ellipses, dependson=c("load-phonR"), fig.cap="Ellipses in various configurations"}
 par(mfrow=c(2, 2))
@@ -181,7 +182,7 @@ with(indo, plotVowels(f1, f2, vowel, group=subj, plot.tokens=FALSE, plot.means=T
 
 In the lower-left plot above, we know from the function call that the two sets of ellipses correspond to talker gender, but it is not clear which ellipses “go together” (especially in the high back region). We can regain this information by passing arguments `ellipse.line=TRUE, var.sty.by=gender` or by adding a legend, but we can achieve the same thing by drawing connecting lines between the vowel means. We’ll omit the low vowel for demonstration purposes; the ability to omit certain vowels from the polygon is useful for vowel systems with pairs (short/long, oral/nasal, etc) or if the plot includes central vowels and you only want to connect the peripheral vowels.
 
-```{r plot-poly-line, dependson=c("load-phonR"), fig.width=6, fig.height=6, fig.cap="The “vowel means” polygon"}
+```{r plot-poly-line, dependson=c("load-phonR"), fig.width=6, fig.height=6, fig.cap="The “vowel means” polygon. The low vowel /a/ is omitted for demonstration purposes."}
 with(indo, plotVowels(f1, f2, vowel, group=gender, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, var.col.by=vowel, var.sty.by=gender, ellipse.fill=TRUE, poly.line=TRUE, poly.order=c("i", "e", "o", "u"), pretty=TRUE))
 ```
 
@@ -282,7 +283,7 @@ Here are a few more worked examples, mostly based on emails from phonR users ask
 ## Grayscale
 Sometimes we need plots to be grayscale for print publication. Generally this is accomplished with the `col` argument, which will be recycled as necessary if it is shorter than the number of groups. R’s built-in color names for shades of gray come in handy here. The second plot also shows recycling of line types via the `lty` argument.
 
-```{r grayscale, dependson=c("load-phonR"), fig.height=6}
+```{r grayscale, dependson=c("load-phonR"), fig.height=6, fig.cap="Grayscale plot, showing recycling of both color and line style."}
 par(mfrow=c(1, 2))
 with(indo, plotVowels(f1, f2, vowel, group=subj, var.col.by=subj, var.sty.by=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, pretty=TRUE, poly.line=TRUE, poly.order=c("i", "e", "a", "o", "u"), legend.kwd="bottomleft", legend.args=list(seg.len=3, cex=1.2, lwd=2), col=c("gray70", "gray40", "gray10"), lty=c("solid", "solid", "dotdash", "dotdash", "dotted", "longdash", "dashed", "dotted")))
 with(indo, plotVowels(f1, f2, vowel, group=subj, var.col.by=subj, var.sty.by=subj, plot.tokens=FALSE, plot.means=TRUE, pch.means=vowel, cex.means=2, pretty=TRUE, poly.line=TRUE, poly.order=c("i", "e", "a", "o", "u"), legend.kwd="bottomleft", legend.args=list(seg.len=3, cex=1.2, lwd=2), col=c("gray70", "black", "gray40", "black"), lty=c("solid", "dashed", "dotted")))
@@ -291,7 +292,7 @@ with(indo, plotVowels(f1, f2, vowel, group=subj, var.col.by=subj, var.sty.by=sub
 ## Overlaying plots
 In some cases you may find it necessary to overlay two `plotVowels` plots. For example, you may want to plot just tokens and ellipses for one group of subjects, and overlay another group’s data with means and polygons. One way to accomplish this is to make a complete call to `plotVowels`, followed by `par(new=TRUE)`, followed by the second call to `plotVowels`.  This is usually fine as long as you explicitly pass the same values for `pretty`, `xlim` and `ylim` in *both* calls to `plotVowels`; otherwise the overplotted data will be on potentially different axis scales.
 
-```{r overlays-one, dependson=c("load-phonR"), fig.height=6}
+```{r overlays-one, dependson=c("load-phonR"), fig.height=6, fig.cap="Examples of overlaying two separate calls to `plotVowels`."}
 males <- indo[indo$gender %in% "m",]
 females <- indo[indo$gender %in% "f",]
 par(mfrow=c(1, 2))
@@ -307,7 +308,7 @@ with(males, plotVowels(f1, f2, vowel, pretty=TRUE, alpha.tokens=0.2, xlim=c(3500
 
 In such cases you can also pass `axes=FALSE, ann=FALSE` to one of the two calls to `plotVowels` to avoid drawing the axes and axis labels twice. However, this approach is somewhat dangerous, because it makes it easy to accidentally change the axis limits for one phase of the overplotting but not the other, and to not notice the mistake because the axes are not being drawn with one of the `plotVowels` calls. The danger can be somewhat mitigated by defining the axis limits externally to the function calls, e.g.:
 
-```{r dry, dependson=c("overlays-one"), fig.width=6, fig.height=6}
+```{r overlays-two, dependson=c("overlays-one"), fig.width=6, fig.height=6, fig.cap="Overlaying two separate calls to `plotVowels` with `axes=FALSE, ann=FALSE` on the first call."}
 xlim <- c(3500, 500)
 ylim <- c(1200, 200)
 with(females, plotVowels(f1, f2, vowel, pretty=TRUE, alpha.tokens=0.2, col="red", col.axis="red", xlim=xlim, ylim=ylim, axes=FALSE, ann=FALSE))
@@ -317,7 +318,7 @@ with(males, plotVowels(f1, f2, vowel, pretty=TRUE, alpha.tokens=0.2, xlim=xlim, 
 
 A different approach is to plot the overlay in a single call to `plotVowels` after pre-calculating things like color, plotting character to be used, etc. This will generally work for basic plots of tokens and means, but it doesn’t always work for ellipses, polygons, etc.
 
-```{r overlays-two, dependson=c("overlays-one"), fig.width=9, fig.height=9}
+```{r overlays-three, dependson=c("overlays-one"), fig.width=7.5, fig.height=7.5, fig.cap="Avoiding overlays by pre-computing vectors of color and plotting character."}
 # pre-calculate colors (the [-1] at the end avoids duplicate hues 0 and 360)
 hues <- seq(0, 360, length.out=length(unique(females$vowel)) + 1)[-1]
 mycolors <- hcl(h=hues, c=100, l=60)
@@ -376,6 +377,6 @@ df <- as.data.frame(mat, stringsAsFactors=FALSE)
 In either case, the non-ASCII characters will be rendered as “escaped” codepoints when the resulting dataframe is displayed in the R console (e.g., when using `head()` you will see `<U+0259>` instead of `ə`, because the Unicode address for `ə` is `0259`). These escaped characters will _usually_ display properly when plotted, as long as a suitable typeface is specified via the graphical parameter `family`. However, specifying fonts in R is more complicated under Windows than on other operating systems, as font names cannot be passed directly to `family` as a character string. Instead, you must first register the font using `windowsFonts(myCustomFontName=windowsFont("Charis SIL"))`, and then reference the font as `family="myCustomFontName"` (you may of course substitute anything you like for `myCustomFontName` as long as there are no spaces in the name, and substitute your desired font’s name for `"Charis SIL"`).
 
 # Acknowledgments
-Many people bravely used the development version of phonR in the year leading up to its 1.0 release, and in the process discovered many bugs (and made many feature requests!), ultimately leading to a more polished and stable version of phonR to be released on CRAN. Thanks to Valerie Freeman, Cory Holland, Sophie Holmes-Elliott, Wendy Kempsell, Katharina Nimz, Jason Shaw, Shufang Xu, and most especially John Riebold.
+Many people bravely used the development version of phonR in the year leading up to its 1.0 release, and in the process discovered many bugs (and made many feature requests!), ultimately leading to a more polished and stable version of phonR to be released on CRAN. Thanks to Valerie Freeman, Cory Holland, Sophie Holmes-Elliott, Wendy Kempsell, Katharina Nimz, Jason Shaw, Shufang Xu, and most especially John Riebold.  Thanks also to Francesco Sigona for encouraging me to implement ellipses using Hotelling’s $T^2$ instead of the previous $\chi^2$ method.
 
 # References
