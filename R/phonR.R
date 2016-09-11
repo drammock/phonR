@@ -469,8 +469,12 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     }
     if (is.null(vowel) && is.null(group)) {
         byd <- list(d=d)
+    } else if (all(var.col.by==as.numeric(factor(group, levels=unique(group))))) {
+        byd <- by(d, d[c("gf","v")], identity)
+        # print("gf-v")
     } else {
         byd <- by(d, d[c("v", "gf")], identity)
+        # print("v-gf")
     }
     ## dataframe of means. at this point each element of "byd" should have
     ## exactly 1 vowel and 1 grouping factor (gf) value
@@ -1053,6 +1057,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (output != "screen") dev.off()
     ## reset graphical parameters to defaults
     par(op)
+    # return(list(byd, group, var.col.by, legend.col))
 }
 
 
