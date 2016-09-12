@@ -466,7 +466,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     d <- data.frame(f1=f1, f2=f2, v=v, gf=factor(gf, levels=unique(gf)),
                     col.tokens=col.tokens, col.means=col.means,
                     style=var.sty.by, lty=exargs$lty, lwd=exargs$lwd,
-                    # style=var.sty.by, lty=poly.line.sty, lwd=exargs$lwd,
                     ellipse.fill.col=ellipse.fill.col,
                     ellipse.line.col=ellipse.line.col,
                     ellipse.line.sty=ellipse.line.sty,
@@ -983,6 +982,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 } else if (!(length(unique(poly.line.sty)) == 1 &&
                                  poly.line.sty[1] == 0)) {
                     legend.lty <- sapply(bym, function(i) unique(i$poly.line.sty))
+                    # print(legend.lty)
                 } else {
                     legend.lty <- unique(hull.line.sty)
                 }
@@ -998,14 +998,21 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 }
             }
             ## handle lty specially; needed for both style & color
+            # print(legend.lty)
+            ##NEED TO DETERMINE WHICH IS THE LTY GROUP AND THEN APPLY NAS
             if (!is.null(legend.lty)) {
                 if (!length(legend.style.lab)) {
                     legend.lty <- rep(legend.lty,
                                       length.out=length(legend.col.lab))
                 } else if (length(legend.col.lab)) {
-                    legend.lty <- c(legend.lty, rep(NA, length(legend.col.lab)))
+                    if (all(var.col.by==as.numeric(factor(group,levels=unique(group))))) {
+                        legend.lty <- c(rep(NA, length(legend.style.lab)), legend.lty)
+                    } else {
+                        legend.lty <- c(legend.lty, rep(NA, length(legend.col.lab)))
+                    }
                 }
             }
+            # print(legend.lty)
             ## reconcile
             if (identical(legend.style.lab, legend.col.lab)) {
                 legend.lab <- legend.col.lab
@@ -1066,6 +1073,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             }
             ## draw legend
             do.call(legend, legend.args)
+            # return(legend.args)
         }
     }
 
