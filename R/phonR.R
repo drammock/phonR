@@ -319,10 +319,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (vary.col) exargs$col <- rep(exargs$col, length.out=num.col)[var.col.by]
     if (all(var.col.by==as.numeric(factor(group, levels=unique(group))))) {
         exargs$lty <- rep(exargs$lty, length.out=num.col)[var.col.by]
-        # print("var.col.by==group")
     } else {
         exargs$lty <- rep(exargs$lty, length.out=num.sty)[var.sty.by]
-        # print("var.sty.by==group")
     }
     if (vary.sty) exargs$pch <- rep(exargs$pch, length.out=num.sty)[var.sty.by]
     ## set defaults for token and mean plotting characters
@@ -489,10 +487,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         byd <- list(d=d)
     } else if (all(var.col.by==as.numeric(factor(group, levels=unique(group))))) {
         byd <- by(d, d[c("gf","v")], identity)
-        # print("gf-v")
     } else {
         byd <- by(d, d[c("v", "gf")], identity)
-        # print("v-gf")
     }
     ## dataframe of means. at this point each element of "byd" should have
     ## exactly 1 vowel and 1 grouping factor (gf) value
@@ -982,7 +978,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 } else if (!(length(unique(poly.line.sty)) == 1 &&
                                  poly.line.sty[1] == 0)) {
                     legend.lty <- sapply(bym, function(i) unique(i$poly.line.sty))
-                    # print(legend.lty)
                 } else {
                     legend.lty <- unique(hull.line.sty)
                 }
@@ -998,8 +993,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 }
             }
             ## handle lty specially; needed for both style & color
-            # print(legend.lty)
-            ##NEED TO DETERMINE WHICH IS THE LTY GROUP AND THEN APPLY NAS
             if (!is.null(legend.lty)) {
                 if (!length(legend.style.lab)) {
                     legend.lty <- rep(legend.lty,
@@ -1012,7 +1005,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     }
                 }
             }
-            # print(legend.lty)
             ## reconcile
             if (identical(legend.style.lab, legend.col.lab)) {
                 legend.lab <- legend.col.lab
@@ -1036,6 +1028,14 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     legend.brd <- legend.bgf
                     legend.col <- c(rep(par("fg"), length(legend.style.lab)),
                                     legend.col)
+                ## handle case: col.by.vowel and poly.line & sty by group
+                } else if (vary.sty && vary.col && is.null(legend.bgf) && poly.line &&
+                           all(var.sty.by==as.numeric(factor(group,levels=unique(group))))) {
+                    legend.col <- c(rep(par("fg"), length(legend.style.lab)),
+                                    legend.col)
+                    legend.bgf <- c(rep(NA, length(legend.style.lab)),
+                                    legend.col[-(1:length(legend.style.lab))])
+                    legend.brd <- legend.bgf
                 ## handle other cases
                 } else {
                     nas <- rep(NA, length(legend.style.lab))
