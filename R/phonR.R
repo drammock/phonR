@@ -157,7 +157,13 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                          paste(legend.kwds, collapse="', '"), "'."),
                  collapse=""))
     }   }
-
+    if (is.null(legend.kwd) && !is.null(legend.args)) {
+        message("[phonR]: You specified 'legend.args' but did not specify ",
+                "where to draw the legend ('legend.kwd' is NULL); defaulting ",
+                "to 'bottomright'.")
+        legend.kwd <- "bottomright"
+    }
+    
     ## ## ## ## ## ## ## ## ## ## ## ## ##
     ##  PRELIMINARY DIPHTHONG HANDLING  ##
     ## ## ## ## ## ## ## ## ## ## ## ## ##
@@ -924,7 +930,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         legend.labels.for.styles <- unique(as.character(legend.var.sty.by))
     }
     if (!is.null(legend.kwd)) {
-        if (is.null(legend.labels.for.colors) && 
+        if (is.null(legend.labels.for.colors) &&
             is.null(legend.labels.for.styles)) {
             message("[phonR]: Legend will not be drawn because var.col.by and ",
                     "var.sty.by are both NULL or NA. You will have to use ",
