@@ -65,14 +65,14 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         }
         if (output %in% c("pdf", "svg", "screen")) {
             if ("width" %in% names(exargs)) {
-                if      (exargs$units == "cm") exargs$width <- exargs$width/2.54
-                else if (exargs$units == "mm") exargs$width <- exargs$width/25.4
-                else if (exargs$units == "px") exargs$width <- exargs$width/72
+                if      (exargs$units %in% "cm") exargs$width <- exargs$width/2.54
+                else if (exargs$units %in% "mm") exargs$width <- exargs$width/25.4
+                else if (exargs$units %in% "px") exargs$width <- exargs$width/72
             }
             if ("height" %in% names(exargs)) {
-                if      (exargs$units == "cm") exargs$height <- exargs$height/2.54
-                else if (exargs$units == "mm") exargs$height <- exargs$height/25.4
-                else if (exargs$units == "px") exargs$height <- exargs$height/72
+                if      (exargs$units %in% "cm") exargs$height <- exargs$height/2.54
+                else if (exargs$units %in% "mm") exargs$height <- exargs$height/25.4
+                else if (exargs$units %in% "px") exargs$height <- exargs$height/72
             }
         }
     }
@@ -81,7 +81,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     par.only <- c("ask", "fig", "fin", "las", "lheight", "mai", "mar",
                 "mex", "mfcol", "mfrow", "mfg", "new", "oma", "omd", "omi",
                 "pin", "plt", "ps", "pty", "usr", "xlog", "ylog", "ylbias")
-    if (output == "screen") {
+    if (output %in% "screen") {
         par.only <- append(par.only, "family")
     } else {
         file.only <- c("filename", "width", "height", "units", "pointsize",
@@ -427,14 +427,14 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## ## ## ## ## ## ## ## ## ## ##
     ## INITIALIZE OUTPUT DEVICES  ##
     ## ## ## ## ## ## ## ## ## ## ##
-    if      (output == "pdf") do.call(cairo_pdf, file.args)
-    else if (output == "svg") do.call(svg, file.args)
-    else if (output == "jpg") do.call(jpeg, file.args)
-    else if (output == "tif") do.call(tiff, file.args)
-    else if (output == "png") do.call(png, file.args)
-    else if (output == "bmp") do.call(bmp, file.args)
+    if      (output %in% "pdf") do.call(cairo_pdf, file.args)
+    else if (output %in% "svg") do.call(svg, file.args)
+    else if (output %in% "jpg") do.call(jpeg, file.args)
+    else if (output %in% "tif") do.call(tiff, file.args)
+    else if (output %in% "png") do.call(png, file.args)
+    else if (output %in% "bmp") do.call(bmp, file.args)
     ## font handling for Windows
-    is.win <- .Platform$OS.type == "windows"
+    is.win <- .Platform$OS.type %in% "windows"
     if (is.win && font.specified && output %in% output.raster) {
         windowsFonts(phonr=windowsFont(par.args$family))
         par.args$family <- "phonr"
@@ -539,12 +539,12 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         ellipse.param <- apply(m, 1, function(i) {
             if (any(is.na(i$sigma))) {
                 i$sigma <- matrix(rep(0, 4), nrow=2)
-                msg <- ifelse(i$gf == "gf", as.character(i$v),
+                msg <- ifelse(i$gf %in% "gf", as.character(i$v),
                               paste0("(", i$gf, ", ", i$v, ")"))
                 message("[phonR]: No ellipse drawn for ", msg,
                         " because there is only one token.")
             } else if (i$n == 2) {
-                msg <- ifelse(i$gf == "gf", as.character(i$v),
+                msg <- ifelse(i$gf %in% "gf", as.character(i$v),
                               paste0("(", i$gf, ", ", i$v, ")"))
                 message("[phonR]: No ellipse drawn for ", msg,
                         " because there are only two tokens.")
