@@ -90,19 +90,13 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         exargs <- exargs[!(names(exargs) %in% file.only)]
     }
     par.args <- exargs[names(exargs) %in% par.only]
-    ## allow separate "las" for axis numbers & axis labels
-    if (is.null(label.las)) {
-        if ("las" %in% names(par.args)) label.las <- par.args$las
-        else                            label.las <- par("las")
-    }
     ## split out arguments for annotations. If "pretty", axes get drawn
     ## separately from plot(); other annotation gets drawn in separate mtext()
     ## calls whether "pretty" or not.
+    axis.only <- c()
     if (pretty) {
         axis.only <- c("cex.axis", "col.axis", "font.axis")
         axis.args <- exargs[names(exargs) %in% axis.only]
-    } else {
-        axis.only <- c()
     }
     main.only <- c("cex.main", "col.main", "font.main")
     sub.only <- c("cex.sub",  "col.sub",  "font.sub")
@@ -113,6 +107,14 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     names(main.args) <- gsub(".main", "", names(main.args))
     names(sub.args) <- gsub(".sub", "", names(sub.args))
     names(lab.args) <- gsub(".lab", "", names(lab.args))
+    ## allow separate "las" (label rotation style) for tick labels & axis labels
+    ## (and assign default if absent)
+    if (is.null(label.las)) {
+        if ("las" %in% names(par.args)) label.las <- par.args$las
+        else                            label.las <- par("las")
+    }
+    lab.args <- as.list(c(lab.args, las=label.las))
+    ## pull axis labels and (sub)titles out of exargs
     if ("xlab" %in% names(exargs)) xlab <- exargs$xlab
     else                           xlab <- "F2"
     if ("ylab" %in% names(exargs)) ylab <- exargs$ylab
@@ -125,8 +127,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     exargs$ylab <- NULL
     exargs$main <- NULL
     exargs$sub <- NULL
-    ## add "las" into label args
-    lab.args <- as.list(c(lab.args, las=label.las))
     ## don't pass args twice!
     args.to.remove <- c(par.only, main.only, axis.only, lab.only, sub.only)
     exargs <- exargs[!names(exargs) %in% args.to.remove]
@@ -150,7 +150,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## LEGEND KWD CHECK  ##
     ## ## ## ## ## ## ## ##
     legend.kwds <- c("left", "right", "top", "bottom", "center", "topleft",
-                    "topright", "bottomleft", "bottomright")
+                     "topright", "bottomleft", "bottomright")
     if (!is.null(legend.kwd)) {
         if (!legend.kwd %in% legend.kwds) {
             stop(paste(c("legend.kwd must be one of '",
@@ -185,13 +185,13 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         } else if (!is.null(vowel) && length(vowel) != length(f1)) {
             stop("Unequal dimensions for 'f1' and 'vowel'.")
         }
-        l <- length(f1)
+        n.cases <- length(f1)
     } else {
-        f1d <- f1
-        f2d <- f2
-        f1 <- f1d[,diph.mean.timept]
-        f2 <- f2d[,diph.mean.timept]
-        l <- nrow(f1d)
+        f1.diph.mat <- f1
+        f2.diph.mat <- f2
+        f1 <- f1.diph.mat[,diph.mean.timept]
+        f2 <- f2.diph.mat[,diph.mean.timept]
+        n.cases <- nrow(f1.diph.mat)
     }
 
     ## ## ## ## ## ## ## ## ## ##
@@ -222,42 +222,36 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         diph.args.means[names(diph.args.means) %in% arrow.only] <- NULL
     }
 
-    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-    ##  PRELIMINARY HANDLING OF GROUPING FACTOR, COLOR, AND STYLE  ##
-    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-    if (is.null(vowel)) v <- rep(NA, l)
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    ##  PRELIMINARY HANDLING OF GROUPING FACTOR, COLOR, AND STYLE           ##
+    ##  nb: unique() preserves order; internally it works like duplicated() ##
+    ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+    if (is.null(vowel)) v <- rep(NA, n.cases)
     else                v <- factor(vowel, levels=unique(vowel))
-    if (is.null(group)) gf <- rep("gf", l)
+    if (is.null(group)) gf <- rep("gf", n.cases)
     else                gf <- factor(group, levels=unique(group))
     ## used later to set default polygon color when color varies by vowel
     col.by.vowel <- identical(as.numeric(factor(var.col.by)),
                               as.numeric(factor(vowel)))
-    ## var.col.by & var.sty.by
-    if (!is.null(var.col.by[1])) {
-        if (is.na(var.col.by[1])) {
-            legend.col.lab <- NULL
-        } else {
-            legend.col.lab <- unique(as.character(var.col.by))
-        }
+    ## record color and style labels for use in legend
+    legend.var.col.by <- var.col.by
+    legend.var.sty.by <- var.sty.by
+    ## convenience variables
+    vary.col <- !is.null(var.col.by[1]) && !is.na(var.col.by[1])
+    vary.sty <- !is.null(var.sty.by[1]) && !is.na(var.sty.by[1])
+    ## convert var.col.by and var.sty.by to numeric (to function as indices)
+    if (is.null(var.col.by[1])) {
+        var.col.by <- rep(1, n.cases)  # default to black
+    } else if (!is.na(var.col.by[1])) {
         var.col.by <- as.numeric(factor(var.col.by, levels=unique(var.col.by)))
-    } else {
-        legend.col.lab <- c()
-        var.col.by <- rep(1, l)  # default to black
     }
-    if (!is.null(var.sty.by[1])) {
-        if (is.na(var.sty.by[1])) legend.style.lab <- NULL
-        else legend.style.lab <- unique(as.character(var.sty.by))
-        var.sty.by <- as.numeric(factor(var.sty.by,
-                                        levels=unique(var.sty.by)))
-    } else {
-        legend.style.lab <- c()
-        var.sty.by <- rep(1, l)  # default to solid
+    if (is.null(var.sty.by)) {
+        var.sty.by <- rep(1, n.cases)  # default to solid
+    } else if (!is.na(var.sty.by[1])) {
+        var.sty.by <- as.numeric(factor(var.sty.by, levels=unique(var.sty.by)))
     }
-    num.col <- length(unique(var.col.by))
-    num.sty <- length(unique(var.sty.by))
-    ## misc. plotting defaults
-    if (is.null(cex.tokens))    cex.tokens <- par("cex")
-    if (is.null(cex.means))      cex.means <- par("cex")
+    n.col <- length(unique(var.col.by))
+    n.sty <- length(unique(var.sty.by))
 
     ## ## ## ## ## ## ## ## ## ##
     ##  DEFAULTS FOR "PRETTY"  ##
@@ -270,15 +264,15 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         }
         ## if no colors specified, use equally spaced HCL values
         ## [-1] avoids duplicate hues 0 and 360
-        if (num.col == 1) pretty.col <- "black"
+        if (n.col == 1) pretty.col <- "black"
         else {
-            hue <- seq(0,  360, length.out=1+num.col)[-1]
-            chr <- seq(60, 100, length.out=num.col)
-            lum <- seq(60,  40, length.out=num.col)
+            hue <- seq(0,  360, length.out=1+n.col)[-1]
+            chr <- seq(60, 100, length.out=n.col)
+            lum <- seq(60,  40, length.out=n.col)
             pretty.col <- hcl(hue, chr, lum, alpha=1)
         }
         ## PCH: filled / open {circ,tri,squ,diam}, plus, x, inverted open tri
-        pretty.pch <- rep(c(16,1,17,2,15,0,18,5,3,4,6), length.out=num.sty)
+        pretty.pch <- rep(c(16,1,17,2,15,0,18,5,3,4,6), length.out=n.sty)
         ## LTY: custom linetypes more readily distinguishable
         pretty.lty <- c("solid", "44", "F4", "4313", "F3131313", "23F3",
                         "232923", "23258385", "282823B3", "13", "82")
@@ -301,18 +295,19 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## ## ## ## ## ## ##
     ## OTHER DEFAULTS ##
     ## ## ## ## ## ## ##
-    vary.col <- !is.na(var.col.by[1])
-    vary.sty <- !is.na(var.sty.by[1])
+    ## misc. plotting defaults
+    if (is.null(cex.tokens))    cex.tokens <- par("cex")
+    if (is.null(cex.means))      cex.means <- par("cex")
     ## color: use default pallete if none specified and pretty=FALSE
     if (!"col" %in% names(exargs)) exargs$col <- palette()
     ## linetypes & plotting characters
-    if (!"lty" %in% names(exargs)) exargs$lty <- seq_len(num.sty)
-    if (!"pch" %in% names(exargs)) exargs$pch <- seq_len(num.sty)
+    if (!"lty" %in% names(exargs)) exargs$lty <- seq_len(n.sty)
+    if (!"pch" %in% names(exargs)) exargs$pch <- seq_len(n.sty)
     if (!"lwd" %in% names(exargs)) exargs$lwd <- par("lwd")
     ## recycle user-specified colors to the length we need
-    if (vary.col) exargs$col <- rep(exargs$col, length.out=num.col)[var.col.by]
-    if (vary.sty) exargs$lty <- rep(exargs$lty, length.out=num.sty)[var.sty.by]
-    if (vary.sty) exargs$pch <- rep(exargs$pch, length.out=num.sty)[var.sty.by]
+    if (vary.col) exargs$col <- rep(exargs$col, length.out=n.col)[var.col.by]
+    if (vary.sty) exargs$lty <- rep(exargs$lty, length.out=n.sty)[var.sty.by]
+    if (vary.sty) exargs$pch <- rep(exargs$pch, length.out=n.sty)[var.sty.by]
     ## set defaults for token and mean plotting characters
     if (is.null(pch.tokens)) pch.t <- exargs$pch
     else                     pch.t <- pch.tokens
@@ -324,7 +319,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## ellipse colors
     if (ellipse.line) {
         if ("lty" %in% names(ellipse.args)) {
-            ellipse.args$lty <- rep(ellipse.args$lty, length.out=num.col)
+            ellipse.args$lty <- rep(ellipse.args$lty, length.out=n.col)
             if (vary.sty) ellipse.line.sty <- ellipse.args$lty[var.sty.by]
             else          ellipse.line.sty <- ellipse.args$lty
             ellipse.args$lty <- NULL
@@ -332,7 +327,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             ellipse.line.sty <- exargs$lty
         }
         if ("border" %in% names(ellipse.args)) {
-            ellipse.args$border <- rep(ellipse.args$border, length.out=num.col)
+            ellipse.args$border <- rep(ellipse.args$border, length.out=n.col)
             if (vary.col) ellipse.line.col <- ellipse.args$border[var.col.by]
             else          ellipse.line.col <- ellipse.args$border
         } else            ellipse.line.col <- exargs$col
@@ -378,7 +373,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## polygon colors
     if (poly.line) {
         if ("lty" %in% names(poly.args)) {
-            poly.args$lty <- rep(poly.args$lty, length.out=num.sty)
+            poly.args$lty <- rep(poly.args$lty, length.out=n.sty)
             if (vary.sty) poly.line.sty <- poly.args$lty[var.sty.by]
             else          poly.line.sty <- poly.args$lty
             poly.args$lty <- NULL
@@ -460,12 +455,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     pch.m=pch.m, pch.t=pch.t,
                     stringsAsFactors=FALSE)
     if (diphthong) {
-        d$f2d <- lapply(apply(f2d, 1, list), unlist, use.names=FALSE)
-        d$f1d <- lapply(apply(f1d, 1, list), unlist, use.names=FALSE)
-        #d.diph <- d
-        #d.diph$f2d <- lapply(apply(f2d, 1, list), unlist, use.names=FALSE)
-        #d.diph$f1d <- lapply(apply(f1d, 1, list), unlist, use.names=FALSE)
-        #d.diph[names(diph.args.tokens)] <- diph.args.tokens
+        d$f2.diph.mat <- lapply(apply(f2.diph.mat, 1, list), unlist, use.names=FALSE)
+        d$f1.diph.mat <- lapply(apply(f1.diph.mat, 1, list), unlist, use.names=FALSE)
     }
     if (is.null(vowel) && is.null(group)) {
         byd <- list(d=d)
@@ -502,10 +493,14 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     m <- do.call(rbind, m)
     m$gfn <- as.numeric(factor(m$gf, levels=unique(m$gf)))
     if (diphthong) {
-        m$f2d <- do.call(rbind, lapply(byd, function(i) if (!is.null(i))
-                         with(i, list(colMeans(do.call(rbind, f2d))))))
-        m$f1d <- do.call(rbind, lapply(byd, function(i) if (!is.null(i))
-                         with(i, list(colMeans(do.call(rbind, f1d))))))
+        m$f2.diph.mat <- do.call(rbind, lapply(byd, function(i) {
+            if (!is.null(i)) {
+                with(i, list(colMeans(do.call(rbind, f2.diph.mat))))
+            }}))
+        m$f1.diph.mat <- do.call(rbind, lapply(byd, function(i) {
+            if (!is.null(i)) {
+                with(i, list(colMeans(do.call(rbind, f1.diph.mat))))
+            }}))
     }
     ## means & covariances for ellipse drawing
     if (ellipse.fill || ellipse.line) {
@@ -530,7 +525,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## ## ## ## ## ## ## ## ## ##
     ## token extrema
     if (diphthong) {
-        plot.bounds <- cbind(range(f2d, finite=TRUE), range(f1d, finite=TRUE))
+        plot.bounds <- cbind(range(f2.diph.mat, finite=TRUE), 
+                             range(f1.diph.mat, finite=TRUE))
     } else {
         plot.bounds <- apply(d[,c("f2", "f1")], 2, range, finite=TRUE)
     }
@@ -648,8 +644,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         if (diphthong) {
             ## if diphthong, hull should ignore diph.mean.timept
             hulls <- lapply(hh, function(i) {
-                ipts <- with(i, data.frame(f2=do.call(c, f2d),
-                                           f1=do.call(c, f1d)))
+                ipts <- with(i, data.frame(f2=do.call(c, f2.diph.mat),
+                                           f1=do.call(c, f1.diph.mat)))
                 hull <- ipts[chull(ipts),]
                 hull$hull.fill.col <- unique(i$hull.fill.col)
                 hull$hull.line.col <- unique(i$hull.line.col)
@@ -735,13 +731,14 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (plot.tokens) {
         if (diphthong) {
             ## setup
-            timepts <- length(d$f2d[[1]])
+            n.timepts <- length(d$f2.diph.mat[[1]])
             ## no smoothing splines
-            if (!diph.smooth || timepts < 4) {
-                if (diph.smooth) message("[phonR]: Cannot smooth diphthong ",
-                                         "traces with fewer than 4 timepoints.",
-                                         " Plotting connecting segments ",
-                                         "instead.")
+            if (!diph.smooth || n.timepts < 4) {
+                if (diph.smooth) {
+                    message("[phonR]: Cannot smooth diphthong traces with ",
+                            "fewer than 4 timepoints. Plotting connecting ",
+                            "segments instead.")
+                } 
                 ## plot first point
                 if (diph.label.first.only) {
                     if (!is.null(pch.tokens)) {
@@ -758,7 +755,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 ## prepare tokens args
                 d.split <- split(d, seq(nrow(d)))
                 d.args <- lapply(d.split, function(i) {
-                    with(i, list(f2d[[1]], f1d[[1]], pch=pch.t,
+                    with(i, list(f2.diph.mat[[1]], f1.diph.mat[[1]], pch=pch.t,
                                  cex=cex.tokens, col=col.tokens, lty=lty))
                 })
                 ## combine diph.args.means with m.args and plot
@@ -769,11 +766,11 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 if (diph.arrows) {
                     ## prepare arrow args
                     d.arr.args <- lapply(d.split, function(i) {
-                        xd <- 0.01*diff(i$f2d[[1]][(timepts-1):timepts])
-                        yd <- 0.01*diff(i$f1d[[1]][(timepts-1):timepts])
-                        with(i, list(x0=f2d[[1]][timepts] - xd,
-                                     y0=f1d[[1]][timepts] - yd,
-                                     x1=f2d[[1]][timepts], y1=f1d[[1]][timepts],
+                        xd <- 0.01*diff(i$f2.diph.mat[[1]][(n.timepts-1):n.timepts])
+                        yd <- 0.01*diff(i$f1.diph.mat[[1]][(n.timepts-1):n.timepts])
+                        with(i, list(x0=f2.diph.mat[[1]][n.timepts] - xd,
+                                     y0=f1.diph.mat[[1]][n.timepts] - yd,
+                                     x1=f2.diph.mat[[1]][n.timepts], y1=f1.diph.mat[[1]][n.timepts],
                                      col=col.tokens, lwd=lwd))
                     })
                     ## combine with diph.arrow.means and plot
@@ -785,13 +782,13 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     }))
                 }
             ## diphthong smoothing spline
-            } else if (diph.smooth) {  # timepts > 3
+            } else if (diph.smooth) {  # n.timepts > 3
                 apply(d, 1, function(i) {
                     tryCatch({
                         steep <- with(i,
-                                      abs(lm(f1d~f2d)$coefficients["f2d"]) > 1)
-                        if (steep) dat <- with(i, cbind(f1d, f2d))
-                        else       dat <- with(i, cbind(f2d, f1d))
+                                      abs(lm(f1.diph.mat~f2.diph.mat)$coefficients["f2.diph.mat"]) > 1)
+                        if (steep) dat <- with(i, cbind(f1.diph.mat, f2.diph.mat))
+                        else       dat <- with(i, cbind(f2.diph.mat, f1.diph.mat))
                         pc <- prcomp(dat, center=FALSE, scale.=FALSE)
                         ss <- smooth.spline(pc$x)
                         ssi <- as.matrix(as.data.frame(predict(ss))) %*%
@@ -854,7 +851,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         if (diphthong) {
             ## TODO: implement smoothing splines for means
             ## setup
-            timepts <- length(m$f2d[[1]])
+            n.timepts <- length(m$f2.diph.mat[[1]])
             ## plot first point
             if (diph.label.first.only) {
                 if (!is.null(pch.means)) {
@@ -871,7 +868,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             ## prepare means args
             m.split <- split(m, seq(nrow(m)))
             m.args <- lapply(m.split, function(i) {
-                with(i, list(f2d[[1]], f1d[[1]], pch=pch.m, cex=cex.means,
+                with(i, list(f2.diph.mat[[1]], f1.diph.mat[[1]], pch=pch.m, cex=cex.means,
                              col=col.means, lty=lty.means))
             })
             ## combine diph.args.means with m.args and plot
@@ -883,12 +880,12 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             if (diph.arrows) {
                 ## prepare arrow args
                 m.arr.args <- lapply(m.split, function(i) {
-                    xd <- 0.01*diff(i$f2d[[1]][(timepts-1):timepts])
-                    yd <- 0.01*diff(i$f1d[[1]][(timepts-1):timepts])
-                    with(i, list(x0=f2d[[1]][timepts] - xd,
-                                 y0=f1d[[1]][timepts] - yd,
-                                 x1=f2d[[1]][timepts],
-                                 y1=f1d[[1]][timepts],
+                    xd <- 0.01*diff(i$f2.diph.mat[[1]][(n.timepts-1):n.timepts])
+                    yd <- 0.01*diff(i$f1.diph.mat[[1]][(n.timepts-1):n.timepts])
+                    with(i, list(x0=f2.diph.mat[[1]][n.timepts] - xd,
+                                 y0=f1.diph.mat[[1]][n.timepts] - yd,
+                                 x1=f2.diph.mat[[1]][n.timepts],
+                                 y1=f1.diph.mat[[1]][n.timepts],
                                  col=col.means, lwd=lwd.means))
                 })
                 ## combine with diph.arrow.means and plot
@@ -913,8 +910,22 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## ## ## ## ##
     ##  LEGEND  ##
     ## ## ## ## ##
+    ## get labels 
+    legend.labels.for.colors <- NULL
+    if (is.null(legend.var.col.by[1])) {
+        legend.labels.for.colors <- c()
+    } else if (!is.na(legend.var.col.by[1])) {
+        legend.labels.for.colors <- unique(as.character(legend.var.col.by))
+    }
+    legend.labels.for.styles <- NULL
+    if (is.null(legend.var.sty.by[1])) {
+        legend.labels.for.styles <- c()
+    } else if (!is.na(legend.var.sty.by[1])) {
+        legend.labels.for.styles <- unique(as.character(legend.var.sty.by))
+    }
     if (!is.null(legend.kwd)) {
-        if (is.null(legend.col.lab) && is.null(legend.style.lab)) {
+        if (is.null(legend.labels.for.colors) && 
+            is.null(legend.labels.for.styles)) {
             message("[phonR]: Legend will not be drawn because var.col.by and ",
                     "var.sty.by are both NULL or NA. You will have to use ",
                     "the legend() function.")
@@ -922,7 +933,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             legend.merge <- TRUE
             ## legend pch
             legend.pch <- NULL
-            if (length(legend.style.lab)) {
+            if (length(legend.labels.for.styles)) {
                 if (plot.means && all(grepl("[[:digit:]]", pch.means))) {
                     legend.pch <- unique(m$pch.m)
                 } else if (plot.tokens &&
@@ -932,7 +943,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             }
             ## legend col
             legend.col <- NULL
-            if (length(legend.col.lab)) {
+            if (length(legend.labels.for.colors)) {
                 if (plot.means) {
                     legend.col <- sapply(bym, function(i) unique(i$col.means))
                 } else if (plot.tokens) {
@@ -976,40 +987,40 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             }
             ## handle lty specially; needed for both style & color
             if (!is.null(legend.lty)) {
-                if (!length(legend.style.lab)) {
+                if (!length(legend.labels.for.styles)) {
                     legend.lty <- rep(legend.lty,
-                                      length.out=length(legend.col.lab))
-                } else if (length(legend.col.lab)) {
-                    legend.lty <- c(legend.lty, rep(NA, length(legend.col.lab)))
+                                      length.out=length(legend.labels.for.colors))
+                } else if (length(legend.labels.for.colors)) {
+                    legend.lty <- c(legend.lty, rep(NA, length(legend.labels.for.colors)))
                 }
             }
             ## reconcile
-            if (identical(legend.style.lab, legend.col.lab)) {
-                legend.lab <- legend.col.lab
+            if (identical(legend.labels.for.styles, legend.labels.for.colors)) {
+                legend.lab <- legend.labels.for.colors
                 legend.merge <- FALSE
             } else {
-                legend.lab <- c(legend.style.lab, legend.col.lab)
-                legend.pch <- c(legend.pch, rep(NA, length(legend.col.lab)))
+                legend.lab <- c(legend.labels.for.styles, legend.labels.for.colors)
+                legend.pch <- c(legend.pch, rep(NA, length(legend.labels.for.colors)))
                 ## handle case: no lines / fills / pchs for color
-                if (length(legend.col.lab) && is.null(legend.bgf) &&
+                if (length(legend.labels.for.colors) && is.null(legend.bgf) &&
                         is.null(legend.brd) && is.null(legend.lty)) {
-                    legend.bgf <- c(rep(NA, length(legend.style.lab)),
+                    legend.bgf <- c(rep(NA, length(legend.labels.for.styles)),
                                     legend.col)
                     legend.brd <- legend.bgf
-                    legend.col <- c(rep(par("fg"), length(legend.style.lab)),
+                    legend.col <- c(rep(par("fg"), length(legend.labels.for.styles)),
                                     legend.col)
                 ## handle case: only hulls (only 1 fill col) but col.by.vowel
                 } else if (length(legend.col) != length(legend.bgf) &&
                                !is.null(legend.bgf)) {
-                    legend.bgf <- c(rep(NA, length(legend.style.lab)),
+                    legend.bgf <- c(rep(NA, length(legend.labels.for.styles)),
                                     legend.col)
                     legend.brd <- legend.bgf
-                    legend.col <- c(rep(par("fg"), length(legend.style.lab)),
+                    legend.col <- c(rep(par("fg"), length(legend.labels.for.styles)),
                                     legend.col)
                 ## handle other cases
                 } else {
-                    nas <- rep(NA, length(legend.style.lab))
-                    fgs <- rep(par("fg"), length(legend.style.lab))
+                    nas <- rep(NA, length(legend.labels.for.styles))
+                    fgs <- rep(par("fg"), length(legend.labels.for.styles))
                     legend.bgf <- c(nas, legend.bgf)
                     legend.brd <- c(nas, legend.brd)
                     legend.col <- c(fgs, legend.col)
