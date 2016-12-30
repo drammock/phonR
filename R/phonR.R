@@ -987,14 +987,12 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             }
             ## fillers
             sty.fgs <- rep(par("fg"), n.sty)
+            col.fgs <- rep(22, n.col)
             sty.NAs <- rep(NA, n.sty)
             col.NAs <- rep(NA, n.col)
-            col.fgs <- rep(22, n.col)
             ## don't show lines or boxes if all the same
             if (length(legend.lty) < 2) legend.lty <- NULL
             if (length(legend.fil) < 2) legend.fil <- NULL
-            ## prevent colorized hulls / polygons when group is undefined
-            #if (is.null(group)) legend.
             ## add pch square to show fill/line colors
             if (!legend.merge) {
                 if (!is.null(legend.pch[1])) {
