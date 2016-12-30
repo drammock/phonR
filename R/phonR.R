@@ -234,11 +234,20 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
     if (is.null(vowel)) v <- rep(NA, n.cases)
     else                v <- factor(vowel, levels=unique(vowel))
-    if (is.null(group)) gf <- rep("gf", n.cases)
-    else                gf <- factor(group, levels=unique(group))
-    ## used later to set default polygon color when color varies by vowel
-    col.by.vowel <- identical(as.numeric(factor(var.col.by)),
-                              as.numeric(factor(vowel)))
+    ## some useful booleans
+    has.groups <- length(unique(group)) > 1
+    num.var.group <- as.numeric(factor(group))
+    num.var.sty <- as.numeric(as.factor(var.sty.by))
+    num.var.col <- as.numeric(factor(var.col.by))
+    sty.by.group <- identical(num.var.sty, num.var.group)
+    col.by.group <- identical(num.var.col, num.var.group)
+    ## TODO: compute whether group is nested within col/sty. If so, hulls and
+    ## polygons can inherit from col/sty instead of being forced to
+    ## trans.fg, par("fg"), and par("lty")
+
+    ## make a dummy grouping vector as needed
+    if (has.groups) gf <- factor(group, levels=unique(group))
+    else            gf <- rep("gf", n.cases)
     ## record color and style labels for use in legend
     legend.var.col.by <- var.col.by
     legend.var.sty.by <- var.sty.by
@@ -322,90 +331,90 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## transparency
     trans.col <- makeTransparent(exargs$col, fill.opacity)
     trans.fg <- makeTransparent(par("fg"), fill.opacity)
-    ## ellipse colors
-    if (ellipse.line) {
+    ## ellipse lines
+    if (!ellipse.line) {
+        ellipse.line.sty <- NA[var.sty.by]
+        ellipse.line.col <- NA[var.col.by]
+    } else {
+        ## line style
         if ("lty" %in% names(ellipse.args)) {
             ellipse.args$lty <- rep(ellipse.args$lty, length.out=n.col)
             if (vary.sty) ellipse.line.sty <- ellipse.args$lty[var.sty.by]
             else          ellipse.line.sty <- ellipse.args$lty
             ellipse.args$lty <- NULL
-        } else {
-            ellipse.line.sty <- exargs$lty
-        }
+        } else            ellipse.line.sty <- exargs$lty
+        ## line color
         if ("border" %in% names(ellipse.args)) {
             ellipse.args$border <- rep(ellipse.args$border, length.out=n.col)
             if (vary.col) ellipse.line.col <- ellipse.args$border[var.col.by]
             else          ellipse.line.col <- ellipse.args$border
         } else            ellipse.line.col <- exargs$col
-    } else {
-        ellipse.line.col <- NA[var.col.by]
-        ellipse.line.sty <- NA[var.sty.by]
     }
-    if (ellipse.fill) {
-        if ("col" %in% names(ellipse.args)) {
-            if (vary.col) ellipse.fill.col <- ellipse.args$col[var.col.by]
-            else          ellipse.fill.col <- ellipse.args$col
-        } else            ellipse.fill.col <- trans.col
-    } else                ellipse.fill.col <- NA[var.col.by]
-    ## hull colors
-    if (hull.line) {
-        if ("lty" %in% names(hull.args)) {
-            if (vary.sty) hull.line.sty <- hull.args$lty[var.sty.by]
-            else          hull.line.sty <- hull.args$lty
-            hull.args$lty <- NULL
-        } else {
-            hull.line.sty <- exargs$lty
-        }
-        if ("border" %in% names(hull.args)) {
-            if (vary.col) hull.line.col <- hull.args$border[var.col.by]
-            else          hull.line.col <- hull.args$border
-            hull.args$border <- NULL
-        } else if (col.by.vowel) {
-            hull.line.col <- par("fg")
-        } else {
-            hull.line.col <- exargs$col
-        }
-    } else {
-        hull.line.col <- NA[var.col.by]
+    ## ellipse fill
+    if (!ellipse.fill) ellipse.fill.col <- NA[var.col.by]
+    else if ("col" %in% names(ellipse.args)) {
+        if (vary.col)  ellipse.fill.col <- ellipse.args$col[var.col.by]
+        else           ellipse.fill.col <- ellipse.args$col
+    } else             ellipse.fill.col <- trans.col
+    ## hull line style
+    if (!hull.line) {
         hull.line.sty <- NA[var.sty.by]
-    }
-    if (hull.fill) {
-        if ("col" %in% names(hull.args)) {
-            if (vary.col)        hull.fill.col <- hull.args$col[var.col.by]
-            else                 hull.fill.col <- hull.args$col
-        } else if (col.by.vowel) hull.fill.col <- trans.fg
-        else                     hull.fill.col <- trans.col
-    } else                       hull.fill.col <- NA[var.col.by]
-    ## polygon colors
-    if (poly.line) {
-        if ("lty" %in% names(poly.args)) {
-            poly.args$lty <- rep(poly.args$lty, length.out=n.sty)
-            if (vary.sty) poly.line.sty <- poly.args$lty[var.sty.by]
-            else          poly.line.sty <- poly.args$lty
-            poly.args$lty <- NULL
-        } else {
-            poly.line.sty <- exargs$lty
-        }
-        if ("border" %in% names(poly.args)) {
-            if (vary.col) poly.line.col <- poly.args$border[var.col.by]
-            else          poly.line.col <- poly.args$border
-            poly.args$border <- NULL
-        } else if (col.by.vowel) {
-            poly.line.col <- par("fg")
-        } else {
-            poly.line.col <- exargs$col
-        }
-    } else {
-        poly.line.col <- NA[var.col.by]
+    } else if (!has.groups || !sty.by.group) {
+        hull.line.sty <- par("lty")
+    } else if ("lty" %in% names(hull.args)) {  ## map user's lty to var.sty.by
+        if (vary.sty) hull.line.sty <- hull.args$lty[var.sty.by]
+        else          hull.line.sty <- hull.args$lty
+        hull.args$lty <- NULL
+    } else            hull.line.sty <- exargs$lty
+    ## hull line color
+    if (!hull.line) {
+        hull.line.col <- NA[var.col.by]
+    } else if (!has.groups || !col.by.group) {
+        hull.line.col <- par("fg")
+    } else if ("border" %in% names(hull.args)) {
+        if (vary.col) hull.line.col <- hull.args$border[var.col.by]
+        else          hull.line.col <- hull.args$border
+        hull.args$border <- NULL
+    } else            hull.line.col <- exargs$col
+    ## hull fill color
+    if (!hull.fill) {
+        hull.fill.col <- NA[var.col.by]
+    } else if (!has.groups || !col.by.group) {
+        hull.fill.col <- trans.fg
+    } else if ("col" %in% names(hull.args)) {
+        if (vary.col) hull.fill.col <- hull.args$col[var.col.by]
+        else          hull.fill.col <- hull.args$col
+    } else            hull.fill.col <- trans.col
+    ## polygon line style
+    if (!poly.line) {
         poly.line.sty <- NA[var.sty.by]
-    }
-    if (poly.fill) {
-        if ("col" %in% names(poly.args)) {
-            if (vary.col)        poly.fill.col <- poly.args$col[var.col.by]
-            else                 poly.fill.col <- poly.args$col
-        } else if (col.by.vowel) poly.fill.col <- trans.fg
-        else                     poly.fill.col <- trans.col
-    } else                       poly.fill.col <- NA[var.col.by]
+    } else if (!has.groups || !sty.by.group) {
+        poly.line.sty <- par("lty")
+    } else if ("lty" %in% names(poly.args)) {  # map user's lty to var.sty.by
+        poly.args$lty <- rep(poly.args$lty, length.out=n.sty)
+        if (vary.sty) poly.line.sty <- poly.args$lty[var.sty.by]
+        else          poly.line.sty <- poly.args$lty
+        poly.args$lty <- NULL
+    } else            poly.line.sty <- exargs$lty
+    ## polygon line color
+    if (!poly.line) {
+        poly.line.col <- NA[var.col.by]
+    } else if (!has.groups || !col.by.group) {
+        poly.line.col <- par("fg")
+    } else if ("border" %in% names(poly.args)) {  # map user's col to var.col.by
+        if (vary.col) poly.line.col <- poly.args$border[var.col.by]
+        else          poly.line.col <- poly.args$border
+        poly.args$border <- NULL
+    } else            poly.line.col <- exargs$col
+    ## polygon fill color
+    if (!poly.fill) {
+        poly.fill.col <- NA[var.col.by]
+    } else if (!has.groups || ! col.by.group) {
+        poly.fill.col <- trans.fg
+    } else if ("col" %in% names(poly.args)) {
+        if (vary.col)        poly.fill.col <- poly.args$col[var.col.by]
+        else                 poly.fill.col <- poly.args$col
+    } else                   poly.fill.col <- trans.col
     ## handle NAs in linetypes (lty=0 means do not draw)
     ellipse.line.sty[is.na(ellipse.line.sty)] <- 0
     poly.line.sty[is.na(poly.line.sty)] <- 0
@@ -916,148 +925,99 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## ## ## ## ##
     ##  LEGEND  ##
     ## ## ## ## ##
-    ## get labels 
-    legend.labels.for.colors <- NULL
-    if (is.null(legend.var.col.by[1])) {
-        legend.labels.for.colors <- c()
-    } else if (!is.na(legend.var.col.by[1])) {
-        legend.labels.for.colors <- unique(as.character(legend.var.col.by))
-    }
-    legend.labels.for.styles <- NULL
-    if (is.null(legend.var.sty.by[1])) {
-        legend.labels.for.styles <- c()
-    } else if (!is.na(legend.var.sty.by[1])) {
-        legend.labels.for.styles <- unique(as.character(legend.var.sty.by))
-    }
     if (!is.null(legend.kwd)) {
+        ## get labels
+        legend.labels.for.colors <- NULL
+        if (is.null(legend.var.col.by[1])) {
+            legend.labels.for.colors <- c()
+        } else if (!is.na(legend.var.col.by[1])) {
+            legend.labels.for.colors <- unique(as.character(legend.var.col.by))
+        }
+        legend.labels.for.styles <- NULL
+        if (is.null(legend.var.sty.by[1])) {
+            legend.labels.for.styles <- c()
+        } else if (!is.na(legend.var.sty.by[1])) {
+            legend.labels.for.styles <- unique(as.character(legend.var.sty.by))
+        }
         if (is.null(legend.labels.for.colors) &&
             is.null(legend.labels.for.styles)) {
             message("[phonR]: Legend will not be drawn because var.col.by and ",
                     "var.sty.by are both NULL or NA. You will have to use ",
                     "the legend() function.")
         } else {
-            legend.merge <- TRUE
+            ## merge legend entry labels
+            legend.merge <- identical(legend.labels.for.styles,
+                                      legend.labels.for.colors)
+            legend.labels <- legend.labels.for.styles
+            if (!legend.merge) {
+                legend.labels <- c(legend.labels, legend.labels.for.colors)
+            }
             ## legend pch
             legend.pch <- NULL
             if (length(legend.labels.for.styles)) {
                 if (plot.means && all(grepl("[[:digit:]]", pch.means))) {
                     legend.pch <- unique(m$pch.m)
-                } else if (plot.tokens &&
-                               all(grepl("[[:digit:]]", pch.tokens))) {
+                } else if (plot.tokens && all(grepl("[[:digit:]]", pch.tokens))) {
                     legend.pch <- unique(d$pch.t)
                 }
             }
             ## legend col
             legend.col <- NULL
             if (length(legend.labels.for.colors)) {
-                if (plot.means) {
-                    legend.col <- sapply(bym, function(i) unique(i$col.means))
-                } else if (plot.tokens) {
-                    legend.col <- sapply(byd, function(i) unique(i$col.tokens))
-                }
+                if (plot.means)       legend.col <- unique(m$col.means)
+                else if (plot.tokens) legend.col <- unique(d$col.tokens)
             }
-            ## legend background fill
-            legend.bgf <- NULL
-            if (hull.fill || poly.fill || ellipse.fill) {
-                if (!is.na(m$ellipse.fill.col[1])) {
-                    legend.bgf <- sapply(bym, function(i) unique(i$ellipse.fill.col))
-                } else if (!is.na(m$poly.fill.col[1])) {
-                    legend.bgf <- sapply(bym, function(i) unique(i$poly.fill.col))
-                } else {
-                    legend.bgf <- unique(hull.fill.col)
-                }
+            ## legend fills / borders
+            legend.fil <- NULL
+            if (ellipse.fill && !is.na(m$ellipse.fill.col[1])) {
+                legend.fil <- unique(m$ellipse.fill.col)
+            } else if (poly.fill && !is.na(m$poly.fill.col[1])) {
+                legend.fil <- unique(m$poly.fill.col)
+            } else if (hull.fill) {
+                legend.fil <- unique(hull.fill.col)
             }
-            ## legend linteype & border color
+            ## legend linetype (nb: lty=0 means do not draw)
             legend.lty <- NULL
-            legend.brd <- NULL
             if (hull.line || poly.line || ellipse.line) {
-                if (!(length(unique(ellipse.line.sty)) == 1 &&
-                          ellipse.line.sty[1] == 0)) {
-                    legend.lty <- sapply(bym, function(i) unique(i$ellipse.line.sty))
-                } else if (!(length(unique(poly.line.sty)) == 1 &&
-                                 poly.line.sty[1] == 0)) {
-                    legend.lty <- sapply(bym, function(i) unique(i$poly.line.sty))
-                } else {
-                    legend.lty <- unique(hull.line.sty)
-                }
-                if (!is.na(m$ellipse.line.col[1])) {
-                    legend.brd <- sapply(bym, function(i) unique(i$ellipse.line.col))
-                } else if (!is.na(m$poly.line.col[1])) {
-                    legend.brd <- sapply(bym, function(i) unique(i$poly.line.col))
-                } else {
-                    legend.brd <- unique(hull.line.col)
-                }
-                if (length(legend.brd) != length(legend.bgf)) {
-                    legend.brd <- NULL
-                }
+                e.line <- shouldLineBeInLegend(ellipse.line.sty)
+                p.line <- shouldLineBeInLegend(poly.line.sty)
+                if (e.line)      legend.lty <- unique(m$ellipse.line.sty)
+                else if (p.line) legend.lty <- unique(m$poly.line.sty)
+                else             legend.lty <- unique(hull.line.sty)
             }
-            ## handle lty specially; needed for both style & color
-            if (!is.null(legend.lty)) {
-                if (!length(legend.labels.for.styles)) {
-                    legend.lty <- rep(legend.lty,
-                                      length.out=length(legend.labels.for.colors))
-                } else if (length(legend.labels.for.colors)) {
-                    legend.lty <- c(legend.lty, rep(NA, length(legend.labels.for.colors)))
+            ## fillers
+            sty.fgs <- rep(par("fg"), n.sty)
+            sty.NAs <- rep(NA, n.sty)
+            col.NAs <- rep(NA, n.col)
+            col.fgs <- rep(22, n.col)
+            ## don't show lines or boxes if all the same
+            if (length(legend.lty) < 2) legend.lty <- NULL
+            if (length(legend.fil) < 2) legend.fil <- NULL
+            ## prevent colorized hulls / polygons when group is undefined
+            #if (is.null(group)) legend.
+            ## add pch square to show fill/line colors
+            if (!legend.merge) {
+                if (!is.null(legend.pch[1])) {
+                    legend.pch <- c(legend.pch, col.fgs)
+                    if (is.null(legend.fil[1])) {
+                        legend.fil <- c(sty.NAs, legend.col)
+                    } else {
+                        legend.fil <- c(sty.NAs, legend.fil)
+                    }
                 }
-            }
-            ## reconcile
-            if (identical(legend.labels.for.styles, legend.labels.for.colors)) {
-                legend.lab <- legend.labels.for.colors
-                legend.merge <- FALSE
-            } else {
-                legend.lab <- c(legend.labels.for.styles, legend.labels.for.colors)
-                legend.pch <- c(legend.pch, rep(NA, length(legend.labels.for.colors)))
-                ## handle case: no lines / fills / pchs for color
-                if (length(legend.labels.for.colors) && is.null(legend.bgf) &&
-                        is.null(legend.brd) && is.null(legend.lty)) {
-                    legend.bgf <- c(rep(NA, length(legend.labels.for.styles)),
-                                    legend.col)
-                    legend.brd <- legend.bgf
-                    legend.col <- c(rep(par("fg"), length(legend.labels.for.styles)),
-                                    legend.col)
-                ## handle case: only hulls (only 1 fill col) but col.by.vowel
-                } else if (length(legend.col) != length(legend.bgf) &&
-                               !is.null(legend.bgf)) {
-                    legend.bgf <- c(rep(NA, length(legend.labels.for.styles)),
-                                    legend.col)
-                    legend.brd <- legend.bgf
-                    legend.col <- c(rep(par("fg"), length(legend.labels.for.styles)),
-                                    legend.col)
-                ## handle other cases
-                } else {
-                    nas <- rep(NA, length(legend.labels.for.styles))
-                    fgs <- rep(par("fg"), length(legend.labels.for.styles))
-                    legend.bgf <- c(nas, legend.bgf)
-                    legend.brd <- c(nas, legend.brd)
-                    legend.col <- c(fgs, legend.col)
-                }
+                if (!is.null(legend.col[1])) legend.col <- c(sty.fgs, legend.col)
+                if (!is.null(legend.lty[1])) legend.lty <- c(legend.lty, col.NAs)
             }
             ## eliminate vacuous args
-            if (identical(legend.bgf, logical(0))) legend.bgf <- NULL
-            if (identical(legend.brd, logical(0))) legend.brd <- legend.bgf
+            if (identical(legend.fil, logical(0))) legend.fil <- NULL
             ## assemble legend args
-            new.legend.args <- list(legend.kwd, legend=legend.lab,
+            new.legend.args <- list(legend.kwd, legend=legend.labels,
                                     pch=legend.pch, col=legend.col,
                                     lty=legend.lty)
+            if (!is.null(legend.fil)) new.legend.args$pt.bg <- legend.fil
             ## user override & recombine
             new.legend.args[names(legend.args)] <- legend.args
             legend.args <- new.legend.args
-            ## can't always pass fill because fill=NULL triggers drawing empty
-            ## boxes and border=NULL draws black! :(
-            if (!is.null(legend.bgf)) {
-                if (!"fill" %in% names(legend.args)) {
-                    legend.args$fill <- legend.bgf
-                }
-                if (!"border" %in% names(legend.args)) {
-                    legend.args$border <- legend.brd
-                }
-            }
-            ## avoid warning that merge only works when segments are drawn
-            if (!is.null(legend.lty)) {
-                if (!"merge" %in% names(legend.args)) {
-                    legend.args$merge <- legend.merge
-                }
-            }
             ## draw legend
             do.call(legend, legend.args)
         }
@@ -1460,4 +1420,8 @@ createGrid <- function(x, y, resolution) {
                  length.out=yres)
     grid <- expand.grid(x=xgrid, y=ygrid)
     list(g=grid, x=xgrid, y=ygrid)
+}
+
+shouldLineBeInLegend <- function(x) {
+    !(length(unique(x)) == 1 && x[1] == 0)
 }
