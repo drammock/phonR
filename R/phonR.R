@@ -232,22 +232,18 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ##  PRELIMINARY HANDLING OF GROUPING FACTOR, COLOR, AND STYLE           ##
     ##  nb: unique() preserves order; internally it works like duplicated() ##
     ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-    if (is.null(vowel)) v <- rep(NA, n.cases)
-    else                v <- factor(vowel, levels=unique(vowel))
-    ## some useful booleans
+    ## make dummy vowel and grouping vectors as needed
     has.groups <- length(unique(group)) > 1
-    num.var.group <- as.numeric(factor(group))
-    num.var.sty <- as.numeric(as.factor(var.sty.by))
-    num.var.col <- as.numeric(factor(var.col.by))
-    sty.by.group <- identical(num.var.sty, num.var.group)
-    col.by.group <- identical(num.var.col, num.var.group)
-    ## TODO: compute whether group is nested within col/sty. If so, hulls and
-    ## polygons can inherit from col/sty instead of being forced to
-    ## trans.fg, par("fg"), and par("lty")
-
-    ## make a dummy grouping vector as needed
     if (has.groups) gf <- factor(group, levels=unique(group))
     else            gf <- rep("gf", n.cases)
+    if (is.null(vowel)) v <- rep(NA, n.cases)
+    else                v <- factor(vowel, levels=unique(vowel))
+    ## compute whether group is nested within col/sty. If so, hulls and polygons
+    ## can inherit from col/sty instead of being forced to black/solid
+    group.nested.in.sty <- nestedIn(as.numeric(factor(group)),
+                                    as.numeric(as.factor(var.sty.by)))
+    group.nested.in.col <- nestedIn(as.numeric(factor(group)),
+                                    as.numeric(factor(var.col.by)))
     ## record color and style labels for use in legend
     legend.var.col.by <- var.col.by
     legend.var.sty.by <- var.sty.by
@@ -331,6 +327,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## transparency
     trans.col <- makeTransparent(exargs$col, fill.opacity)
     trans.fg <- makeTransparent(par("fg"), fill.opacity)
+    ## ## ## ## ## ## ## ## ## ## ## ##
+    ##  COMPUTE COLORS / LINESTYLES  ##
+    ## ## ## ## ## ## ## ## ## ## ## ##
     ## ellipse lines
     if (!ellipse.line) {
         ellipse.line.sty <- NA[var.sty.by]
@@ -359,7 +358,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## hull line style
     if (!hull.line) {
         hull.line.sty <- NA[var.sty.by]
-    } else if (!has.groups || !sty.by.group) {
+    } else if (!has.groups || !group.nested.in.sty) {
         hull.line.sty <- par("lty")
     } else if ("lty" %in% names(hull.args)) {  ## map user's lty to var.sty.by
         if (vary.sty) hull.line.sty <- hull.args$lty[var.sty.by]
@@ -369,7 +368,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## hull line color
     if (!hull.line) {
         hull.line.col <- NA[var.col.by]
-    } else if (!has.groups || !col.by.group) {
+    } else if (!has.groups || !group.nested.in.col) {
         hull.line.col <- par("fg")
     } else if ("border" %in% names(hull.args)) {
         if (vary.col) hull.line.col <- hull.args$border[var.col.by]
@@ -379,7 +378,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## hull fill color
     if (!hull.fill) {
         hull.fill.col <- NA[var.col.by]
-    } else if (!has.groups || !col.by.group) {
+    } else if (!has.groups || !group.nested.in.col) {
         hull.fill.col <- trans.fg
     } else if ("col" %in% names(hull.args)) {
         if (vary.col) hull.fill.col <- hull.args$col[var.col.by]
@@ -388,7 +387,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## polygon line style
     if (!poly.line) {
         poly.line.sty <- NA[var.sty.by]
-    } else if (!has.groups || !sty.by.group) {
+    } else if (!has.groups || !group.nested.in.sty) {
         poly.line.sty <- par("lty")
     } else if ("lty" %in% names(poly.args)) {  # map user's lty to var.sty.by
         poly.args$lty <- rep(poly.args$lty, length.out=n.sty)
@@ -399,7 +398,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## polygon line color
     if (!poly.line) {
         poly.line.col <- NA[var.col.by]
-    } else if (!has.groups || !col.by.group) {
+    } else if (!has.groups || !group.nested.in.col) {
         poly.line.col <- par("fg")
     } else if ("border" %in% names(poly.args)) {  # map user's col to var.col.by
         if (vary.col) poly.line.col <- poly.args$border[var.col.by]
@@ -409,7 +408,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## polygon fill color
     if (!poly.fill) {
         poly.fill.col <- NA[var.col.by]
-    } else if (!has.groups || ! col.by.group) {
+    } else if (!has.groups || !group.nested.in.col) {
         poly.fill.col <- trans.fg
     } else if ("col" %in% names(poly.args)) {
         if (vary.col)        poly.fill.col <- poly.args$col[var.col.by]
@@ -483,20 +482,17 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     m <- lapply(byd, function(i) {
         if (!is.null(i)) {
             idx <- !duplicated(i$gf)
-            fg <- par("fg")
-            tfg <- makeTransparent(fg, fill.opacity)
             with(i, data.frame(f2=mean(f2, na.rm=TRUE),
                                f1=mean(f1, na.rm=TRUE),
                                v=v[idx], gf=gf[idx], n=nrow(i),
-                               ## mean of a color / style?
-                               col.means=uniquify(col.means, fg),
+                               col.means=uniquify(col.means, par("fg")),
                                style=uniquify(style, 1),
-                               poly.fill.col=uniquify(poly.fill.col, tfg),
-                               hull.fill.col=uniquify(hull.fill.col, tfg),
-                               ellipse.fill.col=uniquify(ellipse.fill.col, tfg),
-                               poly.line.col=uniquify(poly.line.col, fg),
-                               hull.line.col=uniquify(hull.line.col, fg),
-                               ellipse.line.col=uniquify(ellipse.line.col, fg),
+                               poly.fill.col=uniquify(poly.fill.col, trans.fg),
+                               hull.fill.col=uniquify(hull.fill.col, trans.fg),
+                               ellipse.fill.col=uniquify(ellipse.fill.col, trans.fg),
+                               poly.line.col=uniquify(poly.line.col, par("fg")),
+                               hull.line.col=uniquify(hull.line.col, par("fg")),
+                               ellipse.line.col=uniquify(ellipse.line.col, par("fg")),
                                poly.line.sty=uniquify(poly.line.sty, 1),
                                hull.line.sty=uniquify(hull.line.sty, 1),
                                ellipse.line.sty=uniquify(ellipse.line.sty, 1),
@@ -1422,4 +1418,10 @@ createGrid <- function(x, y, resolution) {
 
 shouldLineBeInLegend <- function(x) {
     !(length(unique(x)) == 1 && x[1] == 0)
+}
+
+nestedIn <- function(x, y) {
+    if(length(x) != length(y)) return(FALSE)
+    df <- data.frame(x, y)
+    all(sapply(split(df, df$x), function(i) length(unique(i$y)) < 2))
 }
