@@ -30,26 +30,29 @@
 \arguments{
     \item{f1,f2}{Vector or matrix of formant frequency values. To plot multiple
                  timepoints for each vowel, \code{f1} and \code{f2} should be
-                 matrices with vowel tokens varying along the rows and
+                 matrices with each vowel token occupying a row and
                  timepoints varying across the columns.}
     \item{vowel}{Vector of vowel symbols/labels.}
     \item{group}{Vector or factor that determines the groups used in calculating
                  vowel means, e.g., a factor indicating \dQuote{gender},
                  \dQuote{speaker}, \dQuote{sociolinguistic register}, etc.}
     \item{plot.tokens}{Logical; should individual vowel tokens be plotted?}
-    \item{pch.tokens}{Vector of strings or integers; the symbol(s) to use when
-                      plotting vowel tokens. Integers are interpreted as
-                      standard R \code{pch} values (see
+    \item{pch.tokens}{Vector of strings or integers indicating what symbol(s)
+                      to use when plotting vowel tokens. Integers are
+                      interpreted as standard R \code{pch} values (see
                       \code{\link[graphics]{points}}).}
-    \item{cex.tokens}{Numeric; size of individual vowel points relative to
-                      \code{par("cex")}.}
+    \item{cex.tokens}{Numeric; size of symbols plotting vowel tokens, relative
+                      to \code{par("cex")}.}
     \item{alpha.tokens}{Numeric in range [0,1], indicating opacity of plotted
                         vowel tokens.}
-    \item{plot.means}{Logical; should individual vowel tokens be plotted?}
-    \item{pch.means}{Vector of strings or integers; the symbol(s) to use when
-                     plotting vowel means. Integers are interpreted as standard
-                     R \code{pch} values (see \code{\link[graphics]{points}}).}
-    \item{cex.means}{Size of vowel means relative to \code{par("cex")}.}
+    \item{plot.means}{Logical; should mean formant values of each vowel type be
+                      plotted?}
+    \item{pch.means}{Vector of strings or integers indicating what symbol(s) to 
+                     use when plotting vowel means. Integers are interpreted as 
+                     standard R \code{pch} values (see
+                     \code{\link[graphics]{points}}).}
+    \item{cex.means}{Numeric; size of symbols plotting vowel means, relative to 
+                     \code{par("cex")}.}
     \item{alpha.means}{Numeric in range [0,1], indicating opacity of plotted
                        vowel means.}
     \item{hull.line}{Logical; should a line be drawn tracing the convex hull
@@ -57,10 +60,12 @@
                      \code{group})?}
     \item{hull.fill}{Logical; should the convex hull(s) have a color fill?}
     \item{hull.args,poly.args,ellipse.args}{Named list of arguments to be passed
-                                            to \code{\link[graphics]{polygon}}.
-                                            Useful for controlling line width,
-                                            etc. See \dQuote{Details} for notes
-                                            about color handling.}
+                                            to \code{\link[graphics]{polygon}}
+                                            when drawing hulls, vowel means
+                                            polygons, or ellipses. Useful for
+                                            controlling line width, etc. See
+                                            \dQuote{Details} for notes about
+                                            color handling.}
     \item{poly.line}{Logical; should a line be drawn tracing the polygon
                      connecting the mean values for each vowel (separately for
                      each level of \code{group})?}
