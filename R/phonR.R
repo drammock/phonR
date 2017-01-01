@@ -316,9 +316,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (!"pch" %in% names(exargs)) exargs$pch <- seq_len(n.sty)
     if (!"lwd" %in% names(exargs)) exargs$lwd <- par("lwd")
     ## recycle user-specified colors to the length we need
-    if (vary.col) exargs$col <- rep(exargs$col, length.out=n.col)[var.col.by]
-    if (vary.sty) exargs$lty <- rep(exargs$lty, length.out=n.sty)[var.sty.by]
-    if (vary.sty) exargs$pch <- rep(exargs$pch, length.out=n.sty)[var.sty.by]
+    if (!is.na(var.col.by[1])) exargs$col <- rep(exargs$col, length.out=n.col)[var.col.by]
+    if (!is.na(var.sty.by[1])) exargs$lty <- rep(exargs$lty, length.out=n.sty)[var.sty.by]
+    if (!is.na(var.sty.by[1])) exargs$pch <- rep(exargs$pch, length.out=n.sty)[var.sty.by]
     ## set defaults for token and mean plotting characters
     if (is.null(pch.tokens)) pch.t <- exargs$pch
     else                     pch.t <- pch.tokens
