@@ -692,9 +692,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                              do.call(polygon, c(list(x=ellipse.points[[i]]),
                                                 ellipse.args))
                              }))
-        legend.ellipse.fil <- sapply(seq_along(ellipse.points, function(i) m$ellipse.fill.col[i]))
-        legend.ellipse.col <- sapply(seq_along(ellipse.points, function(i) m$ellipse.line.col[i]))
-        legend.ellipse.sty <- sapply(seq_along(ellipse.points, function(i) m$ellipse.line.sty[i]))
+        legend.ellipse.fil <- sapply(seq_along(ellipse.points), function(i) m$ellipse.fill.col[i])
+        legend.ellipse.col <- sapply(seq_along(ellipse.points), function(i) m$ellipse.line.col[i])
+        legend.ellipse.sty <- sapply(seq_along(ellipse.points), function(i) m$ellipse.line.sty[i])
     }
 
     ## ## ## ## ## ## ##
