@@ -390,9 +390,11 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     } else if (!has.groups || !group.nested.in.sty) {
         poly.line.sty <- par("lty")
     } else if ("lty" %in% names(poly.args)) {  # map user's lty to var.sty.by
-        poly.args$lty <- rep(poly.args$lty, length.out=n.sty)
-        if (vary.sty) poly.line.sty <- poly.args$lty[var.sty.by]
-        else          poly.line.sty <- poly.args$lty
+        if (vary.sty) {
+            poly.line.sty <- rep(poly.args$lty, length.out=n.sty)[var.sty.by]
+        } else {
+            poly.line.sty <- poly.args$lty
+        }
         poly.args$lty <- NULL
     } else            poly.line.sty <- exargs$lty
     ## polygon line color
@@ -418,7 +420,6 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ellipse.line.sty[is.na(ellipse.line.sty)] <- 0
     poly.line.sty[is.na(poly.line.sty)] <- 0
     hull.line.sty[is.na(hull.line.sty)] <- 0
-
     ## ## ## ## ## ## ## ## ## ## ##
     ## TOKEN / MEAN TRANSPARENCY  ##
     ## ## ## ## ## ## ## ## ## ## ##
@@ -674,6 +675,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             hull.args$x      <- cbind(i$f2, i$f1)
             with(i, do.call(polygon, hull.args))
             })
+        legend.hull.fil <- sapply(hulls, function(i) i$hull.fill.col[1])
+        legend.hull.col <- sapply(hulls, function(i) i$hull.line.col[1])
+        legend.hull.sty <- sapply(hulls, function(i) i$hull.line.sty[1])
     }
 
     ## ## ## ## ## ## ##
@@ -688,6 +692,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                              do.call(polygon, c(list(x=ellipse.points[[i]]),
                                                 ellipse.args))
                              }))
+        legend.ellipse.fil <- sapply(seq_along(ellipse.points, function(i) m$ellipse.fill.col[i]))
+        legend.ellipse.col <- sapply(seq_along(ellipse.points, function(i) m$ellipse.line.col[i]))
+        legend.ellipse.sty <- sapply(seq_along(ellipse.points, function(i) m$ellipse.line.sty[i]))
     }
 
     ## ## ## ## ## ## ##
@@ -719,6 +726,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 pargs$border <- NA
                 with(i, do.call(polygon, pargs))
             })
+            legend.poly.fil <- sapply(pp[bigenough], function(i) i$poly.fill.col[1])
         }
         if (poly.line) {
             if (plot.means) type <- "c"
@@ -732,9 +740,12 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 pargs$cex <- 1.2 * cex.means
                 pargs$col <- i$poly.line.col
                 pargs$lty <- i$poly.line.sty
-                with(i[i$v %in% poly.order,], do.call(points, pargs))
-                }))
-    }   }
+                do.call(points, pargs)
+            }))
+            legend.poly.col <- sapply(pp[bigenough], function(i) i$poly.line.col[1])
+            legend.poly.lty <- sapply(pp[bigenough], function(i) i$poly.line.sty[1])
+        }
+    }
 
     ## ## ## ## ## ##
     ## PLOT TOKENS ##
@@ -942,6 +953,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     "the legend() function.")
         } else {
             ## merge legend entry labels
+            legend.col.only <- is.null(legend.labels.for.styles)
             legend.merge <- identical(legend.labels.for.styles,
                                       legend.labels.for.colors)
             legend.labels <- legend.labels.for.styles
@@ -965,33 +977,28 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             }
             ## legend fills / borders
             legend.fil <- NULL
-            if (ellipse.fill && !is.na(m$ellipse.fill.col[1])) {
-                legend.fil <- unique(m$ellipse.fill.col)
-            } else if (poly.fill && !is.na(m$poly.fill.col[1])) {
-                legend.fil <- unique(m$poly.fill.col)
-            } else if (hull.fill) {
-                legend.fil <- unique(hull.fill.col)
-            }
+            if (exists("legend.ellipse.fil"))   legend.fil <- legend.ellipse.fil
+            else if (exists("legend.poly.fil")) legend.fil <- legend.poly.fil
+            else if (exists("legend.hull.fil")) legend.fil <- legend.hull.fil
             ## legend linetype (nb: lty=0 means do not draw)
             legend.lty <- NULL
-            if (hull.line || poly.line || ellipse.line) {
-                e.line <- shouldLineBeInLegend(ellipse.line.sty)
-                p.line <- shouldLineBeInLegend(poly.line.sty)
-                if (e.line)      legend.lty <- unique(m$ellipse.line.sty)
-                else if (p.line) legend.lty <- unique(m$poly.line.sty)
-                else             legend.lty <- unique(hull.line.sty)
-            }
+            if (exists("legend.ellipse.lty"))   legend.lty <- legend.ellipse.lty
+            else if (exists("legend.poly.lty")) legend.lty <- legend.poly.lty
+            else if (exists("legend.hull.lty")) legend.lty <- legend.hull.lty
             ## fillers
             sty.fgs <- rep(par("fg"), n.sty)
             col.fgs <- rep(22, n.col)
             sty.NAs <- rep(NA, n.sty)
             col.NAs <- rep(NA, n.col)
             ## don't show lines or boxes if all the same
-            if (length(legend.lty) < 2) legend.lty <- NULL
-            if (length(legend.fil) < 2) legend.fil <- NULL
+            if (length(unique(legend.lty)) < 2) legend.lty <- NULL
+            if (length(unique(legend.fil)) < 2) legend.fil <- NULL
             ## add pch square to show fill/line colors
             if (!legend.merge) {
-                if (!is.null(legend.pch[1])) {
+                if (legend.col.only) {
+                    legend.pch <- col.fgs
+                    legend.fil <- legend.col
+                } else if (!is.null(legend.pch[1])) {
                     legend.pch <- c(legend.pch, col.fgs)
                     if (is.null(legend.fil[1])) {
                         legend.fil <- c(sty.NAs, legend.col)
@@ -999,8 +1006,10 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                         legend.fil <- c(sty.NAs, legend.fil)
                     }
                 }
-                if (!is.null(legend.col[1])) legend.col <- c(sty.fgs, legend.col)
-                if (!is.null(legend.lty[1])) legend.lty <- c(legend.lty, col.NAs)
+                if (!legend.col.only) {
+                    if (!is.null(legend.col[1])) legend.col <- c(sty.fgs, legend.col)
+                    if (!is.null(legend.lty[1])) legend.lty <- c(legend.lty, col.NAs)
+                }
             }
             ## eliminate vacuous args
             if (identical(legend.fil, logical(0))) legend.fil <- NULL
