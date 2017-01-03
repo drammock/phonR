@@ -544,7 +544,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     }
     ## ellipse extrema
     if (ellipse.fill || ellipse.line) {
-        ellipse.param <- apply(m, 1, function(i) {
+        ellipse.param <- by(m, 1:nrow(m), function(i) {
             if (any(is.na(i$sigma))) {
                 i$sigma <- matrix(rep(0, 4), nrow=2)
                 msg <- ifelse(i$gf %in% "gf", as.character(i$v),
@@ -557,8 +557,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 message("[phonR]: No ellipse drawn for ", msg,
                         " because there are only two tokens.")
             }
-            list("mu"=i$mu, "sigma"=i$sigma, "n"=i$n, "alpha"=1 - ellipse.conf,
-                 "draw"=FALSE)
+            i$draw <- FALSE
+            i$alpha <- 1 - ellipse.conf
+            i[c("mu", "sigma", "n", "alpha", "draw")]
         })
         ellipse.points <- lapply(ellipse.param,
                                  function(i) do.call(ellipse, i))
@@ -677,7 +678,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             })
         legend.hull.fil <- sapply(hulls, function(i) i$hull.fill.col[1])
         legend.hull.col <- sapply(hulls, function(i) i$hull.line.col[1])
-        legend.hull.sty <- sapply(hulls, function(i) i$hull.line.sty[1])
+        legend.hull.lty <- sapply(hulls, function(i) i$hull.line.sty[1])
     }
 
     ## ## ## ## ## ## ##
@@ -692,9 +693,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                              do.call(polygon, c(list(x=ellipse.points[[i]]),
                                                 ellipse.args))
                              }))
-        legend.ellipse.fil <- sapply(seq_along(ellipse.points), function(i) m$ellipse.fill.col[i])
-        legend.ellipse.col <- sapply(seq_along(ellipse.points), function(i) m$ellipse.line.col[i])
-        legend.ellipse.sty <- sapply(seq_along(ellipse.points), function(i) m$ellipse.line.sty[i])
+        legend.ellipse.fil <- unique(m$ellipse.fill.col)
+        legend.ellipse.col <- unique(m$ellipse.line.col)
+        legend.ellipse.lty <- unique(m$ellipse.line.sty)
     }
 
     ## ## ## ## ## ## ##
@@ -975,6 +976,9 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 if (plot.means)       legend.col <- unique(m$col.means)
                 else if (plot.tokens) legend.col <- unique(d$col.tokens)
             }
+            else if (exists(legend.ellipse.col)) legend.col <- legend.ellipse.col
+            else if (exists(legend.poly.col))    legend.col <- legend.poly.col
+            else if (exists(legend.hull.col))    legend.col <- legend.hull.col
             ## legend fills / borders
             legend.fil <- NULL
             if (exists("legend.ellipse.fil"))   legend.fil <- legend.ellipse.fil
@@ -998,15 +1002,18 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                 if (legend.col.only) {
                     legend.pch <- col.fgs
                     legend.fil <- legend.col
-                } else if (!is.null(legend.pch[1])) {
-                    legend.pch <- c(legend.pch, col.fgs)
-                    if (is.null(legend.fil[1])) {
+                } else {
+                    if (is.null(legend.pch[1])) {
+                        legend.pch <- c(sty.NAs, col.fgs)
                         legend.fil <- c(sty.NAs, legend.col)
                     } else {
-                        legend.fil <- c(sty.NAs, legend.fil)
+                        legend.pch <- c(legend.pch, col.fgs)
+                        if (is.null(legend.fil[1])) {
+                            legend.fil <- c(sty.NAs, legend.col)
+                        } else {
+                            legend.fil <- c(sty.NAs, legend.fil)
+                        }
                     }
-                }
-                if (!legend.col.only) {
                     if (!is.null(legend.col[1])) legend.col <- c(sty.fgs, legend.col)
                     if (!is.null(legend.lty[1])) legend.lty <- c(legend.lty, col.NAs)
                 }
@@ -1340,6 +1347,8 @@ prettyTicks <- function(lim) {
 }
 
 ellipse <- function(mu, sigma, n, alpha=0.05, npoints=250, draw=TRUE, ...) {
+    if (is.list(sigma)) sigma <- matrix(unlist(sigma), nrow=2)
+    if (is.list(mu)) mu <- unlist(mu)
     if (all(sigma == matrix(rep(0, 4), nrow=2))) return(rbind(mu, mu))
     else if (n < 3) return(rbind(mu, mu))
     p <- length(mu)
