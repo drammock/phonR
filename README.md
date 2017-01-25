@@ -1,6 +1,7 @@
 # phonR
 #### tools for phoneticians and phonologists
 [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.60926.svg)](http://dx.doi.org/10.5281/zenodo.60926)
+[![Research software impact](http://depsy.org/api/package/cran/phonR/badge.svg)](http://depsy.org/package/r/phonR)
 
 Just want to learn to use `phonR`? Read the [tutorial vignette](http://drammock.github.io/phonR).
 
