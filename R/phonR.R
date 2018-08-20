@@ -282,10 +282,27 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         ## LTY: custom linetypes more readily distinguishable
         pretty.lty <- c("solid", "44", "F4", "4313", "F3131313", "23F3",
                         "232923", "23258385", "282823B3", "13", "82")
+        ## margins
         pretty.args <- list(mgp=c(2,0.5,0), xaxs="i", yaxs="i", axes=FALSE,
                             fg=hcl(0,0,40), tcl=-0.25, xpd=NA,
                             pch=pretty.pch, lty=pretty.lty, col=pretty.col)
-        pretty.par.args <- list(mar=c(1,1,5,5), las=1)
+        rightmar <- 5
+        topmar <- 5
+        if ("cex.axis" %in% names(axis.args)) {
+            rightmar <- rightmar + 2 * axis.args[["cex.axis"]] - 1
+            topmar <- topmar + axis.args[["cex.axis"]]
+        }
+        if ("cex.lab" %in% names(lab.args)) {
+            rightmar <- rightmar + 2 * lab.args[["cex"]] - 1
+            topmar <- topmar + lab.args[["cex"]]
+        }
+        if ("cex" %in% names(main.args) && nchar(main)) {
+            topmar <- topmar + main.args[["cex"]] - 1
+        }
+        if ("cex" %in% names(sub.args) && nchar(sub)) {
+            topmar <- topmar + sub.args[["cex"]] - 1
+        }
+        pretty.par.args <- list(mar=c(1,1,topmar,rightmar), las=1)
         ## legend args
         pretty.legend.args <- list(bty="n", seg.len=1)
         ## let user-specified args override "pretty" defaults
@@ -576,12 +593,30 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## ensure axes begin and end at a tickmark (unless xlim/ylim overtly set)
     if (pretty && !user.set.xlim) exargs$xlim <- rev(range(xticks))
     if (pretty && !user.set.ylim) exargs$ylim <- rev(range(yticks))
+    ## adjust axis label position as needed
+    if ("cex.axis" %in% names(axis.args)) {
+        y.line <- 2 + 1.5 * axis.args[["cex.axis"]]
+        x.line <- 1 + axis.args[["cex.axis"]]
+    } else {
+        x.line <- 2
+        y.line <- 3
+    }
+    if ("cex" %in% names(lab.args) && nchar(sub)) {
+        s.line <- x.line + lab.args[["cex"]]
+    } else {
+        s.line <- x.line + 1
+    }
+    if ("cex" %in% names(sub.args) && nchar(main)) {
+        t.line <- s.line + sub.args[["cex"]]
+    } else {
+        t.line <- s.line + 1
+    }
     ## annotation
     if (pretty) {
-        x.args <- list(side=3, line=2)
-        y.args <- list(side=4, line=3)
-        t.args <- list(side=3, line=4)
-        s.args <- list(side=3, line=3)
+        x.args <- list(side=3, line=x.line)
+        y.args <- list(side=4, line=y.line)
+        t.args <- list(side=3, line=t.line)
+        s.args <- list(side=3, line=s.line)
     } else {
         x.args <- list(side=1, line=par("mgp")[1])
         y.args <- list(side=2, line=par("mgp")[1])
