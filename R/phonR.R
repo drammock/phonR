@@ -103,6 +103,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
         axis.args <- exargs[names(exargs) %in% axis.only]
     } else {
         axis.only <- c()
+        axis.args <- list()
     }
     main.only <- c("cex.main", "col.main", "font.main")
     sub.only <- c("cex.sub",  "col.sub",  "font.sub")
