@@ -324,12 +324,22 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## color: use default pallete if none specified and pretty=FALSE
     if (!"col" %in% names(exargs)) exargs$col <- palette()
     ## linetypes & plotting characters
-    if (!"lty" %in% names(exargs)) exargs$lty <- seq_len(num.sty)
+    if (!"lty" %in% names(exargs)) {
+        if (all(var.col.by==as.numeric(factor(group, levels=unique(group))))) {
+            exargs$lty <- seq_len(num.col)
+        } else {
+            exargs$lty <- seq_len(num.sty)
+        }
+    }
     if (!"pch" %in% names(exargs)) exargs$pch <- seq_len(num.sty)
     if (!"lwd" %in% names(exargs)) exargs$lwd <- par("lwd")
     ## recycle user-specified colors to the length we need
     if (vary.col) exargs$col <- rep(exargs$col, length.out=num.col)[var.col.by]
-    if (vary.sty) exargs$lty <- rep(exargs$lty, length.out=num.sty)[var.sty.by]
+    if (all(var.col.by==as.numeric(factor(group, levels=unique(group))))) {
+        exargs$lty <- rep(exargs$lty, length.out=num.col)[var.col.by]
+    } else {
+        exargs$lty <- rep(exargs$lty, length.out=num.sty)[var.sty.by]
+    }
     if (vary.sty) exargs$pch <- rep(exargs$pch, length.out=num.sty)[var.sty.by]
     ## set defaults for token and mean plotting characters
     if (is.null(pch.tokens)) pch.t <- exargs$pch
@@ -396,9 +406,15 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     ## polygon colors
     if (poly.line) {
         if ("lty" %in% names(poly.args)) {
-            poly.args$lty <- rep(poly.args$lty, length.out=num.sty)
-            if (vary.sty) poly.line.sty <- poly.args$lty[var.sty.by]
-            else          poly.line.sty <- poly.args$lty
+            if (all(var.sty.by==as.numeric(factor(group, levels=unique(group))))) {
+                poly.args$lty <- rep(poly.args$lty, length.out=num.sty)
+                poly.line.sty <- poly.args$lty[var.sty.by]
+            } else if (all(var.col.by==as.numeric(factor(group, levels=unique(group))))) {
+                poly.args$lty <- rep(poly.args$lty, length.out=num.col)
+                poly.line.sty <- poly.args$lty[var.col.by]
+            } else {
+                poly.line.sty <- poly.args$lty
+            }
             poly.args$lty <- NULL
         } else {
             poly.line.sty <- exargs$lty
@@ -487,6 +503,8 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     }
     if (is.null(vowel) && is.null(group)) {
         byd <- list(d=d)
+    } else if (all(var.col.by==as.numeric(factor(group, levels=unique(group))))) {
+        byd <- by(d, d[c("gf","v")], identity)
     } else {
         byd <- by(d, d[c("v", "gf")], identity)
     }
@@ -1016,7 +1034,11 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     legend.lty <- rep(legend.lty,
                                       length.out=length(legend.col.lab))
                 } else if (length(legend.col.lab)) {
-                    legend.lty <- c(legend.lty, rep(NA, length(legend.col.lab)))
+                    if (all(var.col.by==as.numeric(factor(group,levels=unique(group))))) {
+                        legend.lty <- c(rep(NA, length(legend.style.lab)), legend.lty)
+                    } else {
+                        legend.lty <- c(legend.lty, rep(NA, length(legend.col.lab)))
+                    }
                 }
             }
             ## reconcile
@@ -1042,6 +1064,14 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
                     legend.brd <- legend.bgf
                     legend.col <- c(rep(par("fg"), length(legend.style.lab)),
                                     legend.col)
+                ## handle case: col.by.vowel and poly.line & sty by group
+                } else if (vary.sty && vary.col && is.null(legend.bgf) && poly.line &&
+                           all(var.sty.by==as.numeric(factor(group,levels=unique(group))))) {
+                    legend.col <- c(rep(par("fg"), length(legend.style.lab)),
+                                    legend.col)
+                    legend.bgf <- c(rep(NA, length(legend.style.lab)),
+                                    legend.col[-(1:length(legend.style.lab))])
+                    legend.brd <- legend.bgf
                 ## handle other cases
                 } else {
                     nas <- rep(NA, length(legend.style.lab))
@@ -1079,6 +1109,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
             }
             ## draw legend
             do.call(legend, legend.args)
+            # return(legend.args)
         }
     }
 
@@ -1089,6 +1120,7 @@ plotVowels <- function(f1, f2, vowel=NULL, group=NULL,
     if (output != "screen") dev.off()
     ## reset graphical parameters to defaults
     par(op)
+    # return(list(byd, group, var.col.by, legend.col))
 }
 
 
